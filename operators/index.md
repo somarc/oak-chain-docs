@@ -220,6 +220,6 @@ nc -zv validator-1.example.com 20000
 
 ## Next Steps
 
-- [Configuration Reference](/operators/configuration) - All options
-- [Monitoring](/operators/monitoring) - Detailed metrics
-- [Architecture](/architecture) - How it works
+- [Architecture](/architecture) - How the system works
+- [Consensus Model](/guide/consensus) - Aeron Raft details
+- [Economic Tiers](/guide/economics) - Payment and finality

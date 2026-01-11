@@ -20,7 +20,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173
+Then open the local dev server URL shown in terminal.
 
 ## Build
 

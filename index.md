@@ -94,5 +94,5 @@ Every write is cryptographically signed, economically backed, and replicated acr
 ## Quick Links
 
 - [**Architecture Overview**](/architecture) - How the system works
+- [**Quick Start**](/guide/) - Get running in 10 minutes
 - [**Run a Validator**](/operators/) - Join the network
-- [**ADRs**](/adr/) - Design decisions with rationale
