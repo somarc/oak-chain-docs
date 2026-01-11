@@ -6,8 +6,8 @@ hero:
   text: "Distributed Content Repository"
   tagline: Ethereum owns smart contracts. Oak owns enterprise content. We bridge the two.
   image:
-    src: /oak-chain.svg
-    alt: Oak Chain
+    src: /oak-chain-logo.jpeg
+    alt: Oak Chain - Blockchain meets Jackrabbit Oak
   actions:
     - theme: brand
       text: Get Started
