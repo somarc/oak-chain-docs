@@ -9,6 +9,7 @@ export default withMermaid(
     base: '/oak-chain-docs/',
     cleanUrls: true,
     appearance: 'dark',
+    ignoreDeadLinks: true,
     
     head: [
       ['link', { rel: 'icon', type: 'image/svg+xml', href: '/oak-chain.svg' }],
