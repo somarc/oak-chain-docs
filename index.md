@@ -53,8 +53,8 @@ graph LR
     subgraph ClusterA["Cluster A"]
         direction TB
         LA[Leader + Followers]
-        SA["✏️ /oak-chain/00-7F/*<br/>READ-WRITE"]
-        MA["👁️ /oak-chain/80-FF/*<br/>READ-ONLY"]
+        SA["✏️ /oak-chain/00-3F/*<br/>READ-WRITE"]
+        MA["👁️ /oak-chain/40-FF/*<br/>READ-ONLY"]
         LA --> SA
         LA -.-> MA
     end
@@ -62,21 +62,43 @@ graph LR
     subgraph ClusterB["Cluster B"]
         direction TB
         LB[Leader + Followers]
-        SB["✏️ /oak-chain/80-FF/*<br/>READ-WRITE"]
-        MB["👁️ /oak-chain/00-7F/*<br/>READ-ONLY"]
+        SB["✏️ /oak-chain/40-7F/*<br/>READ-WRITE"]
+        MB["👁️ /oak-chain/00-3F,80-FF/*<br/>READ-ONLY"]
         LB --> SB
         LB -.-> MB
     end
     
-    SA -->|"HTTP Segment Transfer"| MB
-    SB -->|"HTTP Segment Transfer"| MA
+    subgraph ClusterDots["..."]
+        direction TB
+        LD["Cluster 3..N-1"]
+    end
+    
+    subgraph ClusterN["Cluster N"]
+        direction TB
+        LN[Leader + Followers]
+        SN["✏️ /oak-chain/C0-FF/*<br/>READ-WRITE"]
+        MN["👁️ /oak-chain/00-BF/*<br/>READ-ONLY"]
+        LN --> SN
+        LN -.-> MN
+    end
+    
+    SA <-->|"HTTP Segment Transfer"| MB
+    SA <-->|"HTTP Segment Transfer"| MN
+    SB <-->|"HTTP Segment Transfer"| MA
+    SB <-->|"HTTP Segment Transfer"| MN
+    SN <-->|"HTTP Segment Transfer"| MA
+    SN <-->|"HTTP Segment Transfer"| MB
     
     style SA fill:#4ade80,color:#000
     style SB fill:#4ade80,color:#000
+    style SN fill:#4ade80,color:#000
     style MA fill:#64748b,color:#fff
     style MB fill:#64748b,color:#fff
+    style MN fill:#64748b,color:#fff
     style LA fill:#627EEA,color:#fff
     style LB fill:#627EEA,color:#fff
+    style LN fill:#627EEA,color:#fff
+    style LD fill:#1a1a2e,color:#888
 ```
 
 **Each cluster is sovereign over its shard, but mounts all others read-only.**
