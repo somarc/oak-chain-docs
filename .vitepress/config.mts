@@ -29,8 +29,10 @@ export default withMermaid(
       nav: [
         { text: 'Home', link: '/' },
         { text: 'Guide', link: '/guide/' },
+        { text: 'API', link: '/guide/api' },
         { text: 'Architecture', link: '/architecture' },
         { text: 'Operators', link: '/operators/' },
+        { text: 'FAQ', link: '/faq' },
       ],
 
       sidebar: {
@@ -54,9 +56,25 @@ export default withMermaid(
             ]
           },
           {
+            text: 'Developer Guide',
+            items: [
+              { text: 'API Reference', link: '/guide/api' },
+              { text: 'Authentication', link: '/guide/auth' },
+              { text: 'Testnet Guide', link: '/guide/testnet' },
+            ]
+          },
+          {
             text: 'For Operators',
             items: [
               { text: 'Running a Validator', link: '/operators/' },
+            ]
+          },
+          {
+            text: 'Resources',
+            items: [
+              { text: 'FAQ', link: '/faq' },
+              { text: 'Changelog', link: '/changelog' },
+              { text: 'Contributing', link: '/contributing' },
             ]
           },
         ],
