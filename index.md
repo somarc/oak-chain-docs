@@ -51,55 +51,61 @@ features:
 ```mermaid
 graph TB
     subgraph Authors["Content Authors"]
-        A1["Wallet 0x74...<br/>(Shard 74-2d-35)"]
-        A2["Wallet 0xAB...<br/>(Shard ab-cd-ef)"]
+        A1["Wallet 0x74..."]
+        A2["Wallet 0xAB..."]
     end
     
-    subgraph Router["Deterministic Routing"]
-        R[hash wallet → shard → cluster]
+    subgraph ClusterA["Cluster A — Authoritative for Shards 00-7F"]
+        direction TB
+        subgraph WriteA["✏️ READ-WRITE (Own Shard)"]
+            SA["/oak-chain/00/../7F/*"]
+        end
+        subgraph ReadA["👁️ READ-ONLY (Mounted)"]
+            MA["/oak-chain/80/../FF/*"]
+        end
+        LA[Leader] --> SA
+        LA -.->|mount| MA
     end
     
-    subgraph C1["Cluster A (Shards 00-7F)"]
-        L1[Leader]
-        F1a[Follower]
-        F1b[Follower]
-        L1 <-->|Raft| F1a
-        L1 <-->|Raft| F1b
+    subgraph ClusterB["Cluster B — Authoritative for Shards 80-FF"]
+        direction TB
+        subgraph WriteB["✏️ READ-WRITE (Own Shard)"]
+            SB["/oak-chain/80/../FF/*"]
+        end
+        subgraph ReadB["👁️ READ-ONLY (Mounted)"]
+            MB["/oak-chain/00/../7F/*"]
+        end
+        LB[Leader] --> SB
+        LB -.->|mount| MB
     end
     
-    subgraph C2["Cluster B (Shards 80-FF)"]
-        L2[Leader]
-        F2a[Follower]
-        F2b[Follower]
-        L2 <-->|Raft| F2a
-        L2 <-->|Raft| F2b
-    end
+    A1 -->|"hash(0x74) → Shard 74<br/>→ Cluster A"| LA
+    A2 -->|"hash(0xAB) → Shard AB<br/>→ Cluster B"| LB
     
-    subgraph Storage["Storage Layer"]
-        OAK[Oak Segments]
-        IPFS[IPFS Binaries]
-    end
+    SA <-->|"HTTP Segment<br/>Transfer"| MB
+    SB <-->|"HTTP Segment<br/>Transfer"| MA
     
-    A1 -->|"+ ETH payment"| R
-    A2 -->|"+ ETH payment"| R
-    R -->|"0x74... → Cluster A"| L1
-    R -->|"0xAB... → Cluster B"| L2
-    
-    C1 <-->|"HTTP Segment Transfer<br/>(Cross-Cluster Reads)"| C2
-    
-    L1 --> OAK
-    L2 --> OAK
-    L1 --> IPFS
-    L2 --> IPFS
-    
-    style L1 fill:#627EEA,color:#fff
-    style L2 fill:#627EEA,color:#fff
-    style F1a fill:#4ade80,color:#000
-    style F1b fill:#4ade80,color:#000
-    style F2a fill:#4ade80,color:#000
-    style F2b fill:#4ade80,color:#000
-    style R fill:#8C8DFC,color:#fff
+    style LA fill:#627EEA,color:#fff
+    style LB fill:#627EEA,color:#fff
+    style SA fill:#4ade80,color:#000
+    style SB fill:#4ade80,color:#000
+    style MA fill:#64748b,color:#fff
+    style MB fill:#64748b,color:#fff
 ```
+
+### Composite Mount Architecture
+
+Each cluster sees the **entire content graph** but can only **write to its own shard**:
+
+| Cluster | Own Shard (Read-Write) | Mounted Shards (Read-Only) |
+|---------|------------------------|---------------------------|
+| **Cluster A** | `/oak-chain/00/../7F/*` | `/oak-chain/80/../FF/*` |
+| **Cluster B** | `/oak-chain/80/../FF/*` | `/oak-chain/00/../7F/*` |
+
+This enables:
+- **Global reads** — Query any content from any cluster
+- **Local writes** — Only the authoritative cluster accepts writes
+- **Sovereignty** — Each cluster controls its shard completely
 
 ## The Model
 
