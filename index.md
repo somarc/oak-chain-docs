@@ -91,6 +91,55 @@ graph LR
 
 Authors write to their authoritative cluster. All clusters can read all content.
 
+## Scaling
+
+The architecture scales horizontally by adding clusters:
+
+| Clusters | Shards/Cluster | Wallets Supported | Read Mounts/Cluster |
+|----------|----------------|-------------------|---------------------|
+| **2** | 128 shards | ~8M wallets | 1 mount |
+| **20** | 12-13 shards | ~80M wallets | 19 mounts |
+| **50** | 5 shards | ~200M wallets | 49 mounts |
+| **100** | 2-3 shards | ~400M wallets | 99 mounts |
+| **1,000** | 16 shards* | ~4B wallets | 999 mounts |
+
+*At 1,000 clusters, shards are subdivided further (L4 sharding).
+
+```mermaid
+graph TB
+    subgraph Scale["Network at 100 Clusters"]
+        C1["Cluster 1<br/>Shards 00-02"]
+        C2["Cluster 2<br/>Shards 03-05"]
+        C3["Cluster 3<br/>Shards 06-08"]
+        CDots["..."]
+        C100["Cluster 100<br/>Shards FD-FF"]
+    end
+    
+    C1 <-.->|"99 read-only mounts"| CDots
+    C2 <-.-> CDots
+    C3 <-.-> CDots
+    C100 <-.-> CDots
+    
+    style C1 fill:#627EEA,color:#fff
+    style C2 fill:#627EEA,color:#fff
+    style C3 fill:#627EEA,color:#fff
+    style C100 fill:#627EEA,color:#fff
+    style CDots fill:#1a1a2e,color:#888
+```
+
+### Trade-offs at Scale
+
+| Scale | Writes | Reads | Sync Overhead |
+|-------|--------|-------|---------------|
+| **Small (2-20)** | Fast | Fast | Low |
+| **Medium (50-100)** | Fast | Fast | Moderate |
+| **Large (1,000+)** | Fast | Fast | High (optimized via gossip) |
+
+**Key insight**: Write throughput scales linearly (each cluster handles its shard independently). Read latency stays constant (local mount). Sync overhead grows with cluster count but is optimized via:
+- Lazy segment fetching (pull on demand)
+- Gossip-based journal propagation
+- Hierarchical sync topology
+
 ## The Model
 
 1. **Author signs** content with Ethereum wallet
