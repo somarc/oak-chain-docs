@@ -28,12 +28,21 @@ Oak Chain is a distributed content repository that bridges Ethereum's economic s
 **Wallet address IS the namespace.**
 
 ```
-/oak-chain/content/{L1}/{L2}/{L3}/0x{wallet}/{organization}/...
+/oak-chain/{L1}/{L2}/{L3}/0x{wallet}/{organization}/content/...
 ```
 
-- `{L1}/{L2}/{L3}` - Derived from wallet address hash (sharding)
-- `0x{wallet}` - Ethereum wallet address (owner)
-- `{organization}` - Optional organization scope
+- `{L1}/{L2}/{L3}` - First 6 hex chars of wallet (e.g., `74/2d/35`)
+- `0x{wallet}` - Full Ethereum wallet address (owner)
+- `{organization}` - Optional organization/brand scope
+- `content/` - Standard AEM content root within each scope
+
+**Example:**
+```
+/oak-chain/74/2d/35/0x742d35Cc6634c0532925a3b844bc9e7595f0beb/
+    ├── PixelPirates/content/       ← Gaming brand
+    ├── CryptoKitchenware/content/  ← eCommerce brand
+    └── PersonalBlog/content/       ← Personal content
+```
 
 Only the wallet owner can write to their namespace. Self-sovereign, no central authority.
 
