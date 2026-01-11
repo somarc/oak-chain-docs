@@ -12,11 +12,15 @@ export default withMermaid(
     ignoreDeadLinks: true,
     
     head: [
-      ['link', { rel: 'icon', type: 'image/svg+xml', href: '/oak-chain.svg' }],
+      ['link', { rel: 'icon', type: 'image/jpeg', href: '/oak-chain-logo.jpeg' }],
+      ['link', { rel: 'apple-touch-icon', href: '/oak-chain-logo.jpeg' }],
       ['meta', { name: 'theme-color', content: '#1a1a2e' }],
       ['meta', { property: 'og:type', content: 'website' }],
       ['meta', { property: 'og:title', content: 'Oak Chain' }],
       ['meta', { property: 'og:description', content: 'Distributed Content Repository - Ethereum meets Oak' }],
+      ['meta', { property: 'og:image', content: '/oak-chain-docs/oak-chain-logo.jpeg' }],
+      ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+      ['meta', { name: 'twitter:image', content: '/oak-chain-docs/oak-chain-logo.jpeg' }],
     ],
 
     themeConfig: {
