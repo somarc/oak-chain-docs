@@ -47,6 +47,7 @@ export default withMermaid(
               { text: 'Economic Tiers', link: '/guide/economics' },
               { text: 'Content Paths', link: '/guide/paths' },
               { text: 'Binary Storage', link: '/guide/binaries' },
+              { text: 'Real-Time Streaming', link: '/guide/streaming' },
             ]
           },
           {

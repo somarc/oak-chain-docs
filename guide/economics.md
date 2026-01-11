@@ -1,125 +1,113 @@
 # Economic Tiers
 
-Oak Chain uses Ethereum for economic security. Every write requires payment.
+Oak Chain uses Ethereum payments for economic security. Every write is backed by real value.
 
 ## Three Tiers
 
-| Tier | Latency | Price | Epochs | Use Case |
-|------|---------|-------|--------|----------|
-| **PRIORITY** | ~30s | 0.00001 ETH | 0 (bypass) | Breaking news, urgent |
-| **EXPRESS** | ~6.4min | 0.000002 ETH | 1 | Standard publishing |
-| **STANDARD** | ~12.8min | 0.000001 ETH | 2 | Batch, archives |
+| Tier | Latency | Price | Use Case |
+|------|---------|-------|----------|
+| **PRIORITY** | ~30s | 0.00001 ETH | Breaking news, urgent updates |
+| **EXPRESS** | ~6.4min | 0.000002 ETH | Standard publishing |
+| **STANDARD** | ~12.8min | 0.000001 ETH | Batch operations, archives |
 
 ## How It Works
-
-### Ethereum Epochs
-
-Ethereum finalizes in **epochs** (~6.4 minutes each):
-
-```
-Epoch N        Epoch N+1      Epoch N+2
-├──────────────┼──────────────┼──────────────┤
-│   Payment    │   Finality   │   Finality   │
-│   submitted  │   (EXPRESS)  │   (STANDARD) │
-```
-
-- **PRIORITY**: Bypasses epoch batching entirely
-- **EXPRESS**: Waits 1 epoch for finality
-- **STANDARD**: Waits 2 epochs for maximum safety
-
-### Payment Flow
 
 ```mermaid
 sequenceDiagram
     participant A as Author
     participant SC as Smart Contract
-    participant BC as Beacon Chain
+    participant ETH as Ethereum
     participant V as Validator
     participant Oak as Oak Store
     
-    A->>SC: Pay ETH (tier + amount)
-    SC->>BC: Transaction in epoch N
+    A->>SC: pay(amount, tier)
+    SC->>ETH: Record in epoch N
     A->>V: propose-write + txHash
-    V->>BC: Verify payment
-    
-    alt PRIORITY
-        V->>Oak: Commit immediately
-    else EXPRESS
-        V->>V: Wait epoch N+1
-        V->>Oak: Commit
-    else STANDARD
-        V->>V: Wait epoch N+2
-        V->>Oak: Commit
-    end
-    
-    V->>A: Success
+    V->>ETH: Verify payment
+    V->>Oak: Commit write
+    V->>A: 200 OK
 ```
 
-## Choosing a Tier
+## Epoch-Based Finality
+
+Oak Chain uses Ethereum's **epoch** system for finality:
+
+- **Epoch**: 32 slots × 12 seconds = **6.4 minutes**
+- **Finality**: 2 epochs = **~12.8 minutes**
+
+### Why Epochs?
+
+1. **Batching**: Multiple writes confirmed in one epoch check
+2. **Efficiency**: One Beacon Chain query per epoch, not per write
+3. **Security**: Ethereum's economic finality guarantees
+
+## Tier Details
 
 ### PRIORITY (~30s)
 
-**When to use:**
-- Breaking news
-- Time-sensitive updates
-- Real-time collaboration
-
-**Trade-off:** Higher cost, lower finality guarantee
-
-### EXPRESS (~6.4min)
-
-**When to use:**
-- Standard content publishing
-- Most production workloads
-- Balance of speed and cost
-
-**Trade-off:** Good balance
-
-### STANDARD (~12.8min)
-
-**When to use:**
-- Batch imports
-- Archive operations
-- Cost-sensitive workloads
-
-**Trade-off:** Lowest cost, highest latency
-
-## API Usage
-
 ```bash
-# PRIORITY write
 curl -X POST http://localhost:8090/v1/propose-write \
   -H "Content-Type: application/json" \
   -d '{
-    "path": "/oak-chain/content/news/breaking",
-    "content": "Breaking: ...",
-    "wallet": "0x...",
-    "signature": "0x...",
-    "txHash": "0x...",
-    "paymentTier": "priority"
-  }'
-
-# STANDARD write (default)
-curl -X POST http://localhost:8090/v1/propose-write \
-  -H "Content-Type: application/json" \
-  -d '{
-    "path": "/oak-chain/content/archive/2024",
+    "path": "/oak-chain/74/2d/35/0xWALLET/org/content/breaking-news",
     "content": "...",
-    "wallet": "0x...",
-    "signature": "0x...",
-    "txHash": "0x...",
-    "paymentTier": "standard"
+    "paymentTier": "priority",
+    "txHash": "0x..."
   }'
 ```
 
+- **Bypasses** epoch batching
+- **Immediate** payment verification
+- **Highest** cost
+- **Use for**: Time-sensitive content
+
+### EXPRESS (~6.4 minutes)
+
+```bash
+curl -X POST http://localhost:8090/v1/propose-write \
+  -H "Content-Type: application/json" \
+  -d '{
+    "path": "/oak-chain/74/2d/35/0xWALLET/org/content/article",
+    "content": "...",
+    "paymentTier": "express",
+    "txHash": "0x..."
+  }'
+```
+
+- **Waits** for current epoch to finalize
+- **Batched** with other EXPRESS writes
+- **Balanced** cost/latency
+- **Use for**: Normal publishing
+
+### STANDARD (~12.8 minutes)
+
+```bash
+curl -X POST http://localhost:8090/v1/propose-write \
+  -H "Content-Type: application/json" \
+  -d '{
+    "path": "/oak-chain/74/2d/35/0xWALLET/org/content/archive/2024",
+    "content": "...",
+    "paymentTier": "standard",
+    "txHash": "0x..."
+  }'
+```
+
+- **Waits** for 2 epochs (full finality)
+- **Maximum** batching efficiency
+- **Lowest** cost
+- **Use for**: Bulk imports, archives
+
 ## Smart Contract
 
-The `ValidatorPaymentV3_1` contract handles payments:
+### ValidatorPaymentV3_1
 
 ```solidity
+// Sepolia: 0x...
+// Mainnet: TBD
+
 function pay(
     address validator,
-    uint256 tier,  // 0=STANDARD, 1=EXPRESS, 2=PRIORITY
+    uint8 tier,
     bytes32 contentHash
 ) external payable {
     require(msg.value >= tierPrice[tier], "Insufficient payment");
@@ -135,59 +123,46 @@ function pay(
 }
 ```
 
-**Sepolia Contract**: `0x...` (testnet)
-
-## Epoch Batching
-
-For EXPRESS and STANDARD tiers, writes are batched by epoch:
-
-```
-Epoch N writes:
-├── Write A (wallet 0x123, EXPRESS)
-├── Write B (wallet 0x456, STANDARD)
-└── Write C (wallet 0x789, EXPRESS)
-
-Epoch N+1:
-└── Commit Write A, Write C (EXPRESS)
-
-Epoch N+2:
-└── Commit Write B (STANDARD)
-```
-
-This reduces Aeron overhead by ~80% for batched writes.
-
-## Monitoring
-
-### Current Epoch
-
-```bash
-curl http://localhost:8090/v1/epoch
-
-{
-  "currentEpoch": 12345,
-  "epochStartTime": "2024-01-10T12:00:00Z",
-  "pendingWrites": {
-    "priority": 0,
-    "express": 5,
-    "standard": 12
-  }
-}
-```
-
 ### Payment Verification
 
-```bash
-curl http://localhost:8090/v1/verify-payment?txHash=0x...
+Validators verify payments by:
 
-{
-  "verified": true,
-  "tier": "express",
-  "amount": "0.000002",
-  "epoch": 12340
-}
+1. Querying Beacon Chain for epoch data
+2. Checking `PaymentReceived` events in that epoch
+3. Matching `txHash` to event
+4. Verifying amount ≥ tier minimum
+
+## Pricing Rationale
+
+| Factor | Impact |
+|--------|--------|
+| **Ethereum gas** | Base cost for payment tx |
+| **Validator compute** | Consensus + storage |
+| **Replication** | 3+ copies across network |
+| **Finality guarantee** | Economic security |
+
+Prices are set to:
+- Cover validator operating costs
+- Discourage spam
+- Remain accessible for legitimate use
+
+## Mock Mode
+
+For development, use `OAK_BLOCKCHAIN_MODE=mock`:
+
+```bash
+# No real payment required
+curl -X POST http://localhost:8090/v1/propose-write \
+  -d '{
+    "path": "/oak-chain/test/content/hello",
+    "content": "Hello!",
+    "paymentTier": "standard",
+    "wallet": "0x1234...",
+    "signature": "mock"
+  }'
 ```
 
 ## Next Steps
 
-- [Content Paths](/guide/paths) - Namespace structure
-- [Run a Validator](/operators/) - Earn from payments
+- [Consensus Model](/guide/consensus) - How Aeron Raft works
+- [Run a Validator](/operators/) - Join the network
