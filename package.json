@@ -1,0 +1,30 @@
+{
+  "name": "oak-chain-docs",
+  "version": "1.0.0",
+  "description": "Oak Chain - Distributed Content Repository bridging Ethereum and Oak",
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "vitepress": "^1.5.0",
+    "vitepress-plugin-mermaid": "^2.0.17",
+    "mermaid": "^11.4.0"
+  },
+  "keywords": [
+    "blockchain",
+    "ethereum",
+    "oak",
+    "content-repository",
+    "distributed-systems",
+    "consensus",
+    "aeron"
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/somarc/oak-chain-docs"
+  }
+}

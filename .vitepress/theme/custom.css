@@ -1,0 +1,99 @@
+/**
+ * Oak Chain - Ethereum Dark Theme
+ * 
+ * Palette:
+ * - Ethereum Purple: #627EEA
+ * - Light Purple: #8C8DFC  
+ * - Deep Space: #0f0f23
+ * - Dark Navy: #1a1a2e
+ */
+
+:root {
+  --vp-c-brand-1: #627EEA;
+  --vp-c-brand-2: #8C8DFC;
+  --vp-c-brand-3: #a5a6ff;
+  --vp-c-brand-soft: rgba(98, 126, 234, 0.14);
+  --vp-font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --vp-font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.dark {
+  --vp-c-bg: #0f0f23;
+  --vp-c-bg-alt: #1a1a2e;
+  --vp-c-bg-elv: #16213e;
+  --vp-c-bg-soft: #1a1a2e;
+  --vp-c-border: rgba(98, 126, 234, 0.2);
+  --vp-c-divider: rgba(98, 126, 234, 0.1);
+  --vp-c-text-1: rgba(255, 255, 255, 0.95);
+  --vp-c-text-2: rgba(255, 255, 255, 0.7);
+  --vp-code-block-bg: #0a0a1a;
+  --vp-sidebar-bg-color: #0f0f23;
+  --vp-nav-bg-color: rgba(15, 15, 35, 0.95);
+}
+
+:root {
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(135deg, #627EEA 0%, #8C8DFC 50%, #a5a6ff 100%);
+  --vp-home-hero-image-background-image: linear-gradient(135deg, rgba(98, 126, 234, 0.3) 0%, rgba(140, 141, 252, 0.3) 100%);
+  --vp-home-hero-image-filter: blur(44px);
+}
+
+.VPButton.brand {
+  background: linear-gradient(135deg, #627EEA 0%, #8C8DFC 100%);
+  border: none;
+  box-shadow: 0 0 20px rgba(98, 126, 234, 0.3);
+}
+
+.VPButton.brand:hover {
+  box-shadow: 0 0 30px rgba(98, 126, 234, 0.5);
+  transform: translateY(-1px);
+}
+
+.dark blockquote {
+  border-left: 3px solid var(--vp-c-brand-1);
+  background: rgba(98, 126, 234, 0.05);
+  padding: 1rem 1.5rem;
+  border-radius: 0 8px 8px 0;
+}
+
+.dark h2 {
+  color: var(--vp-c-brand-2);
+}
+
+.dark div[class*='language-'] {
+  background-color: #0a0a1a;
+  border: 1px solid rgba(98, 126, 234, 0.15);
+  border-radius: 8px;
+}
+
+.dark :not(pre) > code {
+  background-color: rgba(98, 126, 234, 0.1);
+  color: var(--vp-c-brand-2);
+}
+
+.dark .VPNav {
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(98, 126, 234, 0.1);
+}
+
+.dark .VPSidebar {
+  border-right: 1px solid rgba(98, 126, 234, 0.1);
+}
+
+.dark .VPFooter {
+  border-top: 1px solid rgba(98, 126, 234, 0.1);
+  background-color: #0a0a1a;
+}
+
+.dark ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0f0f23;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(98, 126, 234, 0.3);
+  border-radius: 4px;
+}
