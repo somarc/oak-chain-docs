@@ -1,0 +1,186 @@
+# Documentation Gaps & Future Improvements
+
+> **Status**: Not staged - review and address over time  
+> **Last Updated**: January 10, 2026
+
+This file tracks gaps and improvements needed to maintain 100/100 documentation quality.
+
+---
+
+## Content Gaps
+
+### High Priority
+
+| Gap | Description | Effort |
+|-----|-------------|--------|
+| **Smart Contract Address** | Testnet guide has TBD for Sepolia contract address | Deploy contract |
+| **SDK Package** | API docs reference `@oak-chain/sdk` which doesn't exist yet | Build SDK |
+| **Production URL** | API reference shows `validator.oak-chain.io` (future) | Deploy infra |
+
+### Medium Priority
+
+| Gap | Description | Effort |
+|-----|-------------|--------|
+| **GraphQL API** | FAQ mentions GraphQL as roadmap item - no docs | Design + implement |
+| **Access Control** | FAQ mentions ACLs as roadmap - no docs | Design + implement |
+| **Content Versioning** | FAQ mentions versioning as roadmap - no docs | Design + implement |
+| **Video Tutorials** | No video content for visual learners | Record videos |
+| **Interactive Examples** | No live playground/sandbox | Build playground |
+
+### Low Priority
+
+| Gap | Description | Effort |
+|-----|-------------|--------|
+| **Translations** | English only | Community translations |
+| **Performance Benchmarks** | No throughput/latency numbers | Run benchmarks |
+| **Case Studies** | No real-world usage examples | Gather from users |
+| **Comparison Pages** | vs IPFS, vs Arweave, vs Ceramic | Write comparisons |
+
+---
+
+## Technical Accuracy
+
+### Needs Verification
+
+- [ ] API endpoint paths match actual implementation
+- [ ] Error codes match actual server responses
+- [ ] Payment tier prices match smart contract
+- [ ] Epoch timing matches Beacon Chain spec
+- [ ] Rate limits match actual server config
+
+### Needs Code Examples Tested
+
+- [ ] JavaScript signing flow
+- [ ] MetaMask connection
+- [ ] WalletConnect integration
+- [ ] ethers.js payment code
+- [ ] SSE streaming client
+
+---
+
+## UX Improvements
+
+### Navigation
+
+- [ ] Add breadcrumbs
+- [ ] Add "On this page" anchor links (partially done)
+- [ ] Add previous/next page navigation
+- [ ] Add related pages suggestions
+
+### Search
+
+- [ ] Verify local search indexes all pages
+- [ ] Add search analytics to find gaps
+- [ ] Consider Algolia for better search
+
+### Mobile
+
+- [ ] Test all pages on mobile
+- [ ] Verify mermaid diagrams render on mobile
+- [ ] Check code block horizontal scroll
+
+---
+
+## Missing Diagrams
+
+| Page | Needed Diagram |
+|------|----------------|
+| Architecture | Full system diagram (all components) |
+| Paths | Visual path tree structure |
+| Testnet | Payment flow sequence diagram |
+| Auth | Token/session lifecycle |
+
+---
+
+## API Reference Gaps
+
+### Undocumented Endpoints
+
+- [ ] `GET /segments/{id}` - needs more detail
+- [ ] `GET /journal.log` - needs format documentation
+- [ ] `GET /manifest` - not documented at all
+- [ ] Dashboard endpoints - not documented
+
+### Missing Response Examples
+
+- [ ] Pagination responses
+- [ ] Bulk operation responses
+- [ ] Streaming reconnection handling
+
+---
+
+## Operator Guide Gaps
+
+### Missing Sections
+
+- [ ] Backup and restore procedures
+- [ ] Disaster recovery
+- [ ] Scaling guidelines
+- [ ] Cost estimation calculator
+- [ ] Security hardening checklist
+- [ ] Log analysis guide
+- [ ] Alerting setup (PagerDuty, etc.)
+
+### Configuration Reference
+
+- [ ] Full environment variable list
+- [ ] JVM tuning options
+- [ ] Aeron tuning parameters
+- [ ] Oak segment store config
+
+---
+
+## Community & Ecosystem
+
+### Missing Pages
+
+- [ ] Ecosystem / integrations page
+- [ ] Showcase of projects using Oak Chain
+- [ ] Community resources (Discord, forum)
+- [ ] Events / talks / presentations
+
+### External Links Needed
+
+- [ ] Link to Aeron documentation
+- [ ] Link to Oak documentation
+- [ ] Link to Ethereum docs
+- [ ] Link to IPFS docs
+
+---
+
+## Maintenance Tasks
+
+### Regular Updates Needed
+
+- [ ] Changelog after each release
+- [ ] FAQ as questions come in
+- [ ] Testnet info if contracts redeploy
+- [ ] Price updates if tiers change
+
+### Automation Opportunities
+
+- [ ] Auto-generate API docs from OpenAPI spec
+- [ ] Auto-update changelog from git tags
+- [ ] Link checker CI job
+- [ ] Screenshot automation for UI changes
+
+---
+
+## Review Checklist
+
+When addressing gaps, verify:
+
+- [ ] Content is accurate and tested
+- [ ] Links work (internal and external)
+- [ ] Code examples run successfully
+- [ ] Diagrams render correctly
+- [ ] Mobile view looks good
+- [ ] Search indexes the new content
+
+---
+
+## Notes
+
+*Add notes here as gaps are discovered or addressed*
+
+- 2026-01-10: Initial gap analysis after 100/100 push
