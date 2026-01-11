@@ -2,6 +2,5 @@
 node_modules/
 .vitepress/cache/
 .vitepress/dist/
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
