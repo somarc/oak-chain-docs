@@ -68,6 +68,20 @@ Yes. Submit a delete proposal with your wallet signature. The content is removed
 - IPFS binaries remain until unpinned
 - Blockchain payment records are permanent
 
+### What about abandoned or spam content?
+
+Oak Chain introduces **cross-cluster garbage collection proposals**:
+
+| Scenario | Who Proposes | Outcome |
+|----------|--------------|---------|
+| Owner deletes | Content owner | Immediate removal |
+| Abandoned content | Any cluster | Flagged for review |
+| Spam/abuse | Validator consensus | Community decision |
+
+Since clusters mount each other read-only, they can observe content quality. If Cluster B sees spam in Cluster A's shard, Cluster B can propose deletion. The authoritative cluster (A) decides whether to accept.
+
+This creates a **community moderation layer** without central authority - clusters have economic incentive to maintain quality (validators want a reputable network).
+
 ### What happens if a validator goes down?
 
 Raft consensus handles failures automatically:
@@ -94,6 +108,24 @@ Payments provide:
 1. **Spam prevention** - Cost deters abuse
 2. **Validator incentives** - Operators earn for storage
 3. **Economic finality** - Ethereum secures the network
+4. **Quality filter** - Only content worth publishing gets published
+
+### Is Oak Chain for everything?
+
+**No.** Oak Chain is for *published* content meant to be seen and shared.
+
+| Use Case | Oak Chain? | Why |
+|----------|------------|-----|
+| Public website | ✅ Yes | Meant to be seen |
+| Product catalog | ✅ Yes | Shared with customers |
+| Press releases | ✅ Yes | Public announcements |
+| Internal drafts | ❌ No | Keep on enterprise AEM |
+| Dev/test content | ❌ No | Use testnet or local |
+| Bulk data dumps | ❌ No | Economically prohibitive |
+
+**The economic filter**: Writing costs ETH. This naturally curates the network - you won't pay to store garbage. But the network is open, so low-quality content isn't *excluded*, just *discouraged* by cost.
+
+> **Think of it like publishing**: You *could* print anything, but printing costs money, so you publish what matters.
 
 ### How much does it cost?
 
