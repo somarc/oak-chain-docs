@@ -49,63 +49,47 @@ features:
 ## How It Works
 
 ```mermaid
-graph TB
-    subgraph Authors["Content Authors"]
-        A1["Wallet 0x74..."]
-        A2["Wallet 0xAB..."]
-    end
-    
-    subgraph ClusterA["Cluster A — Authoritative for Shards 00-7F"]
+graph LR
+    subgraph ClusterA["Cluster A"]
         direction TB
-        subgraph WriteA["✏️ READ-WRITE (Own Shard)"]
-            SA["/oak-chain/00/../7F/*"]
-        end
-        subgraph ReadA["👁️ READ-ONLY (Mounted)"]
-            MA["/oak-chain/80/../FF/*"]
-        end
-        LA[Leader] --> SA
-        LA -.->|mount| MA
+        LA[Leader + Followers]
+        SA["✏️ /oak-chain/00-7F/*<br/>READ-WRITE"]
+        MA["👁️ /oak-chain/80-FF/*<br/>READ-ONLY"]
+        LA --> SA
+        LA -.-> MA
     end
     
-    subgraph ClusterB["Cluster B — Authoritative for Shards 80-FF"]
+    subgraph ClusterB["Cluster B"]
         direction TB
-        subgraph WriteB["✏️ READ-WRITE (Own Shard)"]
-            SB["/oak-chain/80/../FF/*"]
-        end
-        subgraph ReadB["👁️ READ-ONLY (Mounted)"]
-            MB["/oak-chain/00/../7F/*"]
-        end
-        LB[Leader] --> SB
-        LB -.->|mount| MB
+        LB[Leader + Followers]
+        SB["✏️ /oak-chain/80-FF/*<br/>READ-WRITE"]
+        MB["👁️ /oak-chain/00-7F/*<br/>READ-ONLY"]
+        LB --> SB
+        LB -.-> MB
     end
     
-    A1 -->|"hash(0x74) → Shard 74<br/>→ Cluster A"| LA
-    A2 -->|"hash(0xAB) → Shard AB<br/>→ Cluster B"| LB
+    SA -->|"HTTP Segment Transfer"| MB
+    SB -->|"HTTP Segment Transfer"| MA
     
-    SA <-->|"HTTP Segment<br/>Transfer"| MB
-    SB <-->|"HTTP Segment<br/>Transfer"| MA
-    
-    style LA fill:#627EEA,color:#fff
-    style LB fill:#627EEA,color:#fff
     style SA fill:#4ade80,color:#000
     style SB fill:#4ade80,color:#000
     style MA fill:#64748b,color:#fff
     style MB fill:#64748b,color:#fff
+    style LA fill:#627EEA,color:#fff
+    style LB fill:#627EEA,color:#fff
 ```
 
-### Composite Mount Architecture
+**Each cluster is sovereign over its shard, but mounts all others read-only.**
 
-Each cluster sees the **entire content graph** but can only **write to its own shard**:
+| | Cluster A | Cluster B |
+|---|-----------|-----------|
+| **Writes** | `/oak-chain/00-7F/*` | `/oak-chain/80-FF/*` |
+| **Reads** | Everything | Everything |
 
-| Cluster | Own Shard (Read-Write) | Mounted Shards (Read-Only) |
-|---------|------------------------|---------------------------|
-| **Cluster A** | `/oak-chain/00/../7F/*` | `/oak-chain/80/../FF/*` |
-| **Cluster B** | `/oak-chain/80/../FF/*` | `/oak-chain/00/../7F/*` |
+- **Wallet 0x74...** → hash maps to shard `74` → **Cluster A** is authoritative
+- **Wallet 0xAB...** → hash maps to shard `AB` → **Cluster B** is authoritative
 
-This enables:
-- **Global reads** — Query any content from any cluster
-- **Local writes** — Only the authoritative cluster accepts writes
-- **Sovereignty** — Each cluster controls its shard completely
+Authors write to their authoritative cluster. All clusters can read all content.
 
 ## The Model
 
