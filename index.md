@@ -99,7 +99,7 @@ Every write is cryptographically signed, economically backed, and replicated acr
 
 ---
 
-<div style="text-align: center; margin-top: 3rem;">
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 3rem;">
   <img src="/oak-chain-logo.jpeg" alt="Oak Chain" style="max-width: 400px; border-radius: 12px; box-shadow: 0 8px 32px rgba(98, 126, 234, 0.3);" />
   <p style="color: #888; margin-top: 1rem; font-style: italic;">Jackrabbit Oak meets Blockchain</p>
 </div>
