@@ -46,14 +46,6 @@ features:
     link: /guide/paths
 ---
 
----
-
-<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 3rem 0;">
-  <img src="/ethereum-ethos.jpeg" alt="Like gravity. Like oxygen. Some things should just work. For everyone. Forever." style="max-width: 500px; border-radius: 8px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);" />
-</div>
-
----
-
 ## How It Works
 
 ```mermaid
@@ -191,6 +183,10 @@ Every write is cryptographically signed, economically backed, and replicated. Wa
 - [**Run a Validator**](/operators/) - Join the network
 
 ---
+
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 3rem;">
+  <img src="/ethereum-ethos.jpeg" alt="Like gravity. Like oxygen. Some things should just work. For everyone. Forever." style="max-width: 500px; border-radius: 8px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);" />
+</div>
 
 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 3rem;">
   <img src="/oak-chain-logo.jpeg" alt="Oak Chain" style="max-width: 400px; border-radius: 12px; box-shadow: 0 8px 32px rgba(98, 126, 234, 0.3);" />
