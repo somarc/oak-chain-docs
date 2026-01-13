@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "Oak Chain"
   text: "Distributed Content Repository"
-  tagline: Some things should just work. For everyone. Forever.
+  tagline: Ethereum meets Oak. Some things should just work. For everyone. Forever.
   image:
     src: /oak-chain.svg
     alt: Oak Chain
