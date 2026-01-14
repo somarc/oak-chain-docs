@@ -25,7 +25,7 @@ interface Edge {
 }
 
 const props = defineProps<{
-  flow: 'write' | 'payment' | 'ipfs' | 'consensus' | 'architecture'
+  flow: 'write' | 'payment' | 'ipfs' | 'consensus' | 'architecture' | 'gc-overview' | 'gc-compaction' | 'gc-generations' | 'gc-cleanup' | 'gc-modes'
   height?: number
   interactive?: boolean
 }>()
@@ -66,6 +66,11 @@ const width = computed(() => {
   switch (props.flow) {
     case 'architecture': return 800
     case 'consensus': return 700
+    case 'gc-overview': return 900
+    case 'gc-compaction': return 950
+    case 'gc-generations': return 900
+    case 'gc-cleanup': return 900
+    case 'gc-modes': return 900
     default: return 850
   }
 })
@@ -88,6 +93,21 @@ function initFlow() {
       break
     case 'architecture':
       initArchitectureFlow()
+      break
+    case 'gc-overview':
+      initGCOverviewFlow()
+      break
+    case 'gc-compaction':
+      initGCCompactionFlow()
+      break
+    case 'gc-generations':
+      initGCGenerationsFlow()
+      break
+    case 'gc-cleanup':
+      initGCCleanupFlow()
+      break
+    case 'gc-modes':
+      initGCModesFlow()
       break
   }
 }
@@ -232,6 +252,138 @@ function initArchitectureFlow() {
   addEdge('validator2', 'eds', 'DATA', { label: 'serve' })
 }
 
+// ============================================================================
+// GC FLOW INITIALIZERS
+// ============================================================================
+
+function initGCOverviewFlow() {
+  nodes.value = []
+  edges.value = []
+  
+  addNode('trigger', 'CONSENSUS', 70, 220, { label: 'GC Trigger', description: 'Scheduled or manual GC start' })
+  addNode('estimation', 'SEGMENT', 210, 110, { label: 'Estimation', description: 'Calculate garbage ratio in store' })
+  addNode('generation', 'TRANSACTION', 210, 330, { label: 'New Generation', description: 'Create new generation number' })
+  addNode('compaction', 'OAK_STORE', 400, 220, { label: 'Compaction', description: 'Copy live data to new generation' })
+  addNode('concurrent', 'AUTHOR', 400, 70, { label: 'Concurrent Writes', description: 'System continues accepting writes' })
+  addNode('force', 'SIGNATURE', 400, 370, { label: 'Force Compact', description: 'Block writes if needed' })
+  addNode('cleanup', 'VALIDATOR', 590, 220, { label: 'Cleanup', description: 'Delete old generation TAR files' })
+  addNode('reclaimed', 'CONTENT', 750, 220, { label: 'Space Reclaimed', description: 'Disk space freed' })
+  
+  addEdge('trigger', 'estimation', 'CONTROL', { label: 'start' })
+  addEdge('trigger', 'generation', 'DATA', { label: 'create' })
+  addEdge('estimation', 'compaction', 'CONTROL', { label: 'if >25%' })
+  addEdge('generation', 'compaction', 'DATA', { label: 'target gen' })
+  addEdge('compaction', 'concurrent', 'ASYNC', { label: 'parallel' })
+  addEdge('concurrent', 'compaction', 'DATA', { label: 'catch-up' })
+  addEdge('compaction', 'force', 'CONTROL', { label: 'if stuck' })
+  addEdge('force', 'cleanup', 'CONTROL', { label: 'complete' })
+  addEdge('compaction', 'cleanup', 'DATA', { label: 'success' })
+  addEdge('cleanup', 'reclaimed', 'DATA', { label: 'delete' })
+}
+
+function initGCCompactionFlow() {
+  nodes.value = []
+  edges.value = []
+  
+  addNode('journal', 'CONTENT', 70, 240, { label: 'Journal Head', description: 'Current repository state reference' })
+  addNode('traverse', 'CONSENSUS', 200, 140, { label: 'Tree Traversal', description: 'Walk content tree from root' })
+  addNode('checkpoints', 'SIGNATURE', 200, 340, { label: 'Checkpoints', description: 'Async indexing save points' })
+  addNode('old_gen', 'SEGMENT', 370, 90, { label: 'Old Generation', description: 'Segments in previous generation' })
+  addNode('reachable', 'VALIDATOR', 370, 240, { label: 'Reachability Check', description: 'Is segment referenced?' })
+  addNode('garbage', 'TRANSACTION', 370, 390, { label: 'Garbage', description: 'Unreachable segments (70-90%)' })
+  addNode('copy', 'OAK_STORE', 540, 160, { label: 'Copy Live Data', description: 'Write to new generation segments' })
+  addNode('new_gen', 'SEGMENT', 700, 160, { label: 'New Generation', description: 'Compacted segments (10-30%)' })
+  addNode('new_journal', 'CONTENT', 700, 320, { label: 'New Journal', description: 'Updated head reference' })
+  
+  addEdge('journal', 'traverse', 'DATA', { label: 'root' })
+  addEdge('journal', 'checkpoints', 'DATA', { label: 'refs' })
+  addEdge('traverse', 'old_gen', 'CONTROL', { label: 'read' })
+  addEdge('checkpoints', 'reachable', 'DATA', { label: 'mark' })
+  addEdge('old_gen', 'reachable', 'DATA', { label: 'check' })
+  addEdge('reachable', 'garbage', 'ASYNC', { label: 'unreachable' })
+  addEdge('reachable', 'copy', 'DATA', { label: 'live' })
+  addEdge('copy', 'new_gen', 'DATA', { label: 'write' })
+  addEdge('new_gen', 'new_journal', 'CONTROL', { label: 'commit' })
+  addEdge('traverse', 'copy', 'CONTROL', { label: 'compact' })
+}
+
+function initGCGenerationsFlow() {
+  nodes.value = []
+  edges.value = []
+  
+  addNode('gen1', 'SEGMENT', 90, 130, { label: 'Generation 1', description: 'Oldest generation (to be deleted)' })
+  addNode('gen2', 'SEGMENT', 90, 320, { label: 'Generation 2', description: 'Previous generation (retained)' })
+  addNode('gen3', 'OAK_STORE', 280, 225, { label: 'Generation 3', description: 'Current generation (active)' })
+  addNode('gc_cycle', 'CONSENSUS', 470, 130, { label: 'GC Cycle', description: 'Compaction creates new generation' })
+  addNode('gen4', 'OAK_STORE', 660, 225, { label: 'Generation 4', description: 'New generation after GC' })
+  addNode('delete', 'TRANSACTION', 470, 320, { label: 'Delete Gen 1', description: 'Oldest generation removed' })
+  addNode('retain', 'VALIDATOR', 660, 370, { label: 'Retain 2 Gens', description: 'Safety buffer for readers' })
+  
+  addEdge('gen1', 'gc_cycle', 'ASYNC', { label: 'mark old' })
+  addEdge('gen2', 'gen3', 'DATA', { label: 'refs' })
+  addEdge('gen3', 'gc_cycle', 'DATA', { label: 'compact' })
+  addEdge('gc_cycle', 'gen4', 'DATA', { label: 'create' })
+  addEdge('gc_cycle', 'delete', 'CONTROL', { label: 'cleanup' })
+  addEdge('delete', 'gen1', 'CONTROL', { label: 'remove' })
+  addEdge('gen2', 'retain', 'ASYNC', { label: 'keep' })
+  addEdge('gen4', 'retain', 'DATA', { label: 'new current' })
+}
+
+function initGCCleanupFlow() {
+  nodes.value = []
+  edges.value = []
+  
+  addNode('tar_files', 'SEGMENT', 70, 205, { label: 'TAR Files', description: 'Segment archive files on disk' })
+  addNode('scan', 'CONSENSUS', 210, 110, { label: 'Scan TAR', description: 'Check each segment in TAR' })
+  addNode('live_segs', 'OAK_STORE', 210, 300, { label: 'Live Segments', description: 'Still referenced by current gen' })
+  addNode('dead_segs', 'TRANSACTION', 390, 205, { label: 'Dead Segments', description: 'Not referenced, reclaimable' })
+  addNode('rewrite', 'VALIDATOR', 390, 350, { label: 'Rewrite TAR', description: 'Copy live segments to new TAR' })
+  addNode('mark', 'SIGNATURE', 560, 110, { label: 'Mark Deletable', description: 'TAR file marked for removal' })
+  addNode('reaper', 'CONSENSUS', 560, 300, { label: 'File Reaper', description: 'Background deletion thread' })
+  addNode('deleted', 'CONTENT', 730, 205, { label: 'Files Deleted', description: 'Disk space reclaimed' })
+  
+  addEdge('tar_files', 'scan', 'DATA', { label: 'iterate' })
+  addEdge('tar_files', 'live_segs', 'DATA', { label: 'check refs' })
+  addEdge('scan', 'dead_segs', 'CONTROL', { label: 'unreachable' })
+  addEdge('live_segs', 'rewrite', 'DATA', { label: 'if partial' })
+  addEdge('dead_segs', 'mark', 'CONTROL', { label: 'empty TAR' })
+  addEdge('rewrite', 'mark', 'ASYNC', { label: 'old TAR' })
+  addEdge('mark', 'reaper', 'CONTROL', { label: 'queue' })
+  addEdge('reaper', 'deleted', 'DATA', { label: 'unlink' })
+}
+
+function initGCModesFlow() {
+  nodes.value = []
+  edges.value = []
+  
+  // Online GC path (top)
+  addNode('online_start', 'CONSENSUS', 70, 120, { label: 'Online GC', description: 'Runs while system is live' })
+  addNode('estimation', 'SEGMENT', 230, 70, { label: 'Estimation', description: 'Check if GC needed' })
+  addNode('tail_compact', 'OAK_STORE', 400, 70, { label: 'Tail Compaction', description: 'Compact recent revisions only' })
+  addNode('full_compact', 'OAK_STORE', 400, 180, { label: 'Full Compaction', description: 'Compact all revisions' })
+  addNode('retry_loop', 'VALIDATOR', 560, 120, { label: 'Retry Loop', description: 'Handle concurrent writes' })
+  
+  // Offline GC path (bottom)
+  addNode('offline_start', 'TRANSACTION', 70, 350, { label: 'Offline GC', description: 'Exclusive access to store' })
+  addNode('no_estimation', 'SIGNATURE', 230, 350, { label: 'Skip Estimation', description: 'Human decided GC needed' })
+  addNode('offline_compact', 'OAK_STORE', 400, 350, { label: 'Full Compaction', description: 'No concurrent writes' })
+  addNode('single_gen', 'SEGMENT', 560, 350, { label: 'Single Generation', description: 'Only 1 gen retained' })
+  
+  // Shared cleanup
+  addNode('cleanup', 'VALIDATOR', 730, 235, { label: 'Cleanup', description: 'Delete old TAR files' })
+  
+  addEdge('online_start', 'estimation', 'CONTROL', { label: 'check' })
+  addEdge('estimation', 'tail_compact', 'CONTROL', { label: 'tail mode' })
+  addEdge('estimation', 'full_compact', 'CONTROL', { label: 'full mode' })
+  addEdge('tail_compact', 'retry_loop', 'DATA', { label: 'concurrent' })
+  addEdge('full_compact', 'retry_loop', 'DATA', { label: 'concurrent' })
+  addEdge('retry_loop', 'cleanup', 'CONTROL', { label: 'success' })
+  addEdge('offline_start', 'no_estimation', 'CONTROL', { label: 'skip' })
+  addEdge('no_estimation', 'offline_compact', 'DATA', { label: 'always full' })
+  addEdge('offline_compact', 'single_gen', 'DATA', { label: 'exclusive' })
+  addEdge('single_gen', 'cleanup', 'CONTROL', { label: 'max cleanup' })
+}
+
 function getEdgePath(edge: Edge): string {
   const fromNode = nodes.value.find(n => n.id === edge.from)
   const toNode = nodes.value.find(n => n.id === edge.to)
@@ -325,6 +477,50 @@ async function playAnimation() {
       [{ from: 'validator2', to: 'validator3', color: '#8C8DFC' }],
       [{ from: 'validator3', to: 'ipfs', color: '#65c2cb' }],
       [{ from: 'validator2', to: 'eds', color: '#627EEA' }],
+    ],
+    'gc-overview': [
+      [{ from: 'trigger', to: 'estimation', color: '#8C8DFC' }, { from: 'trigger', to: 'generation', color: '#627EEA' }],
+      [{ from: 'estimation', to: 'compaction', color: '#8C8DFC' }, { from: 'generation', to: 'compaction', color: '#627EEA' }],
+      [{ from: 'compaction', to: 'concurrent', color: '#65c2cb' }],
+      [{ from: 'concurrent', to: 'compaction', color: '#627EEA' }],
+      [{ from: 'compaction', to: 'cleanup', color: '#627EEA' }],
+      [{ from: 'cleanup', to: 'reclaimed', color: '#627EEA' }],
+    ],
+    'gc-compaction': [
+      [{ from: 'journal', to: 'traverse', color: '#627EEA' }, { from: 'journal', to: 'checkpoints', color: '#627EEA' }],
+      [{ from: 'traverse', to: 'old_gen', color: '#8C8DFC' }],
+      [{ from: 'checkpoints', to: 'reachable', color: '#627EEA' }, { from: 'old_gen', to: 'reachable', color: '#627EEA' }],
+      [{ from: 'reachable', to: 'garbage', color: '#f85149' }],
+      [{ from: 'reachable', to: 'copy', color: '#627EEA' }, { from: 'traverse', to: 'copy', color: '#8C8DFC' }],
+      [{ from: 'copy', to: 'new_gen', color: '#627EEA' }],
+      [{ from: 'new_gen', to: 'new_journal', color: '#8C8DFC' }],
+    ],
+    'gc-generations': [
+      [{ from: 'gen1', to: 'gc_cycle', color: '#65c2cb' }],
+      [{ from: 'gen2', to: 'gen3', color: '#627EEA' }],
+      [{ from: 'gen3', to: 'gc_cycle', color: '#627EEA' }],
+      [{ from: 'gc_cycle', to: 'gen4', color: '#627EEA' }],
+      [{ from: 'gc_cycle', to: 'delete', color: '#8C8DFC' }],
+      [{ from: 'delete', to: 'gen1', color: '#f85149' }],
+      [{ from: 'gen2', to: 'retain', color: '#65c2cb' }, { from: 'gen4', to: 'retain', color: '#627EEA' }],
+    ],
+    'gc-cleanup': [
+      [{ from: 'tar_files', to: 'scan', color: '#627EEA' }, { from: 'tar_files', to: 'live_segs', color: '#627EEA' }],
+      [{ from: 'scan', to: 'dead_segs', color: '#8C8DFC' }],
+      [{ from: 'live_segs', to: 'rewrite', color: '#627EEA' }],
+      [{ from: 'dead_segs', to: 'mark', color: '#8C8DFC' }, { from: 'rewrite', to: 'mark', color: '#65c2cb' }],
+      [{ from: 'mark', to: 'reaper', color: '#8C8DFC' }],
+      [{ from: 'reaper', to: 'deleted', color: '#627EEA' }],
+    ],
+    'gc-modes': [
+      [{ from: 'online_start', to: 'estimation', color: '#8C8DFC' }],
+      [{ from: 'estimation', to: 'tail_compact', color: '#8C8DFC' }],
+      [{ from: 'tail_compact', to: 'retry_loop', color: '#627EEA' }],
+      [{ from: 'retry_loop', to: 'cleanup', color: '#8C8DFC' }],
+      [{ from: 'offline_start', to: 'no_estimation', color: '#8C8DFC' }],
+      [{ from: 'no_estimation', to: 'offline_compact', color: '#627EEA' }],
+      [{ from: 'offline_compact', to: 'single_gen', color: '#627EEA' }],
+      [{ from: 'single_gen', to: 'cleanup', color: '#8C8DFC' }],
     ],
   }
   

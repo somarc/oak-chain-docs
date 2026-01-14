@@ -55,6 +55,7 @@ export default withMermaid(
               { text: 'Content Paths', link: '/guide/paths' },
               { text: 'Binary Storage', link: '/guide/binaries' },
               { text: 'Real-Time Streaming', link: '/guide/streaming' },
+              { text: 'Segment Store GC', link: '/segment-gc' },
             ]
           },
           {
