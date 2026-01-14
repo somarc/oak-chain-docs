@@ -260,25 +260,25 @@ function initGCOverviewFlow() {
   nodes.value = []
   edges.value = []
   
-  addNode('trigger', 'CONSENSUS', 70, 220, { label: 'GC Trigger', description: 'Scheduled or manual GC start' })
-  addNode('estimation', 'SEGMENT', 210, 110, { label: 'Estimation', description: 'Calculate garbage ratio in store' })
-  addNode('generation', 'TRANSACTION', 210, 330, { label: 'New Generation', description: 'Create new generation number' })
-  addNode('compaction', 'OAK_STORE', 400, 220, { label: 'Compaction', description: 'Copy live data to new generation' })
-  addNode('concurrent', 'AUTHOR', 400, 70, { label: 'Concurrent Writes', description: 'System continues accepting writes' })
-  addNode('force', 'SIGNATURE', 400, 370, { label: 'Force Compact', description: 'Block writes if needed' })
-  addNode('cleanup', 'VALIDATOR', 590, 220, { label: 'Cleanup', description: 'Delete old generation TAR files' })
-  addNode('reclaimed', 'CONTENT', 750, 220, { label: 'Space Reclaimed', description: 'Disk space freed' })
+  // Consensus-based GC flow (Oak Chain specific)
+  addNode('epoch', 'ETHEREUM', 70, 220, { label: 'Epoch Finalization', description: 'Ethereum epoch triggers GC check' })
+  addNode('leader', 'VALIDATOR', 210, 120, { label: 'Raft Leader', description: 'Only leader can propose GC' })
+  addNode('gc_proposal', 'SIGNATURE', 210, 320, { label: 'GC Proposal', description: 'Signed compaction proposal' })
+  addNode('raft', 'CONSENSUS', 400, 220, { label: 'Raft Consensus', description: 'Proposal replicated to all validators' })
+  addNode('deterministic', 'VALIDATOR', 400, 90, { label: 'Deterministic', description: 'All nodes apply same GC' })
+  addNode('local_gc', 'OAK_STORE', 400, 350, { label: 'Local Compaction', description: 'Each validator compacts locally' })
+  addNode('commit', 'TRANSACTION', 590, 220, { label: 'Raft Commit', description: 'GC committed to consensus log' })
+  addNode('reclaimed', 'CONTENT', 750, 220, { label: 'Space Reclaimed', description: 'All validators reclaim same space' })
   
-  addEdge('trigger', 'estimation', 'CONTROL', { label: 'start' })
-  addEdge('trigger', 'generation', 'DATA', { label: 'create' })
-  addEdge('estimation', 'compaction', 'CONTROL', { label: 'if >25%' })
-  addEdge('generation', 'compaction', 'DATA', { label: 'target gen' })
-  addEdge('compaction', 'concurrent', 'ASYNC', { label: 'parallel' })
-  addEdge('concurrent', 'compaction', 'DATA', { label: 'catch-up' })
-  addEdge('compaction', 'force', 'CONTROL', { label: 'if stuck' })
-  addEdge('force', 'cleanup', 'CONTROL', { label: 'complete' })
-  addEdge('compaction', 'cleanup', 'DATA', { label: 'success' })
-  addEdge('cleanup', 'reclaimed', 'DATA', { label: 'delete' })
+  addEdge('epoch', 'leader', 'CONTROL', { label: 'trigger' })
+  addEdge('epoch', 'gc_proposal', 'DATA', { label: 'epoch ref' })
+  addEdge('leader', 'gc_proposal', 'CONTROL', { label: 'create' })
+  addEdge('gc_proposal', 'raft', 'DATA', { label: 'broadcast' })
+  addEdge('raft', 'deterministic', 'CONTROL', { label: 'replicate' })
+  addEdge('raft', 'local_gc', 'DATA', { label: 'apply' })
+  addEdge('deterministic', 'commit', 'ASYNC', { label: 'verify' })
+  addEdge('local_gc', 'commit', 'DATA', { label: 'complete' })
+  addEdge('commit', 'reclaimed', 'DATA', { label: 'finalize' })
 }
 
 function initGCCompactionFlow() {
@@ -356,32 +356,32 @@ function initGCModesFlow() {
   nodes.value = []
   edges.value = []
   
-  // Online GC path (top)
-  addNode('online_start', 'CONSENSUS', 70, 120, { label: 'Online GC', description: 'Runs while system is live' })
-  addNode('estimation', 'SEGMENT', 230, 70, { label: 'Estimation', description: 'Check if GC needed' })
-  addNode('tail_compact', 'OAK_STORE', 400, 70, { label: 'Tail Compaction', description: 'Compact recent revisions only' })
-  addNode('full_compact', 'OAK_STORE', 400, 180, { label: 'Full Compaction', description: 'Compact all revisions' })
-  addNode('retry_loop', 'VALIDATOR', 560, 120, { label: 'Retry Loop', description: 'Handle concurrent writes' })
+  // Consensus-based GC (only mode in Oak Chain)
+  addNode('gc_trigger', 'VALIDATOR', 70, 160, { label: 'Leader Triggers GC', description: 'Raft leader initiates GC proposal' })
+  addNode('gc_proposal', 'SIGNATURE', 210, 90, { label: 'GC Proposal', description: 'Signed proposal for compaction' })
+  addNode('debt_check', 'TRANSACTION', 210, 230, { label: 'GC Debt Check', description: 'Check entity GC debt accounts' })
+  addNode('raft_replicate', 'CONSENSUS', 390, 160, { label: 'Raft Replication', description: 'All validators receive GC proposal' })
+  addNode('deterministic', 'VALIDATOR', 560, 90, { label: 'Deterministic Apply', description: 'All nodes compact identically' })
+  addNode('local_compact', 'OAK_STORE', 560, 230, { label: 'Local Compaction', description: 'Each validator compacts locally' })
+  addNode('commit', 'TRANSACTION', 730, 160, { label: 'Consensus Commit', description: 'GC committed to Raft log' })
   
-  // Offline GC path (bottom)
-  addNode('offline_start', 'TRANSACTION', 70, 350, { label: 'Offline GC', description: 'Exclusive access to store' })
-  addNode('no_estimation', 'SIGNATURE', 230, 350, { label: 'Skip Estimation', description: 'Human decided GC needed' })
-  addNode('offline_compact', 'OAK_STORE', 400, 350, { label: 'Full Compaction', description: 'No concurrent writes' })
-  addNode('single_gen', 'SEGMENT', 560, 350, { label: 'Single Generation', description: 'Only 1 gen retained' })
+  // GC Debt Economics (bottom)
+  addNode('delete_op', 'AUTHOR', 70, 370, { label: 'Delete Operation', description: 'Content deletion creates GC debt' })
+  addNode('debt_accrual', 'ETHEREUM', 260, 370, { label: 'Debt Accrual', description: 'GC cost attributed to entity' })
+  addNode('debt_payment', 'WALLET', 450, 370, { label: 'Debt Payment', description: 'ETH payment clears GC debt' })
+  addNode('writes_unblocked', 'CONTENT', 640, 370, { label: 'Writes Unblocked', description: 'Entity can write again' })
   
-  // Shared cleanup
-  addNode('cleanup', 'VALIDATOR', 730, 235, { label: 'Cleanup', description: 'Delete old TAR files' })
-  
-  addEdge('online_start', 'estimation', 'CONTROL', { label: 'check' })
-  addEdge('estimation', 'tail_compact', 'CONTROL', { label: 'tail mode' })
-  addEdge('estimation', 'full_compact', 'CONTROL', { label: 'full mode' })
-  addEdge('tail_compact', 'retry_loop', 'DATA', { label: 'concurrent' })
-  addEdge('full_compact', 'retry_loop', 'DATA', { label: 'concurrent' })
-  addEdge('retry_loop', 'cleanup', 'CONTROL', { label: 'success' })
-  addEdge('offline_start', 'no_estimation', 'CONTROL', { label: 'skip' })
-  addEdge('no_estimation', 'offline_compact', 'DATA', { label: 'always full' })
-  addEdge('offline_compact', 'single_gen', 'DATA', { label: 'exclusive' })
-  addEdge('single_gen', 'cleanup', 'CONTROL', { label: 'max cleanup' })
+  addEdge('gc_trigger', 'gc_proposal', 'CONTROL', { label: 'create' })
+  addEdge('gc_trigger', 'debt_check', 'DATA', { label: 'check' })
+  addEdge('gc_proposal', 'raft_replicate', 'DATA', { label: 'broadcast' })
+  addEdge('debt_check', 'raft_replicate', 'ASYNC', { label: 'include' })
+  addEdge('raft_replicate', 'deterministic', 'CONTROL', { label: 'replicate' })
+  addEdge('raft_replicate', 'local_compact', 'DATA', { label: 'apply' })
+  addEdge('deterministic', 'commit', 'CONTROL', { label: 'verify' })
+  addEdge('local_compact', 'commit', 'DATA', { label: 'complete' })
+  addEdge('delete_op', 'debt_accrual', 'DATA', { label: 'incur' })
+  addEdge('debt_accrual', 'debt_payment', 'PAYMENT', { label: 'pay ETH' })
+  addEdge('debt_payment', 'writes_unblocked', 'CONTROL', { label: 'clear' })
 }
 
 function getEdgePath(edge: Edge): string {
@@ -479,12 +479,12 @@ async function playAnimation() {
       [{ from: 'validator2', to: 'eds', color: '#627EEA' }],
     ],
     'gc-overview': [
-      [{ from: 'trigger', to: 'estimation', color: '#8C8DFC' }, { from: 'trigger', to: 'generation', color: '#627EEA' }],
-      [{ from: 'estimation', to: 'compaction', color: '#8C8DFC' }, { from: 'generation', to: 'compaction', color: '#627EEA' }],
-      [{ from: 'compaction', to: 'concurrent', color: '#65c2cb' }],
-      [{ from: 'concurrent', to: 'compaction', color: '#627EEA' }],
-      [{ from: 'compaction', to: 'cleanup', color: '#627EEA' }],
-      [{ from: 'cleanup', to: 'reclaimed', color: '#627EEA' }],
+      [{ from: 'epoch', to: 'leader', color: '#8C8DFC' }, { from: 'epoch', to: 'gc_proposal', color: '#627EEA' }],
+      [{ from: 'leader', to: 'gc_proposal', color: '#8C8DFC' }],
+      [{ from: 'gc_proposal', to: 'raft', color: '#627EEA' }],
+      [{ from: 'raft', to: 'deterministic', color: '#8C8DFC' }, { from: 'raft', to: 'local_gc', color: '#627EEA' }],
+      [{ from: 'deterministic', to: 'commit', color: '#65c2cb' }, { from: 'local_gc', to: 'commit', color: '#627EEA' }],
+      [{ from: 'commit', to: 'reclaimed', color: '#627EEA' }],
     ],
     'gc-compaction': [
       [{ from: 'journal', to: 'traverse', color: '#627EEA' }, { from: 'journal', to: 'checkpoints', color: '#627EEA' }],
@@ -513,14 +513,13 @@ async function playAnimation() {
       [{ from: 'reaper', to: 'deleted', color: '#627EEA' }],
     ],
     'gc-modes': [
-      [{ from: 'online_start', to: 'estimation', color: '#8C8DFC' }],
-      [{ from: 'estimation', to: 'tail_compact', color: '#8C8DFC' }],
-      [{ from: 'tail_compact', to: 'retry_loop', color: '#627EEA' }],
-      [{ from: 'retry_loop', to: 'cleanup', color: '#8C8DFC' }],
-      [{ from: 'offline_start', to: 'no_estimation', color: '#8C8DFC' }],
-      [{ from: 'no_estimation', to: 'offline_compact', color: '#627EEA' }],
-      [{ from: 'offline_compact', to: 'single_gen', color: '#627EEA' }],
-      [{ from: 'single_gen', to: 'cleanup', color: '#8C8DFC' }],
+      [{ from: 'gc_trigger', to: 'gc_proposal', color: '#8C8DFC' }, { from: 'gc_trigger', to: 'debt_check', color: '#627EEA' }],
+      [{ from: 'gc_proposal', to: 'raft_replicate', color: '#627EEA' }, { from: 'debt_check', to: 'raft_replicate', color: '#65c2cb' }],
+      [{ from: 'raft_replicate', to: 'deterministic', color: '#8C8DFC' }, { from: 'raft_replicate', to: 'local_compact', color: '#627EEA' }],
+      [{ from: 'deterministic', to: 'commit', color: '#8C8DFC' }, { from: 'local_compact', to: 'commit', color: '#627EEA' }],
+      [{ from: 'delete_op', to: 'debt_accrual', color: '#627EEA' }],
+      [{ from: 'debt_accrual', to: 'debt_payment', color: '#f0b429' }],
+      [{ from: 'debt_payment', to: 'writes_unblocked', color: '#8C8DFC' }],
     ],
   }
   

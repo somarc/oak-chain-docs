@@ -4,38 +4,57 @@ Oak's segment store uses **generational garbage collection** to reclaim disk spa
 
 This is the "cost" of the append-only DAG architecture—and understanding it is crucial for operating Oak Chain at scale.
 
-## The 3-Phase GC Process
+## ⚠️ Key Difference: Consensus-Based GC
 
-Garbage collection runs in three phases: **Estimation**, **Compaction**, and **Cleanup**.
+::: warning Oak Chain is Different
+In traditional Oak, GC is a **local operation**. In Oak Chain, **GC must go through Raft consensus** to maintain deterministic state across all validators. There is **no "offline" mode** in a distributed consensus system.
+:::
+
+## Consensus-Based GC Process
+
+In Oak Chain, GC is **proposal-based** through Raft consensus:
 
 <FlowGraph flow="gc-overview" :height="440" />
 
-### Phase 1: Estimation
+### Step 1: Epoch Trigger
 
-Before doing expensive work, Oak estimates how much garbage exists:
+GC is triggered by Ethereum epoch finalization:
 
-- Compares current store size to last compacted size
-- If garbage is **less than 25%**, GC is skipped
-- Can be disabled to force GC regardless
+- Ethereum block finality triggers GC check
+- Only the **Raft leader** can propose GC
+- Leader checks if garbage threshold is exceeded
 
-### Phase 2: Compaction
+### Step 2: GC Proposal
 
-The heavy lifting—copying live data to a new generation:
+The leader creates a signed GC proposal:
 
-- Creates a new generation number (monotonically increasing)
-- Traverses content tree from journal head
-- Copies reachable segments to new generation
-- Handles concurrent writes with retry loops (up to 5 cycles)
-- May "force compact" by blocking writes if stuck
+- Proposal type: `COMPACT`
+- Signed with leader's wallet
+- Includes epoch reference for ordering
 
-### Phase 3: Cleanup
+### Step 3: Raft Consensus
 
-Actually freeing disk space:
+Proposal is replicated to all validators:
 
-- Scans TAR files for unreachable segments
-- Marks empty TAR files for deletion
-- Background **File Reaper** thread removes marked files
-- Logs reclaimed space
+- Broadcast via Aeron Raft
+- Requires majority acknowledgment
+- All validators receive identical proposal
+
+### Step 4: Deterministic Compaction
+
+**Critical**: All validators must apply the same GC:
+
+- Same input → Same output
+- Each node compacts locally
+- Results must be identical (hash verification)
+
+### Step 5: Consensus Commit
+
+GC is committed to the Raft log:
+
+- Committed at specific Raft log index
+- Durable once majority confirms
+- All validators reclaim same space
 
 ---
 
@@ -115,36 +134,48 @@ The letter suffix indicates the generation. During cleanup, entire generations o
 
 ---
 
-## Online vs Offline GC
+## Consensus GC & GC Debt Economics
 
 <FlowGraph flow="gc-modes" :height="440" />
 
-### Online GC (Default)
+### Consensus GC (Only Mode)
 
-Runs while the system is live:
+In Oak Chain, **there is no "offline" GC**. All GC must go through consensus:
 
-- ✅ No downtime required
-- ✅ Scheduled automatically (daily/weekly)
-- ⚠️ Must handle concurrent writes
-- ⚠️ May not reclaim all space
+- ✅ Leader creates signed GC proposal
+- ✅ Proposal replicated via Aeron Raft
+- ✅ All validators compact deterministically
+- ✅ Same input → Same output (critical!)
+- ✅ GC committed to Raft log
 
-**Retry Loop**: If concurrent writes modify the repository during compaction, Oak retries up to 5 times. If still failing, it can "force compact" by blocking writes for up to 60 seconds.
+::: danger Why No Offline GC?
+In a distributed consensus system, all validators must have **identical state**. If one validator ran "offline" GC independently, its segment store would diverge from others, **breaking consensus**. GC must be coordinated through Raft to maintain determinism.
+:::
 
-### Offline GC
+### GC Debt Model (ADR 017)
 
-Requires exclusive access:
+Delete operations have **economic implications**:
 
-- ✅ Fastest and most thorough
-- ✅ Retains only 1 generation (maximum cleanup)
-- ❌ Requires system shutdown
-- ❌ Manual operation
+| Concept | Description |
+|---------|-------------|
+| **GC Debt** | Delete operations incur debt (estimated cleanup cost) |
+| **Per-Wallet Tracking** | Debt tracked per Ethereum wallet address |
+| **Write Blocking** | Writes blocked if debt exceeds limit |
+| **Payment** | Pay ETH to ValidatorPayment contract to clear debt |
+| **Incentive** | Validators incentivized to run GC (reduces storage costs) |
 
-**When to use**: After major content migrations, before production deployments, or when online GC consistently fails.
-
-```bash
-# Offline compaction command
-java -jar oak-run.jar compact /path/to/segmentstore
 ```
+Delete Operation → Debt Accrual → [If over limit] → Writes Blocked
+                                                          ↓
+                                                    Pay ETH
+                                                          ↓
+                                                  Writes Unblocked
+```
+
+This creates a **sustainable economic model** where:
+- Authors pay for the storage cost of their content
+- Delete operations aren't "free" (they incur GC debt)
+- Validators are compensated for storage and GC overhead
 
 ---
 
