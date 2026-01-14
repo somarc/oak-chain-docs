@@ -13,8 +13,8 @@ hero:
       text: Get Started
       link: /guide/
     - theme: alt
-      text: Architecture
-      link: /architecture
+      text: How It Works
+      link: /how-it-works
     - theme: alt
       text: Run a Validator
       link: /operators/
@@ -46,7 +46,15 @@ features:
     link: /guide/paths
 ---
 
-## How It Works
+## Interactive Architecture
+
+<FlowGraph flow="architecture" :height="340" />
+
+<div style="text-align: center; margin: 1rem 0 2rem;">
+  <a href="/how-it-works" style="color: #8C8DFC; font-weight: 500;">See all interactive flows →</a>
+</div>
+
+## Cluster Topology
 
 ```mermaid
 graph LR

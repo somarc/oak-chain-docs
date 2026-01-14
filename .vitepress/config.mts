@@ -28,6 +28,7 @@ export default withMermaid(
       
       nav: [
         { text: 'Home', link: '/' },
+        { text: 'How It Works', link: '/how-it-works' },
         { text: 'Guide', link: '/guide/' },
         { text: 'API', link: '/guide/api' },
         { text: 'Architecture', link: '/architecture' },
@@ -41,6 +42,7 @@ export default withMermaid(
             text: 'Introduction',
             items: [
               { text: 'What is Oak Chain?', link: '/' },
+              { text: 'How It Works', link: '/how-it-works' },
               { text: 'Architecture', link: '/architecture' },
               { text: 'Quick Start', link: '/guide/' },
             ]
