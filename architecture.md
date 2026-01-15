@@ -200,5 +200,5 @@ PRIORITY tier bypasses epoch batching for lowest latency.
 ## Next Steps
 
 - [Run a Validator](/operators/) - Join the network
-- [ADRs](/adr/) - Understand design decisions
+- [FAQ](/faq) - Common questions answered
 - [Quick Start](/guide/) - Get running locally
