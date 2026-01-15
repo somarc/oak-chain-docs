@@ -2,43 +2,19 @@
 
 Frequently asked questions about Oak Chain.
 
-## General
-
-### What is Oak Chain?
-
-Oak Chain is a distributed content repository that bridges Ethereum's economic security with Apache Jackrabbit Oak's enterprise content model. It provides:
-
-- **Decentralized storage** - Content replicated across validator network
-- **Wallet-based identity** - Your Ethereum wallet is your namespace
-- **Economic security** - Every write backed by ETH payment
-- **Enterprise compatibility** - JCR API, Oak segments, AEM patterns
-
-### How is it different from IPFS?
-
-| Feature | Oak Chain | IPFS |
-|---------|-----------|------|
-| **Data model** | Hierarchical (JCR tree) | Content-addressed blobs |
-| **Mutability** | Mutable paths | Immutable CIDs |
-| **Consensus** | Raft (strong consistency) | DHT (eventual) |
-| **Payment** | Built-in (ETH) | Separate (Filecoin) |
-| **Query** | JCR queries | None (hash lookup only) |
-
-Oak Chain uses IPFS for binary storage, but structured content lives in Oak segments.
-
-### Who runs the validators?
-
-Anyone can run a validator node. The network is permissionless. Validators:
-- Receive ETH payments for storing content
-- Participate in Raft consensus
-- Replicate content across the network
-
-### Is my content public?
-
-Yes, all content on Oak Chain is publicly readable. For private content, encrypt before storing.
-
----
-
 ## The Big Questions
+
+### Why does this exist?
+
+Oak Chain is built on two axioms:
+
+1. **Ethereum is physics** — BlackRock, Visa, and JPMorgan have made irreversible commitments to Ethereum. This isn't adoption; it's re-architecture.
+
+2. **Oak is entrenched** — Jackrabbit Oak already stores the majority of the planet's high-stakes digital experiences. Fortune 500 commerce, healthcare, government.
+
+We're building the bridge for when these two systems meet.
+
+→ [Read the full thesis](/thesis)
 
 ### Why now?
 
@@ -47,8 +23,6 @@ Because the institutions have moved.
 When BlackRock launches BUIDL on Ethereum, when Visa settles USDC directly, when JPMorgan routes Onyx through Ethereum rails—these aren't experiments. They're irreversible commitments.
 
 The question isn't "will content need blockchain?" The question is "which content infrastructure will be ready?"
-
-Oak Chain is our answer: take the content repository that already powers Fortune 500 experiences (Oak), and give it Ethereum-native ownership.
 
 ### What if Ethereum fails?
 
@@ -66,87 +40,56 @@ If we're wrong about the timing, we're early. The infrastructure will be ready w
 
 If we're wrong about the convergence itself, we've built a very good distributed Oak cluster anyway. The technology works regardless of adoption.
 
-### Why Oak specifically?
+---
 
-Because Oak is already entrenched.
+## Understanding Oak Chain
 
-Jackrabbit Oak (via Adobe Experience Manager) already stores the majority of the planet's high-stakes digital experiences. Fortune 500 commerce. Healthcare records. Government services. Financial portals.
+### How is it different from IPFS?
 
-We don't replace Oak. We don't compete with it. We upgrade it into something planetary—adding Ethereum-native ownership to a content model that's already proven at scale.
+| Feature | Oak Chain | IPFS |
+|---------|-----------|------|
+| **Data model** | Hierarchical (JCR tree) | Content-addressed blobs |
+| **Mutability** | Mutable paths | Immutable CIDs |
+| **Consensus** | Raft (strong consistency) | DHT (eventual) |
+| **Payment** | Built-in (ETH) | Separate (Filecoin) |
+| **Query** | JCR queries | None (hash lookup only) |
+
+Oak Chain uses IPFS for binary storage, but structured content lives in Oak segments.
+
+### How is it different from Arweave?
+
+| Feature | Oak Chain | Arweave |
+|---------|-----------|---------|
+| **Data model** | Hierarchical (JCR tree) | Flat key-value |
+| **Mutability** | Mutable paths | Immutable (append-only) |
+| **Payment** | Per-write (ETH) | One-time "permanent" fee (AR) |
+| **Enterprise tooling** | JCR API, Sling, AEM patterns | Custom APIs |
+| **Consensus** | Raft (deterministic) | Proof of Access |
+
+Arweave optimizes for permanent archival. Oak Chain optimizes for enterprise content management with blockchain ownership.
+
+### Who runs the validators?
+
+Anyone can run a validator node. The network is permissionless. Validators:
+- Receive ETH payments for storing content
+- Participate in Raft consensus
+- Replicate content across the network
+
+### Is my content public?
+
+Yes, all content on Oak Chain is publicly readable. For private content, encrypt before storing.
 
 ---
 
-## Technical
-
-### What's the maximum content size?
-
-| Type | Limit |
-|------|-------|
-| Single write | 10 MB |
-| Binary (IPFS) | Unlimited |
-| Path depth | 100 levels |
-| Organization name | 64 characters |
-
-For large files, upload to IPFS and store the CID in Oak Chain.
-
-### How fast is it?
-
-| Tier | Latency | Use Case |
-|------|---------|----------|
-| PRIORITY | ~30 seconds | Urgent updates |
-| EXPRESS | ~6.4 minutes | Normal publishing |
-| STANDARD | ~12.8 minutes | Batch operations |
-
-Latency is determined by Ethereum epoch finality, not Oak Chain itself.
-
-### Can I delete content?
-
-Yes. Submit a delete proposal with your wallet signature. The content is removed from the Oak tree, but:
-- Historical segments may retain data until compaction
-- IPFS binaries remain until unpinned
-- Blockchain payment records are permanent
-
-### What about abandoned or spam content?
-
-Oak Chain introduces **cross-cluster garbage collection proposals**:
-
-| Scenario | Who Proposes | Outcome |
-|----------|--------------|---------|
-| Owner deletes | Content owner | Immediate removal |
-| Abandoned content | Any cluster | Flagged for review |
-| Spam/abuse | Validator consensus | Community decision |
-
-Since clusters mount each other read-only, they can observe content quality. If Cluster B sees spam in Cluster A's shard, Cluster B can propose deletion. The authoritative cluster (A) decides whether to accept.
-
-This creates a **community moderation layer** without central authority - clusters have economic incentive to maintain quality (validators want a reputable network).
-
-### What happens if a validator goes down?
-
-Raft consensus handles failures automatically:
-- **1 of 3 down**: Network continues normally
-- **2 of 3 down**: Network pauses (no quorum)
-- **Recovery**: Failed nodes catch up via snapshot
-
-Failover takes < 5 seconds.
-
-### Can I run my own cluster?
-
-Yes! Oak Chain is open source. You can:
-- Run a private cluster for your organization
-- Join the public network as a validator
-- Fork and customize for your use case
-
----
-
-## Payments
+## Payments & Economics
 
 ### Why do I need to pay?
 
 Payments provide:
-1. **Spam prevention** - Cost deters abuse
-2. **Validator incentives** - Operators earn for storage
-3. **Economic finality** - Ethereum secures the network
-4. **Quality filter** - Only content worth publishing gets published
+1. **Spam prevention** — Cost deters abuse
+2. **Validator incentives** — Operators earn for storage
+3. **Economic finality** — Ethereum secures the network
+4. **Quality filter** — Only content worth publishing gets published
 
 ### Is Oak Chain for everything?
 
@@ -161,7 +104,7 @@ Payments provide:
 | Dev/test content | ❌ No | Use testnet or local |
 | Bulk data dumps | ❌ No | Economically prohibitive |
 
-**The economic filter**: Writing costs ETH. This naturally curates the network - you won't pay to store garbage. But the network is open, so low-quality content isn't *excluded*, just *discouraged* by cost.
+**The economic filter**: Writing costs ETH. This naturally curates the network—you won't pay to store garbage. But the network is open, so low-quality content isn't *excluded*, just *discouraged* by cost.
 
 > **Think of it like publishing**: You *could* print anything, but printing costs money, so you publish what matters.
 
@@ -193,14 +136,69 @@ Validators verify payment before accepting writes.
 
 ---
 
+## Technical
+
+### How fast is it?
+
+| Tier | Latency | Use Case |
+|------|---------|----------|
+| PRIORITY | ~30 seconds | Urgent updates |
+| EXPRESS | ~6.4 minutes | Normal publishing |
+| STANDARD | ~12.8 minutes | Batch operations |
+
+Latency is determined by Ethereum epoch finality, not Oak Chain itself.
+
+### What's the maximum content size?
+
+| Type | Limit |
+|------|-------|
+| Single write | 10 MB |
+| Binary (IPFS) | Unlimited |
+| Path depth | 100 levels |
+| Organization name | 64 characters |
+
+For large files, upload to IPFS and store the CID in Oak Chain.
+
+### Can I delete content?
+
+Yes. Submit a delete proposal with your wallet signature. The content is removed from the Oak tree, but:
+- Historical segments may retain data until compaction
+- IPFS binaries remain until unpinned
+- Blockchain payment records are permanent
+
+### What about abandoned or spam content?
+
+Oak Chain introduces **cross-cluster garbage collection proposals**:
+
+| Scenario | Who Proposes | Outcome |
+|----------|--------------|---------|
+| Owner deletes | Content owner | Immediate removal |
+| Abandoned content | Any cluster | Flagged for review |
+| Spam/abuse | Validator consensus | Community decision |
+
+Since clusters mount each other read-only, they can observe content quality. If Cluster B sees spam in Cluster A's shard, Cluster B can propose deletion. The authoritative cluster (A) decides whether to accept.
+
+This creates a **community moderation layer** without central authority—clusters have economic incentive to maintain quality (validators want a reputable network).
+
+### What happens if a validator goes down?
+
+Raft consensus handles failures automatically:
+- **1 of 3 down**: Network continues normally
+- **2 of 3 down**: Network pauses (no quorum)
+- **Recovery**: Failed nodes catch up via snapshot
+
+Failover takes < 5 seconds.
+
+---
+
 ## Security
 
 ### How is my content secured?
 
-1. **Wallet signature** - Only you can write to your namespace
-2. **Raft consensus** - Majority of validators must agree
-3. **Ethereum finality** - Payments anchored to Ethereum
-4. **Replication** - Content stored on multiple validators
+1. **Wallet signature** — Only you can write to your namespace
+2. **Raft consensus** — Majority of validators must agree
+3. **Ethereum finality** — Payments anchored to Ethereum
+4. **Replication** — Content stored on multiple validators
 
 ### Can someone else write to my namespace?
 
@@ -221,9 +219,9 @@ No. Every write requires a signature from the namespace owner's wallet. Without 
 ### Is the code audited?
 
 Oak Chain is built on:
-- **Apache Jackrabbit Oak** - 10+ years in production at Adobe
-- **Aeron Cluster** - Used in financial trading systems
-- **Ethereum** - Battle-tested smart contracts
+- **Apache Jackrabbit Oak** — 10+ years in production at Adobe
+- **Aeron Cluster** — Used in financial trading systems
+- **Ethereum** — Battle-tested smart contracts
 
 The Oak Chain integration layer is open source for review.
 
@@ -259,9 +257,12 @@ await fetch('http://validator:8090/v1/propose-write', {
 
 Coming soon! For now, use the REST API directly. See [API Reference](/guide/api).
 
-### Can I self-host?
+### Can I run my own cluster?
 
-Yes. Run your own validator cluster:
+Yes! Oak Chain is open source. You can:
+- Run a private cluster for your organization
+- Join the public network as a validator
+- Fork and customize for your use case
 
 ```bash
 docker-compose -f testing/3-validators-aeron.yml up -d
@@ -271,7 +272,7 @@ See [Operators Guide](/operators/) for production setup.
 
 ---
 
-## Roadmap
+## Roadmap & Contributing
 
 ### What's coming next?
 
