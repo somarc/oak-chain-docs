@@ -29,9 +29,15 @@ This is not "blockchain adoption." This is the re-architecture of digital owners
 - Interoperates with public Ethereum
 - Signal: Even the most conservative institutions have committed
 
+**BitMine + Beast Industries (January 2026)**
+- BitMine, the largest Ethereum treasury firm, invested $200M into MrBeast's Beast Industries
+- MrBeast: 300M+ YouTube subscribers, the world's largest content creator
+- Signal: Ethereum capital is now flowing directly into content infrastructure
+- The convergence of institutional ETH and mass-market content is happening *now*
+
 **The Pattern**
 
-These aren't crypto companies. These are the institutions that *define* traditional finance. When they move, they move permanently. They don't experiment publicly. They commit.
+These aren't crypto companies. These are the institutions that *define* traditional finance and digital media. When they move, they move permanently. They don't experiment publicly. They commit.
 
 > This project treats Ethereum's dominance as physics, not opinion.
 
@@ -106,6 +112,17 @@ Ethereum is becoming the settlement layer for digital ownership.
 Oak already stores the content that matters.
 
 These systems will meet. The only question is: on whose infrastructure?
+
+**The BitMine-Beast Signal**
+
+When the largest Ethereum treasury firm invests $200M into the world's largest content creator, it's not just a deal. It's a signal that Ethereum capital is actively seeking content infrastructure exposure.
+
+Here's what's not lost on me:
+- Many of the Fortune 500 enterprises already use AEM (built on Oak)
+- BlackRock, Visa, JPMorgan - all AEM customers or partners
+- The institutions committing to Ethereum *already run their content on Oak*
+
+The convergence isn't hypothetical. The players are already in position. They just don't know Oak Chain exists yet.
 
 Oak Chain is our answer. Two planetary-scale systems, already proven, connected before the traffic arrives.
 
