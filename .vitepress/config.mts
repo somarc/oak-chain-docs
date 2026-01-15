@@ -28,10 +28,10 @@ export default withMermaid(
       
       nav: [
         { text: 'Home', link: '/' },
+        { text: 'The Thesis', link: '/thesis' },
         { text: 'How It Works', link: '/how-it-works' },
-        { text: 'Guide', link: '/guide/' },
-        { text: 'API', link: '/guide/api' },
         { text: 'Architecture', link: '/architecture' },
+        { text: 'Guide', link: '/guide/' },
         { text: 'Operators', link: '/operators/' },
         { text: 'FAQ', link: '/faq' },
       ],
@@ -39,9 +39,15 @@ export default withMermaid(
       sidebar: {
         '/': [
           {
-            text: 'Introduction',
+            text: 'Why Oak Chain',
             items: [
-              { text: 'What is Oak Chain?', link: '/' },
+              { text: 'The Thesis', link: '/thesis' },
+              { text: 'FAQ', link: '/faq' },
+            ]
+          },
+          {
+            text: 'Understanding',
+            items: [
               { text: 'How It Works', link: '/how-it-works' },
               { text: 'Architecture', link: '/architecture' },
               { text: 'Quick Start', link: '/guide/' },
@@ -75,7 +81,6 @@ export default withMermaid(
           {
             text: 'Resources',
             items: [
-              { text: 'FAQ', link: '/faq' },
               { text: 'Changelog', link: '/changelog' },
               { text: 'Contributing', link: '/contributing' },
             ]

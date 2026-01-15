@@ -129,6 +129,104 @@ Validators use **Aeron Raft** for consensus. Nodes start as Followers, become Ca
 
 ---
 
+## Cluster Topology
+
+The network scales horizontally through multiple clusters, each sovereign over a shard of wallet addresses.
+
+```mermaid
+graph LR
+    subgraph ClusterA["Cluster A"]
+        direction TB
+        LA[Leader + Followers]
+        SA["✏️ /oak-chain/00-3F/*<br/>READ-WRITE"]
+        MA["👁️ /oak-chain/40-FF/*<br/>READ-ONLY"]
+        LA --> SA
+        LA -.-> MA
+    end
+    
+    subgraph ClusterB["Cluster B"]
+        direction TB
+        LB[Leader + Followers]
+        SB["✏️ /oak-chain/40-7F/*<br/>READ-WRITE"]
+        MB["👁️ /oak-chain/00-3F,80-FF/*<br/>READ-ONLY"]
+        LB --> SB
+        LB -.-> MB
+    end
+    
+    subgraph ClusterDots["..."]
+        direction TB
+        LD["Cluster 3..N-1"]
+    end
+    
+    subgraph ClusterN["Cluster N"]
+        direction TB
+        LN[Leader + Followers]
+        SN["✏️ /oak-chain/C0-FF/*<br/>READ-WRITE"]
+        MN["👁️ /oak-chain/00-BF/*<br/>READ-ONLY"]
+        LN --> SN
+        LN -.-> MN
+    end
+    
+    SA <-->|"HTTP Segment Transfer"| MB
+    SA <-->|"HTTP Segment Transfer"| MN
+    SB <-->|"HTTP Segment Transfer"| MA
+    SB <-->|"HTTP Segment Transfer"| MN
+    SN <-->|"HTTP Segment Transfer"| MA
+    SN <-->|"HTTP Segment Transfer"| MB
+    
+    style SA fill:#4ade80,color:#000
+    style SB fill:#4ade80,color:#000
+    style SN fill:#4ade80,color:#000
+    style MA fill:#64748b,color:#fff
+    style MB fill:#64748b,color:#fff
+    style MN fill:#64748b,color:#fff
+    style LA fill:#627EEA,color:#fff
+    style LB fill:#627EEA,color:#fff
+    style LN fill:#627EEA,color:#fff
+    style LD fill:#1a1a2e,color:#888
+```
+
+**Each cluster is sovereign over its shard, but mounts all others read-only.**
+
+| | Cluster A | Cluster B |
+|---|-----------|-----------|
+| **Writes** | `/oak-chain/00-7F/*` | `/oak-chain/80-FF/*` |
+| **Reads** | Everything | Everything |
+
+- **Wallet 0x74...** → hash maps to shard `74` → **Cluster A** is authoritative
+- **Wallet 0xAB...** → hash maps to shard `AB` → **Cluster B** is authoritative
+
+Authors write to their authoritative cluster. All clusters can read all content.
+
+### Scaling
+
+The architecture scales horizontally by adding clusters:
+
+| Clusters | Shards/Cluster | Wallets Supported | Read Mounts/Cluster |
+|----------|----------------|-------------------|---------------------|
+| **2** | 128 shards | ~8M wallets | 1 mount |
+| **20** | 12-13 shards | ~80M wallets | 19 mounts |
+| **50** | 5 shards | ~200M wallets | 49 mounts |
+| **100** | 2-3 shards | ~400M wallets | 99 mounts |
+| **1,000** | 16 shards* | ~4B wallets | 999 mounts |
+
+*At 1,000 clusters, shards are subdivided further (L4 sharding).
+
+### Trade-offs at Scale
+
+| Scale | Writes | Reads | Sync Overhead |
+|-------|--------|-------|---------------|
+| **Small (2-20)** | Fast | Fast | Low |
+| **Medium (50-100)** | Fast | Fast | Moderate |
+| **Large (1,000+)** | Fast | Fast | High (optimized via gossip) |
+
+**Key insight**: Write throughput scales linearly (each cluster handles its shard independently). Read latency stays constant (local mount). Sync overhead grows with cluster count but is optimized via:
+- Lazy segment fetching (pull on demand)
+- Gossip-based journal propagation
+- Hierarchical sync topology
+
+---
+
 ## Deep Dive: Segment Store GC
 
 The append-only segment store accumulates garbage over time. Learn how Oak's **generational garbage collection** reclaims disk space while maintaining data integrity.

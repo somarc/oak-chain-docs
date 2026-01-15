@@ -38,6 +38,44 @@ Yes, all content on Oak Chain is publicly readable. For private content, encrypt
 
 ---
 
+## The Big Questions
+
+### Why now?
+
+Because the institutions have moved.
+
+When BlackRock launches BUIDL on Ethereum, when Visa settles USDC directly, when JPMorgan routes Onyx through Ethereum rails—these aren't experiments. They're irreversible commitments.
+
+The question isn't "will content need blockchain?" The question is "which content infrastructure will be ready?"
+
+Oak Chain is our answer: take the content repository that already powers Fortune 500 experiences (Oak), and give it Ethereum-native ownership.
+
+### What if Ethereum fails?
+
+Then this project fails too.
+
+We've made an explicit bet. Oak Chain treats Ethereum's dominance as physics, not opinion. But we're betting alongside BlackRock, Visa, and JPMorgan. If Ethereum fails, we have bigger problems than a content repository.
+
+This is honest infrastructure building: we've chosen our foundation, and we're building on it.
+
+### What if no one uses this?
+
+Oak Chain is infrastructure for a convergence we believe is inevitable—the meeting of enterprise content (Oak) and blockchain ownership (Ethereum).
+
+If we're wrong about the timing, we're early. The infrastructure will be ready when the demand arrives.
+
+If we're wrong about the convergence itself, we've built a very good distributed Oak cluster anyway. The technology works regardless of adoption.
+
+### Why Oak specifically?
+
+Because Oak is already entrenched.
+
+Jackrabbit Oak (via Adobe Experience Manager) already stores the majority of the planet's high-stakes digital experiences. Fortune 500 commerce. Healthcare records. Government services. Financial portals.
+
+We don't replace Oak. We don't compete with it. We upgrade it into something planetary—adding Ethereum-native ownership to a content model that's already proven at scale.
+
+---
+
 ## Technical
 
 ### What's the maximum content size?
