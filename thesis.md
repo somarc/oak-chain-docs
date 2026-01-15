@@ -89,7 +89,7 @@ Fortune 500 commerce. Healthcare records. Government services. Financial portals
 - **Petabytes of content that can't migrate.** Switching costs measured in years and millions.
 - **Organizational lock-in.** Teams trained, processes built, integrations everywhere.
 - **Risk aversion.** Fortune 500 doesn't rip out working infrastructure.
-- **Adobe's bet.** Their entire Digital Experience Platform runs on it.
+- **My bet.** I've spent years in this ecosystem. I know what Oak can become.
 
 **Why This Matters**
 
