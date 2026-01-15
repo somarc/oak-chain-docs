@@ -8,7 +8,7 @@ Oak Chain is built on two axioms. If you accept them, everything else follows.
 
 Ethereum is economic finality encoded as code.
 
-When BlackRock puts billions into BUIDL, when Visa settles USDC transactions directly, when JPMorgan routes Onyx payments through Ethereum rails—these are not bets. These are irreversible commitments.
+When BlackRock puts billions into BUIDL, when Visa settles USDC transactions directly, when JPMorgan routes Onyx payments through Ethereum rails: these are not bets. These are irreversible commitments.
 
 This is not "blockchain adoption." This is the re-architecture of digital ownership.
 
@@ -31,7 +31,7 @@ This is not "blockchain adoption." This is the re-architecture of digital owners
 
 **The Pattern**
 
-These aren't crypto companies. These are the institutions that *define* traditional finance. When they move, they move permanently. They don't experiment publicly—they commit.
+These aren't crypto companies. These are the institutions that *define* traditional finance. When they move, they move permanently. They don't experiment publicly. They commit.
 
 > This project treats Ethereum's dominance as physics, not opinion.
 
@@ -43,9 +43,9 @@ Bitcoin is triple-entry accounting on a globally distributed abacus. It does one
 
 Ethereum extends the same idea, but Turing-complete. Instead of just tracking balances, you can deploy *deterministic code* that runs indefinitely, without permission, so long as you pay the gas fee for computation.
 
-This is a new primitive: **trust-minimized software on permissionless rails.**
+The primitive: **trust-minimized software on permissionless rails.**
 
-Traditional infrastructure is gatekept. Banks, payment processors, hosting providers, domain registrars—all of them can say no. All of them extract rent. All of them are single points of failure.
+Traditional infrastructure is gatekept. Banks, payment processors, hosting providers, domain registrars. All of them can say no. All of them extract rent. All of them are single points of failure.
 
 Ethereum removes the gatekeepers. Pay gas, code runs. No approval needed. No rent-seeking intermediary. No single point of failure.
 
@@ -54,7 +54,7 @@ Ethereum removes the gatekeepers. Pay gas, code runs. No approval needed. No ren
 Stablecoins are the clearest proof that this primitive works.
 
 - **What they are**: Tokenized US Treasury notes earning ~5% yield
-- **Why they exploded**: Traditional money rails are archaic, slow, and gatekept by incumbents who rent-seek
+- **Why they exploded**: Traditional money rails are archaic, slow, gatekept by incumbents who rent-seek
 - **Where they're going**: Trillions of dollars in the near term
 
 Stablecoins didn't exist as a "use case" before the primitive existed. No one proposed them. They emerged because the primitive made them possible, and the demand was latent.
@@ -85,15 +85,15 @@ Fortune 500 commerce. Healthcare records. Government services. Financial portals
 - Global commerce (product catalogs, checkout flows)
 
 **The Moat**
-- 15+ years of production hardening
-- Billions of dollars in enterprise investment
-- Tooling ecosystem (Composum, IDE plugins, monitoring)
-- JCR API standard (JSR-283)
-- Developer expertise (Java/OSGi skills)
+- **20+ years of production hardening.** Jackrabbit since 2004, Oak since 2012.
+- **Petabytes of content that can't migrate.** Switching costs measured in years and millions.
+- **Organizational lock-in.** Teams trained, processes built, integrations everywhere.
+- **Risk aversion.** Fortune 500 doesn't rip out working infrastructure.
+- **Adobe's bet.** Their entire Digital Experience Platform runs on it.
 
 **Why This Matters**
 
-Oak isn't just a content repository. It's the *default* content repository for high-stakes enterprise content. The content that has economic value. The content that organizations will eventually need to *own* cryptographically.
+Oak isn't just a content repository. It's the *default* content repository for high-stakes enterprise content. The content that has economic value. The content that needs cryptographic ownership.
 
 > We don't replace Oak. We upgrade it into something planetary.
 
@@ -107,7 +107,7 @@ Oak already stores the content that matters.
 
 These systems will meet. The only question is: on whose infrastructure?
 
-Oak Chain is our answer. We're not inventing a new content model. We're not building a new blockchain. We're connecting two planetary-scale systems that are already proven—and building the bridge before the traffic arrives.
+Oak Chain is our answer. Two planetary-scale systems, already proven, connected before the traffic arrives.
 
 ---
 
@@ -124,21 +124,15 @@ Oak Chain brings Ethereum's economic finality to Oak's content model.
 
 ### Not a New CMS
 
-We're not asking you to learn a new content model. We're not asking you to migrate to a new API. We're not asking you to abandon your tooling.
-
-Oak Chain is Oak. With ownership.
+Same content model. Same API. Same tooling. Oak Chain is Oak, with ownership.
 
 ### Not a Bet on Blockchain
 
-We're not betting that blockchain will succeed. We're observing that it already has—at the institutional level. We're building infrastructure for the convergence that's already happening.
+Blockchain already succeeded at the institutional level. We're building infrastructure for the convergence that's already happening.
 
 ### Not Hypothetical
 
-Both systems are proven:
-- **Ethereum**: Battle-tested, institutionally adopted, economically secured
-- **Oak**: Production-hardened, enterprise-deployed, content-proven
-
-Oak Chain is the bridge.
+Ethereum: battle-tested, institutionally adopted. Oak: production-hardened, enterprise-deployed. Oak Chain connects them.
 
 ---
 
@@ -146,7 +140,7 @@ Oak Chain is the bridge.
 
 ### We're Early
 
-The convergence is happening, but the timeline is uncertain. Oak Chain may be infrastructure that's needed in 2 years, or 10 years, or never.
+The convergence is happening. The timeline is uncertain. Oak Chain may be infrastructure that's needed in 2 years, or 10 years, or never.
 
 ### We're Betting
 
@@ -159,7 +153,7 @@ Oak Chain's primitive is **trustless content ownership**:
 - Payment = authorization (economic, not bureaucratic)  
 - Consensus = persistence (replicated, not backed up)
 
-We don't know what gets built on this. We just know the primitive is real, and the infrastructure needs to exist.
+We don't know what gets built on this. The primitive is real. The infrastructure needs to exist.
 
 ---
 
@@ -169,7 +163,7 @@ Because the institutions have moved.
 
 The question isn't "will content need blockchain?" The question is "which content infrastructure will be ready?"
 
-We believe Oak Chain should be that infrastructure. Not because we invented something new—but because we're connecting two things that already work.
+Oak Chain. Two things that already work, connected.
 
 ---
 

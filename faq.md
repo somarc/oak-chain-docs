@@ -8,9 +8,9 @@ Frequently asked questions about Oak Chain.
 
 Oak Chain is built on two axioms:
 
-1. **Ethereum is physics** — BlackRock, Visa, and JPMorgan have made irreversible commitments to Ethereum. This isn't adoption; it's re-architecture.
+1. **Ethereum is physics.** BlackRock, Visa, and JPMorgan have made irreversible commitments to Ethereum. This isn't adoption; it's re-architecture.
 
-2. **Oak is entrenched** — Jackrabbit Oak already stores the majority of the planet's high-stakes digital experiences. Fortune 500 commerce, healthcare, government.
+2. **Oak is entrenched.** Jackrabbit Oak already stores the majority of the planet's high-stakes digital experiences. Fortune 500 commerce, healthcare, government.
 
 We're building the bridge for when these two systems meet.
 
@@ -20,7 +20,7 @@ We're building the bridge for when these two systems meet.
 
 Because the institutions have moved.
 
-When BlackRock launches BUIDL on Ethereum, when Visa settles USDC directly, when JPMorgan routes Onyx through Ethereum rails—these aren't experiments. They're irreversible commitments.
+When BlackRock launches BUIDL on Ethereum, when Visa settles USDC directly, when JPMorgan routes Onyx through Ethereum rails: these aren't experiments. They're irreversible commitments.
 
 The question isn't "will content need blockchain?" The question is "which content infrastructure will be ready?"
 
@@ -34,7 +34,7 @@ This is honest infrastructure building: we've chosen our foundation, and we're b
 
 ### What if no one uses this?
 
-Oak Chain is infrastructure for a convergence we believe is inevitable—the meeting of enterprise content (Oak) and blockchain ownership (Ethereum).
+Oak Chain is infrastructure for a convergence we believe is inevitable: enterprise content (Oak) meets blockchain ownership (Ethereum).
 
 If we're wrong about the timing, we're early. The infrastructure will be ready when the demand arrives.
 
@@ -86,10 +86,10 @@ Yes, all content on Oak Chain is publicly readable. For private content, encrypt
 ### Why do I need to pay?
 
 Payments provide:
-1. **Spam prevention** — Cost deters abuse
-2. **Validator incentives** — Operators earn for storage
-3. **Economic finality** — Ethereum secures the network
-4. **Quality filter** — Only content worth publishing gets published
+1. **Spam prevention.** Cost deters abuse.
+2. **Validator incentives.** Operators earn for storage.
+3. **Economic finality.** Ethereum secures the network.
+4. **Quality filter.** Only content worth publishing gets published.
 
 ### Is Oak Chain for everything?
 
@@ -104,7 +104,7 @@ Payments provide:
 | Dev/test content | ❌ No | Use testnet or local |
 | Bulk data dumps | ❌ No | Economically prohibitive |
 
-**The economic filter**: Writing costs ETH. This naturally curates the network—you won't pay to store garbage. But the network is open, so low-quality content isn't *excluded*, just *discouraged* by cost.
+**The economic filter**: Writing costs ETH. This naturally curates the network. You won't pay to store garbage. But the network is open, so low-quality content isn't *excluded*, just *discouraged* by cost.
 
 > **Think of it like publishing**: You *could* print anything, but printing costs money, so you publish what matters.
 
@@ -178,7 +178,7 @@ Oak Chain introduces **cross-cluster garbage collection proposals**:
 
 Since clusters mount each other read-only, they can observe content quality. If Cluster B sees spam in Cluster A's shard, Cluster B can propose deletion. The authoritative cluster (A) decides whether to accept.
 
-This creates a **community moderation layer** without central authority—clusters have economic incentive to maintain quality (validators want a reputable network).
+This creates a **community moderation layer** without central authority. Clusters have economic incentive to maintain quality (validators want a reputable network).
 
 ### What happens if a validator goes down?
 
@@ -195,10 +195,10 @@ Failover takes < 5 seconds.
 
 ### How is my content secured?
 
-1. **Wallet signature** — Only you can write to your namespace
-2. **Raft consensus** — Majority of validators must agree
-3. **Ethereum finality** — Payments anchored to Ethereum
-4. **Replication** — Content stored on multiple validators
+1. **Wallet signature.** Only you can write to your namespace.
+2. **Raft consensus.** Majority of validators must agree.
+3. **Ethereum finality.** Payments anchored to Ethereum.
+4. **Replication.** Content stored on multiple validators.
 
 ### Can someone else write to my namespace?
 
@@ -219,9 +219,9 @@ No. Every write requires a signature from the namespace owner's wallet. Without 
 ### Is the code audited?
 
 Oak Chain is built on:
-- **Apache Jackrabbit Oak** — 10+ years in production at Adobe
-- **Aeron Cluster** — Used in financial trading systems
-- **Ethereum** — Battle-tested smart contracts
+- **Apache Jackrabbit Oak.** 10+ years in production at Adobe.
+- **Aeron Cluster.** Used in financial trading systems.
+- **Ethereum.** Battle-tested smart contracts.
 
 The Oak Chain integration layer is open source for review.
 

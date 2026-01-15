@@ -22,7 +22,7 @@ hero:
 features:
   - icon: 🔐
     title: Same Oak, New Ownership
-    details: JCR API, Sling patterns, TAR segments—everything you know. But your Ethereum wallet is your namespace.
+    details: JCR API, Sling patterns, TAR segments. Everything you know. But your Ethereum wallet is your namespace.
     link: /architecture
   - icon: 💰
     title: Pay to Publish
@@ -54,7 +54,7 @@ features:
 
 ### Axiom 1: Ethereum Is Physics
 
-When BlackRock puts billions into BUIDL, when Visa settles USDC directly, when JPMorgan routes Onyx through Ethereum rails—these aren't bets. They're irreversible commitments.
+When BlackRock puts billions into BUIDL, when Visa settles USDC directly, when JPMorgan routes Onyx through Ethereum rails: these aren't bets. They're irreversible commitments.
 
 **This project treats Ethereum's dominance as physics, not opinion.**
 

@@ -2,7 +2,7 @@
 
 Oak's segment store uses **generational garbage collection** to reclaim disk space. Content writes create immutable segments, but edits and deletes leave "garbage" (unreachable segments). GC compacts live data into a new generation and deletes old TAR files.
 
-This is the "cost" of the append-only DAG architecture—and understanding it is crucial for operating Oak Chain at scale.
+This is the "cost" of the append-only DAG architecture. Understanding it is crucial for operating Oak Chain at scale.
 
 ## ⚠️ Key Difference: Consensus-Based GC
 
