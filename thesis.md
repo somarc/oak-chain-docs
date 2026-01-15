@@ -175,15 +175,17 @@ Oak Chain. Two things that already work, connected.
 .action-btn {
   display: inline-block;
   padding: 12px 28px;
-  background: linear-gradient(135deg, #627EEA, #8C8DFC);
-  color: white;
+  background: linear-gradient(135deg, #4a5fd9, #627EEA);
+  color: #fff;
   border-radius: 8px;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
   transition: all 0.2s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 .action-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(98, 126, 234, 0.4);
+  background: linear-gradient(135deg, #3a4fc9, #5a6eda);
 }
 </style>
