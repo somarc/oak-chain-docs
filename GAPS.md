@@ -1,47 +1,67 @@
 # Documentation Gaps & Future Improvements
 
-> **Status**: Not staged - review and address over time  
-> **Last Updated**: January 10, 2026
+> **Status**: Active tracking  
+> **Last Updated**: January 15, 2026
 
-This file tracks gaps and improvements needed to maintain 100/100 documentation quality.
+This file tracks gaps for production readiness.
 
 ---
 
-## Content Gaps
+## Core Consensus Stability (BLOCKING)
 
-### High Priority
+Must be stable before GraphQL, SDK, or other features.
+
+| Component | Status | Gap | Priority |
+|-----------|--------|-----|----------|
+| **Aeron Raft Cluster** | ✅ Works | Dynamic membership changes | Medium |
+| **Write Proposal Flow** | ⚠️ Partial | Full smart contract payment verification (Web3j polling) | **HIGH** |
+| **Segment Replication** | ✅ Works | — | — |
+| **Payment Verification** | ⚠️ Mock only | Sepolia end-to-end, mainnet contract deploy | **HIGH** |
+| **GC (Garbage Collection)** | ⚠️ Designed | Implementation incomplete, payment enforcement | **HIGH** |
+| **Binary Storage (IPFS)** | ⚠️ Partial | Full upload/verify flow from author | Medium |
+| **Dashboard/API** | ✅ Works | — | — |
+
+### Stability Criteria
+
+| Milestone | Definition |
+|-----------|------------|
+| **Alpha** | Mock mode works end-to-end locally |
+| **Beta** | Sepolia payment verification passes |
+| **RC** | Load testing survives, GC implemented |
+| **1.0** | Mainnet contract deployed, 3+ validators running |
+
+---
+
+## Infrastructure Gaps
 
 | Gap | Description | Effort |
 |-----|-------------|--------|
 | **Docker Images** | No published Docker images yet - docs say "coming soon" | CI/CD pipeline |
 | **Smart Contract Address** | Testnet guide has TBD for Sepolia contract address | Deploy contract |
-| **SDK Package** | API docs reference `@oak-chain/sdk` which doesn't exist yet | Build SDK |
+| **SDK Package** | `oak-chain-sdk/` exists but not published to npm | Publish + docs |
 | **Production URL** | API reference shows `validator.oak-chain.io` (future) | Deploy infra |
+
+---
+
+## Feature Gaps (Post-Stability)
+
+| Gap | Description | Effort | ADR |
+|-----|-------------|--------|-----|
+| **GraphQL API** | Oak-native GraphQL - schema from JCR structure | `graphql-java` + handlers | ADR 050 |
+| **Access Control** | FAQ mentions ACLs as roadmap | Design + implement | — |
+| **Content Versioning** | FAQ mentions versioning as roadmap | Design + implement | — |
 
 ### Deferred (Post-Mainnet)
 
 | Gap | Description | Notes |
 |-----|-------------|-------|
-| **Version 1.0 Release** | Merge feature branch to main, tag as `oak-chain-v1.0.0` | Keep fork lineage (preserves commit history, ADR context). Don't create new repo - would obfuscate implementation journey. |
-
-### Medium Priority
-
-| Gap | Description | Effort |
-|-----|-------------|--------|
-| **GraphQL API** | Oak-native GraphQL (ADR 050) - schema from JCR structure, `/graphql` endpoint | `graphql-java` + handlers |
-| **Access Control** | FAQ mentions ACLs as roadmap - no docs | Design + implement |
-| **Content Versioning** | FAQ mentions versioning as roadmap - no docs | Design + implement |
-| **Video Tutorials** | No video content for visual learners | Record videos |
-| **Interactive Examples** | No live playground/sandbox | Build playground |
-
-### Low Priority
-
-| Gap | Description | Effort |
-|-----|-------------|--------|
-| **Translations** | English only | Community translations |
-| **Performance Benchmarks** | No throughput/latency numbers | Run benchmarks |
-| **Case Studies** | No real-world usage examples | Gather from users |
-| **Comparison Pages** | vs IPFS, vs Arweave, vs Ceramic | Write comparisons |
+| **Version 1.0 Release** | Merge feature branch to main, tag as `oak-chain-v1.0.0` | Keep fork lineage (preserves commit history, ADR context) |
+| **Video Tutorials** | No video content for visual learners | After stable |
+| **Interactive Examples** | No live playground/sandbox | After stable |
+| **Translations** | English only | Community-driven |
+| **Performance Benchmarks** | No throughput/latency numbers | After load testing |
+| **Case Studies** | No real-world usage examples | After mainnet validators |
+| **Comparison Pages** | vs IPFS, vs Arweave, vs Ceramic | Marketing phase |
 
 ---
 
