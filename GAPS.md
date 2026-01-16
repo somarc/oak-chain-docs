@@ -28,7 +28,7 @@ This file tracks gaps and improvements needed to maintain 100/100 documentation 
 
 | Gap | Description | Effort |
 |-----|-------------|--------|
-| **GraphQL API** | FAQ mentions GraphQL as roadmap item - no docs | Design + implement |
+| **GraphQL API** | Oak-native GraphQL (ADR 050) - schema from JCR structure, `/graphql` endpoint | `graphql-java` + handlers |
 | **Access Control** | FAQ mentions ACLs as roadmap - no docs | Design + implement |
 | **Content Versioning** | FAQ mentions versioning as roadmap - no docs | Design + implement |
 | **Video Tutorials** | No video content for visual learners | Record videos |
