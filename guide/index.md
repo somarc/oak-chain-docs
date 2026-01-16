@@ -18,16 +18,27 @@ Run a local Oak Chain cluster to understand the system before building on it.
 ## Start the Cluster
 
 ```bash
-# Clone the infrastructure repo
-git clone https://github.com/somarc/blockchain-aem-infra.git
-cd blockchain-aem-infra/docker-compose
+# Clone the repositories
+git clone https://github.com/mhess_adobe/blockchain-aem-infra.git
+git clone https://github.com/somarc/jackrabbit-oak.git
+
+# Build the validator JAR first
+cd jackrabbit-oak
+mvn clean install -pl oak-segment-consensus -am -DskipTests
+
+# Copy JAR to infra directory
+cp oak-segment-consensus/target/oak-segment-consensus.jar \
+   ../blockchain-aem-infra/docker-compose/
 
 # Start 3-validator cluster
+cd ../blockchain-aem-infra/docker-compose
 docker-compose -f testing/3-validators-aeron.yml up -d
 
 # Check status
 docker-compose -f testing/3-validators-aeron.yml ps
 ```
+
+> **Note**: Pre-built Docker images coming soon. For now, build from source.
 
 ## Verify It's Working
 

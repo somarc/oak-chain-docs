@@ -27,23 +27,25 @@ Join the Oak Chain network and earn from content storage economics.
 - Docker (optional)
 - Access to Ethereum RPC (Infura, Alchemy, or own node)
 
-## Quick Start (Docker)
+## Quick Start (Build from Source)
+
+Docker images are not yet published. Build from source:
 
 ```bash
-# Pull the validator image
-docker pull ghcr.io/somarc/oak-chain-validator:latest
+# Clone the repository
+git clone https://github.com/somarc/jackrabbit-oak.git
+cd jackrabbit-oak
 
-# Run with environment config
-docker run -d \
-  --name oak-validator \
-  -p 8090:8090 \
-  -p 20000-20002:20000-20002 \
-  -v oak-data:/var/oak-chain \
-  -e AERON_CLUSTER_MEMBER_ID=0 \
-  -e INFURA_API_KEY=your-key \
-  -e OAK_BLOCKCHAIN_MODE=sepolia \
-  ghcr.io/somarc/oak-chain-validator:latest
+# Build the validator JAR
+mvn clean install -pl oak-segment-consensus -am -DskipTests
+
+# Run the validator
+java -jar oak-segment-consensus/target/oak-segment-consensus.jar \
+  --port 8090 \
+  --store /var/oak-chain/validator-0
 ```
+
+> **Coming Soon**: Pre-built Docker images at `ghcr.io/somarc/oak-chain-validator`. For now, build from source or use the [local development scripts](https://github.com/mhess_adobe/blockchain-aem-infra/tree/main/scripts/local-development).
 
 ## Configuration
 
@@ -191,10 +193,12 @@ oak_chain_storage_bytes 1073741824
 
 ### Grafana Dashboard
 
-Import the dashboard from:
+Dashboard templates available in the infrastructure repo:
 ```
-https://github.com/somarc/blockchain-aem-infra/grafana/oak-chain-dashboard.json
+blockchain-aem-infra/grafana/
 ```
+
+> **Note**: Production Grafana dashboards are in development. See the [infrastructure repo](https://github.com/mhess_adobe/blockchain-aem-infra) for current monitoring configs.
 
 ## Troubleshooting
 

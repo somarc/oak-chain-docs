@@ -13,6 +13,7 @@ This file tracks gaps and improvements needed to maintain 100/100 documentation 
 
 | Gap | Description | Effort |
 |-----|-------------|--------|
+| **Docker Images** | No published Docker images yet - docs say "coming soon" | CI/CD pipeline |
 | **Smart Contract Address** | Testnet guide has TBD for Sepolia contract address | Deploy contract |
 | **SDK Package** | API docs reference `@oak-chain/sdk` which doesn't exist yet | Build SDK |
 | **Production URL** | API reference shows `validator.oak-chain.io` (future) | Deploy infra |
