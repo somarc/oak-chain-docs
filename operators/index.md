@@ -1,6 +1,14 @@
 # Running a Validator
 
-This guide covers running an Oak Chain validator node.
+Join the Oak Chain network and earn from content storage economics.
+
+## Who This Is For
+
+- **Ecosystem players** wanting to earn from validator economics
+- **Infrastructure operators** with experience running distributed systems
+- **Organizations** wanting to host their own content provenance layer
+
+> **Deployment Strategy**: Most operators will deploy directly to mainnet after local testing. Sepolia is for validating smart contract logic before mainnet—not a staging environment for validators.
 
 ## Requirements
 
@@ -82,7 +90,7 @@ AERON_CLUSTER_MEMBER_ID=2
 
 ### Mock Mode
 
-For development and testing. No real Ethereum payments.
+For **local development and testing**. No blockchain, no payments. Use this to understand the mechanics before going live.
 
 ```bash
 OAK_BLOCKCHAIN_MODE=mock
@@ -90,7 +98,7 @@ OAK_BLOCKCHAIN_MODE=mock
 
 ### Sepolia Mode
 
-Testnet. Real transactions on Sepolia.
+For **smart contract validation** before mainnet. Real transactions on Sepolia testnet. Use this to verify payment flows work correctly.
 
 ```bash
 OAK_BLOCKCHAIN_MODE=sepolia
@@ -99,13 +107,15 @@ INFURA_API_KEY=your-infura-key
 
 ### Mainnet Mode
 
-Production. Real ETH payments.
+**Production**. Real ETH payments. Real economics. We'll do it live. 🔥
 
 ```bash
 OAK_BLOCKCHAIN_MODE=mainnet
 INFURA_API_KEY=your-infura-key
 VALIDATOR_WALLET=0x...
 ```
+
+> **Reality check**: External validators joining the network go straight to mainnet. Mock is for understanding the system. Sepolia is for validating smart contracts. Mainnet is where the action is.
 
 ## Ports
 
@@ -218,8 +228,21 @@ nc -zv validator-1.example.com 20000
 # Check for network partitions
 ```
 
+## Economics
+
+Validators earn from content storage payments. Authors pay to write, validators receive a share.
+
+| Tier | Finality | Cost | Validator Share |
+|------|----------|------|-----------------|
+| Priority | ~12 sec (1 epoch) | Higher | Higher |
+| Express | ~2 min | Medium | Medium |
+| Standard | ~15 min | Lower | Lower |
+
+See [Economic Tiers](/guide/economics) for full breakdown.
+
 ## Next Steps
 
 - [Architecture](/architecture) - How the system works
 - [Consensus Model](/guide/consensus) - Aeron Raft details
 - [Economic Tiers](/guide/economics) - Payment and finality
+- [SDK](/guide/sdk) - Build applications on Oak Chain

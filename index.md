@@ -119,8 +119,8 @@ Every write is cryptographically signed, economically backed, and replicated.
 - [**The Thesis**](/thesis) - Why this exists
 - [**How It Works**](/how-it-works) - Technical flows
 - [**Architecture**](/architecture) - The five layers
-- [**Quick Start**](/guide/) - Get running in 10 minutes
-- [**Run a Validator**](/operators/) - Join the network
+- [**Developer Guide**](/guide/) - Build on Oak Chain
+- [**Run a Validator**](/operators/) - Join the network and earn
 
 ---
 

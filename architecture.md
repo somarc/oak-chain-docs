@@ -2,6 +2,21 @@
 
 Oak Chain is a distributed content repository that bridges Ethereum's economic security with Oak's enterprise content model.
 
+## Two Deployment Models
+
+Oak Chain supports two integration patterns for different use cases:
+
+<FlowGraph flow="two-models" :height="340" />
+
+| Model | Use Case | Integration Path |
+|-------|----------|------------------|
+| **Blockchain-Native** | New applications | EDS (aem.live) → Validators → Ethereum |
+| **AEM Integration** | Existing AEM customers | AEM → oak-segment-http → Validators |
+
+**Key insight**: Validators store **CIDs only** (46 bytes), not binaries. Binaries live at the author's source.
+
+---
+
 ## The Five Layers
 
 ```
@@ -158,21 +173,16 @@ graph LR
 
 ## HTTP Segment Transfer
 
-Sling authors mount the global store read-only via HTTP:
+Any Oak-based system can mount Oak Chain read-only via `oak-segment-http`:
 
-```
-Validator (8090)              Sling Author (4502)
-┌─────────────────┐          ┌─────────────────┐
-│ Oak FileStore   │◄─────────│ HttpPersistence │
-│ (read-write)    │  HTTP    │ (read-only)     │
-└─────────────────┘          └─────────────────┘
-     │                              │
-     │ GET /segments/{id}           │
-     │ GET /journal.log             │
-     │◄─────────────────────────────│
-```
+<FlowGraph flow="aem-integration" :height="280" />
 
-This enables horizontal read scaling without consensus overhead.
+**Supported platforms**:
+- Adobe Experience Manager (on-prem, AMS, AEMaaCS)
+- Apache Sling
+- Other Oak-based CMS/CRM systems
+
+This enables horizontal read scaling without consensus overhead. See the [AEM Integration Guide](/guide/aem-integration) for setup instructions.
 
 ---
 
@@ -200,5 +210,5 @@ PRIORITY tier bypasses epoch batching for lowest latency.
 ## Next Steps
 
 - [Run a Validator](/operators/) - Join the network
-- [FAQ](/faq) - Common questions answered
 - [Quick Start](/guide/) - Get running locally
+- [FAQ](/faq) - Common questions answered

@@ -1,6 +1,13 @@
-# Quick Start
+# Developer Guide
 
-Get a 3-validator Oak Chain cluster running locally in under 10 minutes.
+Run a local Oak Chain cluster to understand the system before building on it.
+
+## Who This Is For
+
+- **Developers** building applications on Oak Chain
+- **Existing AEM clients** exploring content provenance
+- **Validator operators** testing locally before mainnet
+- **Anyone** wanting to understand how Oak Chain works
 
 ## Prerequisites
 
@@ -78,8 +85,19 @@ curl http://localhost:8090/api/content/oak-chain/content/test/hello
 5. Content persisted to **Oak segment store**
 6. All three validators now have identical state
 
+## Modes Explained
+
+| Mode | Purpose | When to Use |
+|------|---------|-------------|
+| **MOCK** | Local testing, no blockchain | Understanding mechanics, development |
+| **SEPOLIA** | Smart contract validation | Before mainnet, verify payment flows |
+| **MAINNET** | Production | We'll do it live 🔥 |
+
+> **Reality**: External validators go straight to mainnet. MOCK is for understanding. SEPOLIA is for smart contract validation. Mainnet is where the action is.
+
 ## Next Steps
 
 - [Consensus Model](/guide/consensus) - How Aeron Raft works
 - [Economic Tiers](/guide/economics) - Payment and finality
-- [Run a Validator](/operators/) - Join the real network
+- [AEM Integration](/guide/aem-integration) - For existing AEM clients
+- [Run a Validator](/operators/) - Join the network and earn

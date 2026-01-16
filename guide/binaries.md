@@ -1,6 +1,31 @@
 # Binary Storage
 
-Oak Chain stores large binaries in IPFS, with CID references in Oak.
+Oak Chain stores large binaries in IPFS, with CID references in Oak. Validators store **CIDs only** (46 bytes), not the binaries themselves.
+
+## The Truth → Provenance → Edge Flow
+
+This is the beautiful insight: Oak Chain is the **source of truth** (CIDs), while binaries flow through author storage to edge CDNs.
+
+<FlowGraph flow="binary-flow" :height="300" />
+
+### How It Works
+
+1. **Oak Chain** stores the CID (content-addressed hash) — this is the **truth**
+2. **Author** hosts the binary (IPFS, Azure Blob, or pinning service) — this is **provenance**
+3. **Edge CDN** caches the binary globally (Cloudflare R2, Fastly) — this is **delivery**
+4. **User** can verify binary integrity by hashing and comparing to the CID
+
+### Why This Is Beautiful
+
+| Property | Benefit |
+|----------|---------|
+| **Immutable provenance** | CID in Oak Chain proves what the binary SHOULD be |
+| **Decentralized truth** | Validators consensus on CID, not on binary storage |
+| **Perfect cache key** | CID never changes = CDN can cache forever |
+| **Trustless verification** | Anyone can hash binary and compare to Oak Chain CID |
+| **Economic separation** | Validators handle consensus, authors handle storage, CDN handles delivery |
+
+---
 
 ## Architecture
 

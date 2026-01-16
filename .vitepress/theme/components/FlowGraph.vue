@@ -25,7 +25,7 @@ interface Edge {
 }
 
 const props = defineProps<{
-  flow: 'write' | 'payment' | 'ipfs' | 'consensus' | 'architecture' | 'gc-overview' | 'gc-compaction' | 'gc-generations' | 'gc-cleanup' | 'gc-modes'
+  flow: 'write' | 'payment' | 'ipfs' | 'consensus' | 'architecture' | 'gc-overview' | 'gc-compaction' | 'gc-generations' | 'gc-cleanup' | 'gc-modes' | 'aem-integration' | 'binary-flow' | 'validator-auth' | 'two-models'
   height?: number
   interactive?: boolean
 }>()
@@ -53,6 +53,11 @@ const NODE_TYPES: Record<string, { icon: string; color: string }> = {
   CONTENT: { icon: '📄', color: '#e6edf3' },
   SIGNATURE: { icon: '🔐', color: '#f0b429' },
   TRANSACTION: { icon: '💸', color: '#4ade80' },
+  AEM: { icon: '🏢', color: '#fa0f00' },
+  CDN: { icon: '🌍', color: '#f48120' },
+  PASSKEY: { icon: '🔑', color: '#a855f7' },
+  EDS: { icon: '⚡', color: '#00c7b7' },
+  AZURE: { icon: '☁️', color: '#0078d4' },
 }
 
 const EDGE_COLORS: Record<string, string> = {
@@ -71,6 +76,10 @@ const width = computed(() => {
     case 'gc-generations': return 900
     case 'gc-cleanup': return 900
     case 'gc-modes': return 900
+    case 'aem-integration': return 900
+    case 'binary-flow': return 950
+    case 'validator-auth': return 800
+    case 'two-models': return 950
     default: return 850
   }
 })
@@ -108,6 +117,18 @@ function initFlow() {
       break
     case 'gc-modes':
       initGCModesFlow()
+      break
+    case 'aem-integration':
+      initAEMIntegrationFlow()
+      break
+    case 'binary-flow':
+      initBinaryFlow()
+      break
+    case 'validator-auth':
+      initValidatorAuthFlow()
+      break
+    case 'two-models':
+      initTwoModelsFlow()
       break
   }
 }
@@ -384,6 +405,103 @@ function initGCModesFlow() {
   addEdge('debt_payment', 'writes_unblocked', 'CONTROL', { label: 'clear' })
 }
 
+// ============================================================================
+// NEW PRODUCTION FLOWS
+// ============================================================================
+
+function initAEMIntegrationFlow() {
+  nodes.value = []
+  edges.value = []
+  
+  // Existing AEM instance
+  addNode('aem', 'AEM', 70, 180, { label: 'Existing AEM', description: 'On-prem, AMS, AEMaaCS, or CQ variant' })
+  addNode('composite', 'OAK_STORE', 220, 180, { label: 'Composite Mount', description: 'Oak CompositeNodeStore' })
+  addNode('local', 'SEGMENT', 220, 80, { label: '/content (local)', description: 'Read-write local content' })
+  addNode('http', 'CONSENSUS', 400, 180, { label: 'oak-segment-http', description: 'HTTP persistence layer' })
+  addNode('validators', 'VALIDATOR', 580, 180, { label: 'Validators', description: 'Raft consensus cluster' })
+  addNode('oakchain', 'OAK_STORE', 580, 80, { label: '/oak-chain (remote)', description: 'Read-only blockchain content' })
+  addNode('ethereum', 'ETHEREUM', 750, 180, { label: 'Ethereum', description: 'Payment verification' })
+  
+  addEdge('aem', 'composite', 'DATA', { label: 'JCR API' })
+  addEdge('composite', 'local', 'DATA', { label: 'read/write' })
+  addEdge('composite', 'http', 'ASYNC', { label: 'read-only' })
+  addEdge('http', 'validators', 'DATA', { label: 'segments' })
+  addEdge('validators', 'oakchain', 'DATA', { label: 'serve' })
+  addEdge('validators', 'ethereum', 'PAYMENT', { label: 'verify' })
+}
+
+function initBinaryFlow() {
+  nodes.value = []
+  edges.value = []
+  
+  // Truth → Provenance → Edge flow
+  addNode('oakchain', 'OAK_STORE', 70, 200, { label: 'Oak-Chain', description: 'Source of truth: CIDs (46 bytes)' })
+  addNode('cid', 'SIGNATURE', 220, 120, { label: 'CID', description: 'Content-addressed hash (provenance)' })
+  addNode('author_storage', 'IPFS', 220, 280, { label: 'Author Storage', description: 'IPFS, Azure Blob, or Pinata' })
+  addNode('binary', 'CONTENT', 400, 200, { label: 'Binary (5MB)', description: 'Actual file content' })
+  addNode('edge', 'CDN', 580, 200, { label: 'Edge CDN', description: 'Cloudflare R2, Fastly, etc.' })
+  addNode('user', 'USER', 750, 200, { label: 'End User', description: 'Verifies CID against oak-chain' })
+  addNode('verify', 'SIGNATURE', 750, 100, { label: 'Verify', description: 'Hash binary = CID?' })
+  
+  addEdge('oakchain', 'cid', 'DATA', { label: 'stores' })
+  addEdge('oakchain', 'author_storage', 'ASYNC', { label: 'references' })
+  addEdge('author_storage', 'binary', 'DATA', { label: 'hosts' })
+  addEdge('cid', 'binary', 'CONTROL', { label: 'addresses' })
+  addEdge('binary', 'edge', 'DATA', { label: 'cache' })
+  addEdge('edge', 'user', 'DATA', { label: 'serve' })
+  addEdge('user', 'verify', 'CONTROL', { label: 'hash' })
+  addEdge('cid', 'verify', 'ASYNC', { label: 'compare' })
+}
+
+function initValidatorAuthFlow() {
+  nodes.value = []
+  edges.value = []
+  
+  // Passkey authentication flow
+  addNode('operator', 'USER', 70, 180, { label: 'Operator', description: 'Validator operator' })
+  addNode('passkey', 'PASSKEY', 220, 180, { label: 'Passkey', description: 'WebAuthn credential (Face ID, Touch ID)' })
+  addNode('challenge', 'SIGNATURE', 220, 80, { label: 'Challenge', description: 'Random nonce from server' })
+  addNode('p256', 'CONSENSUS', 400, 180, { label: 'P-256 Signature', description: 'Signed challenge' })
+  addNode('verify', 'VALIDATOR', 560, 180, { label: 'Verify', description: 'Server validates signature' })
+  addNode('wallet', 'WALLET', 560, 80, { label: 'Derived Wallet', description: 'P-256 pubkey → ETH address' })
+  addNode('dashboard', 'CONTENT', 700, 180, { label: 'Dashboard', description: 'Authenticated access' })
+  
+  addEdge('operator', 'passkey', 'CONTROL', { label: 'authenticate' })
+  addEdge('passkey', 'challenge', 'DATA', { label: 'receive' })
+  addEdge('passkey', 'p256', 'DATA', { label: 'sign' })
+  addEdge('challenge', 'p256', 'CONTROL', { label: 'include' })
+  addEdge('p256', 'verify', 'DATA', { label: 'submit' })
+  addEdge('verify', 'wallet', 'ASYNC', { label: 'derive' })
+  addEdge('verify', 'dashboard', 'CONTROL', { label: 'grant' })
+}
+
+function initTwoModelsFlow() {
+  nodes.value = []
+  edges.value = []
+  
+  // Model 1: Blockchain-Native (top)
+  addNode('eds', 'EDS', 70, 80, { label: 'EDS (aem.live)', description: 'Edge Delivery Services' })
+  addNode('validators1', 'VALIDATOR', 280, 80, { label: 'Validators', description: 'Raft consensus cluster' })
+  addNode('ethereum1', 'ETHEREUM', 480, 80, { label: 'Ethereum', description: 'Payment & verification' })
+  addNode('label1', 'CONTENT', 680, 80, { label: 'Model 1', description: 'Blockchain-Native (new apps)', radius: 20 })
+  
+  // Model 2: AEM Integration (bottom)
+  addNode('aem', 'AEM', 70, 260, { label: 'Existing AEM', description: 'On-prem, AMS, AEMaaCS' })
+  addNode('http', 'CONSENSUS', 280, 260, { label: 'oak-segment-http', description: 'HTTP segment transfer' })
+  addNode('validators2', 'VALIDATOR', 480, 260, { label: 'Validators', description: 'Same cluster, different access' })
+  addNode('label2', 'CONTENT', 680, 260, { label: 'Model 2', description: 'AEM Integration (existing)', radius: 20 })
+  
+  // Shared: Binary storage
+  addNode('ipfs', 'IPFS', 280, 170, { label: 'Author IPFS', description: 'Binaries at source (CID only in validators)' })
+  
+  addEdge('eds', 'validators1', 'DATA', { label: 'HTTPS API' })
+  addEdge('validators1', 'ethereum1', 'PAYMENT', { label: 'verify' })
+  addEdge('aem', 'http', 'DATA', { label: 'mount' })
+  addEdge('http', 'validators2', 'DATA', { label: 'segments' })
+  addEdge('validators1', 'ipfs', 'ASYNC', { label: 'CID' })
+  addEdge('validators2', 'ipfs', 'ASYNC', { label: 'CID' })
+}
+
 function getEdgePath(edge: Edge): string {
   const fromNode = nodes.value.find(n => n.id === edge.from)
   const toNode = nodes.value.find(n => n.id === edge.to)
@@ -520,6 +638,41 @@ async function playAnimation() {
       [{ from: 'delete_op', to: 'debt_accrual', color: '#627EEA' }],
       [{ from: 'debt_accrual', to: 'debt_payment', color: '#f0b429' }],
       [{ from: 'debt_payment', to: 'writes_unblocked', color: '#8C8DFC' }],
+    ],
+    'aem-integration': [
+      [{ from: 'aem', to: 'composite', color: '#fa0f00' }],
+      [{ from: 'composite', to: 'local', color: '#627EEA' }],
+      [{ from: 'composite', to: 'http', color: '#65c2cb' }],
+      [{ from: 'http', to: 'validators', color: '#627EEA' }],
+      [{ from: 'validators', to: 'oakchain', color: '#4ade80' }],
+      [{ from: 'validators', to: 'ethereum', color: '#f0b429' }],
+    ],
+    'binary-flow': [
+      [{ from: 'oakchain', to: 'cid', color: '#4ade80' }],
+      [{ from: 'oakchain', to: 'author_storage', color: '#65c2cb' }],
+      [{ from: 'author_storage', to: 'binary', color: '#627EEA' }],
+      [{ from: 'cid', to: 'binary', color: '#8C8DFC' }],
+      [{ from: 'binary', to: 'edge', color: '#627EEA' }],
+      [{ from: 'edge', to: 'user', color: '#f48120' }],
+      [{ from: 'user', to: 'verify', color: '#8C8DFC' }],
+      [{ from: 'cid', to: 'verify', color: '#65c2cb' }],
+    ],
+    'validator-auth': [
+      [{ from: 'operator', to: 'passkey', color: '#627EEA' }],
+      [{ from: 'passkey', to: 'challenge', color: '#a855f7' }],
+      [{ from: 'passkey', to: 'p256', color: '#a855f7' }],
+      [{ from: 'challenge', to: 'p256', color: '#8C8DFC' }],
+      [{ from: 'p256', to: 'verify', color: '#627EEA' }],
+      [{ from: 'verify', to: 'wallet', color: '#65c2cb' }],
+      [{ from: 'verify', to: 'dashboard', color: '#4ade80' }],
+    ],
+    'two-models': [
+      [{ from: 'eds', to: 'validators1', color: '#00c7b7' }],
+      [{ from: 'validators1', to: 'ethereum1', color: '#f0b429' }],
+      [{ from: 'validators1', to: 'ipfs', color: '#65c2cb' }],
+      [{ from: 'aem', to: 'http', color: '#fa0f00' }],
+      [{ from: 'http', to: 'validators2', color: '#627EEA' }],
+      [{ from: 'validators2', to: 'ipfs', color: '#65c2cb' }],
     ],
   }
   

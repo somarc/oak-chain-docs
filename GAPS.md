@@ -184,3 +184,10 @@ When addressing gaps, verify:
 *Add notes here as gaps are discovered or addressed*
 
 - 2026-01-10: Initial gap analysis after 100/100 push
+- 2026-01-15: Updated audience framing across docs
+  - Operators page: Added "Who This Is For" section, clarified modes (MOCK/SEPOLIA/MAINNET)
+  - Guide index: Reframed as "Developer Guide", added audience section
+  - AEM integration: Already has proper framing about the integration gap
+  - Added economics teaser to operators page
+- 2026-01-15: Created OpenAPI test suite (`local-development/tests/test-openapi.sh`)
+- 2026-01-15: Reorganized local-development folder structure (tests/, load-tests/, utils/, etc.)
