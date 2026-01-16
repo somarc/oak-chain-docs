@@ -1,0 +1,1098 @@
+openapi: 3.1.0
+info:
+  title: Oak Chain Validator API
+  description: |
+    REST API for Oak Chain validators - decentralized content repository built on Jackrabbit Oak
+    with Ethereum payments and IPFS binary storage.
+    
+    ## Authentication
+    
+    Most endpoints require authentication via bearer token or wallet signature.
+    Health endpoints are public for monitoring/load balancer integration.
+    
+    ## Rate Limiting
+    
+    API requests are rate-limited per IP address. Rate limit headers are included in responses:
+    - `X-RateLimit-Limit`: Maximum requests per window
+    - `X-RateLimit-Remaining`: Remaining requests in current window
+    - `X-RateLimit-Reset`: Unix timestamp when the window resets
+    
+  version: 1.0.0
+  contact:
+    name: Oak Chain
+    url: https://oak-chain.io
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: https://validators.oak-chain.io
+    description: Production (Mainnet)
+  - url: https://sepolia.validators.oak-chain.io
+    description: Testnet (Sepolia)
+  - url: http://localhost:8090
+    description: Local development
+
+tags:
+  - name: Health
+    description: Health check endpoints (public)
+  - name: Content
+    description: Content read operations
+  - name: Write
+    description: Write proposal operations
+  - name: Binary
+    description: Binary upload operations (IPFS)
+  - name: Streaming
+    description: Server-Sent Events (SSE) streaming
+  - name: Cluster
+    description: Cluster and consensus status
+  - name: Payment
+    description: Payment verification
+  - name: GC
+    description: Garbage collection operations
+
+paths:
+  # ============================================================================
+  # HEALTH
+  # ============================================================================
+  /health:
+    get:
+      tags: [Health]
+      summary: Basic health check
+      description: Returns OK if the validator is running. No authentication required.
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Validator is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: integer
+                    format: int64
+
+  /health/deep:
+    get:
+      tags: [Health]
+      summary: Deep health check
+      description: |
+        Returns detailed health status including cluster connectivity,
+        storage health, and consensus state.
+      operationId: deepHealthCheck
+      responses:
+        '200':
+          description: Detailed health status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeepHealthResponse'
+
+  # ============================================================================
+  # CONTENT
+  # ============================================================================
+  /api/explore:
+    get:
+      tags: [Content]
+      summary: Explore content node
+      description: Read a content node and its properties at the specified path.
+      operationId: exploreNode
+      parameters:
+        - name: path
+          in: query
+          description: JCR path to explore (default: /)
+          schema:
+            type: string
+            default: /
+      responses:
+        '200':
+          description: Node content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentNode'
+        '404':
+          description: Path not found
+
+  /v1/wallets/content:
+    get:
+      tags: [Content]
+      summary: Get wallet content
+      description: List all content owned by a specific wallet address.
+      operationId: getWalletContent
+      parameters:
+        - name: wallet
+          in: query
+          required: true
+          description: Ethereum wallet address (0x...)
+          schema:
+            type: string
+            pattern: ^0x[a-fA-F0-9]{40}$
+        - name: page
+          in: query
+          description: Page number (0-indexed)
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          description: Items per page
+          schema:
+            type: integer
+            default: 100
+            maximum: 1000
+      responses:
+        '200':
+          description: Wallet content list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedContent'
+
+  /v1/wallets/stats:
+    get:
+      tags: [Content]
+      summary: Get wallet statistics
+      description: Get storage statistics for a wallet address.
+      operationId: getWalletStats
+      parameters:
+        - name: wallet
+          in: query
+          required: true
+          description: Ethereum wallet address
+          schema:
+            type: string
+            pattern: ^0x[a-fA-F0-9]{40}$
+      responses:
+        '200':
+          description: Wallet statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletStats'
+
+  # ============================================================================
+  # WRITE OPERATIONS
+  # ============================================================================
+  /v1/propose-write:
+    post:
+      tags: [Write]
+      summary: Propose content write
+      description: |
+        Submit a signed write proposal to the consensus cluster.
+        Requires a valid payment transaction hash from the smart contract.
+      operationId: proposeWrite
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WriteProposal'
+      responses:
+        '202':
+          description: Proposal accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProposalResponse'
+        '400':
+          description: Invalid proposal
+        '402':
+          description: Payment required or invalid
+        '403':
+          description: Signature verification failed
+
+  /v1/propose-delete:
+    post:
+      tags: [Write]
+      summary: Propose content deletion
+      description: |
+        Submit a signed delete proposal. Only the content owner (wallet)
+        can delete content at their path.
+      operationId: proposeDelete
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteProposal'
+      responses:
+        '202':
+          description: Delete proposal accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProposalResponse'
+        '403':
+          description: Not authorized to delete this path
+
+  /v1/proposals/{proposalId}/status:
+    get:
+      tags: [Write]
+      summary: Get proposal status
+      description: Check the status of a submitted proposal.
+      operationId: getProposalStatus
+      parameters:
+        - name: proposalId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Proposal status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProposalStatus'
+        '404':
+          description: Proposal not found
+
+  /v1/proposals/pending/count:
+    get:
+      tags: [Write]
+      summary: Get pending proposal count
+      description: Returns the number of proposals waiting to be processed.
+      operationId: getPendingCount
+      responses:
+        '200':
+          description: Pending count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pending:
+                    type: integer
+
+  # ============================================================================
+  # BINARY UPLOAD (IPFS)
+  # ============================================================================
+  /v1/binary/declare-intent:
+    post:
+      tags: [Binary]
+      summary: Declare binary upload intent
+      description: |
+        Declare intent to upload a binary. Returns a session ID for tracking.
+        The actual binary should be uploaded to IPFS separately.
+      operationId: declareUploadIntent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [wallet, cid, size, mimeType]
+              properties:
+                wallet:
+                  type: string
+                  description: Owner wallet address
+                cid:
+                  type: string
+                  description: IPFS CID of the binary
+                size:
+                  type: integer
+                  description: File size in bytes
+                mimeType:
+                  type: string
+                  description: MIME type
+                filename:
+                  type: string
+                  description: Original filename
+      responses:
+        '200':
+          description: Intent declared
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId:
+                    type: string
+                  expiresAt:
+                    type: integer
+                    format: int64
+
+  /v1/binary/check-intent/{sessionId}:
+    get:
+      tags: [Binary]
+      summary: Check upload intent status
+      operationId: checkUploadIntent
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Intent status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadStatus'
+
+  /v1/binary/complete-upload:
+    post:
+      tags: [Binary]
+      summary: Complete binary upload
+      description: |
+        Mark a binary upload as complete after the binary is available on IPFS.
+        This triggers CID verification and storage in Oak Chain.
+      operationId: completeUpload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sessionId, signature]
+              properties:
+                sessionId:
+                  type: string
+                signature:
+                  type: string
+                  description: Wallet signature confirming upload
+      responses:
+        '200':
+          description: Upload completed
+        '400':
+          description: CID not available on IPFS
+
+  # ============================================================================
+  # CID MAPPING
+  # ============================================================================
+  /api/cid/{blobId}:
+    get:
+      tags: [Binary]
+      summary: Get CID for Oak blob
+      description: Look up the IPFS CID for an Oak blob ID.
+      operationId: getCid
+      parameters:
+        - name: blobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: CID mapping
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  blobId:
+                    type: string
+                  cid:
+                    type: string
+                  gatewayUrl:
+                    type: string
+        '404':
+          description: Blob not found
+
+  /api/cid/reverse/{cid}:
+    get:
+      tags: [Binary]
+      summary: Reverse CID lookup
+      description: Look up the Oak blob ID for an IPFS CID.
+      operationId: reverseCidLookup
+      parameters:
+        - name: cid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Blob ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cid:
+                    type: string
+                  blobId:
+                    type: string
+        '404':
+          description: CID not found
+
+  /api/cid/stats:
+    get:
+      tags: [Binary]
+      summary: CID mapping statistics
+      operationId: getCidStats
+      responses:
+        '200':
+          description: Statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalMappings:
+                    type: integer
+                  totalSize:
+                    type: integer
+                    format: int64
+
+  # ============================================================================
+  # STREAMING (SSE)
+  # ============================================================================
+  /v1/events/stream:
+    get:
+      tags: [Streaming]
+      summary: SSE event stream
+      description: |
+        Server-Sent Events stream for real-time content updates.
+        
+        Event types:
+        - `content-created`: New content written
+        - `content-updated`: Existing content modified
+        - `content-deleted`: Content deleted
+        - `binary-added`: Binary CID registered
+        - `epoch-finalized`: Ethereum epoch finalized
+        - `leader-changed`: Cluster leader changed
+        - `heartbeat`: Keep-alive ping
+      operationId: eventStream
+      parameters:
+        - name: events
+          in: query
+          description: Comma-separated list of event types to subscribe to
+          schema:
+            type: string
+            default: content-created,content-updated,content-deleted
+        - name: path
+          in: query
+          description: Filter events by path prefix
+          schema:
+            type: string
+        - name: wallet
+          in: query
+          description: Filter events by wallet address
+          schema:
+            type: string
+      responses:
+        '200':
+          description: SSE stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  /v1/events/recent:
+    get:
+      tags: [Streaming]
+      summary: Get recent events
+      description: Get recent events (for clients that missed SSE events).
+      operationId: getRecentEvents
+      parameters:
+        - name: since
+          in: query
+          description: Unix timestamp to get events after
+          schema:
+            type: integer
+            format: int64
+        - name: limit
+          in: query
+          description: Maximum events to return
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: Recent events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SSEEvent'
+
+  /v1/events/stats:
+    get:
+      tags: [Streaming]
+      summary: Event stream statistics
+      operationId: getEventStats
+      responses:
+        '200':
+          description: Statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  connectedClients:
+                    type: integer
+                  eventsEmitted:
+                    type: integer
+                    format: int64
+                  eventsPerSecond:
+                    type: number
+
+  # ============================================================================
+  # CLUSTER STATUS
+  # ============================================================================
+  /v1/consensus/status:
+    get:
+      tags: [Cluster]
+      summary: Get consensus status
+      description: Get current consensus cluster status including leader and term.
+      operationId: getConsensusStatus
+      responses:
+        '200':
+          description: Consensus status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsensusStatus'
+
+  /v1/head:
+    get:
+      tags: [Cluster]
+      summary: Get current HEAD
+      description: Get the current committed and latest HEAD revision.
+      operationId: getHead
+      responses:
+        '200':
+          description: HEAD information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  latestHead:
+                    type: string
+                    description: Latest HEAD revision
+                  committedHead:
+                    type: string
+                    description: Committed HEAD revision
+                  latestEpochSeen:
+                    type: integer
+                  committedEpoch:
+                    type: integer
+
+  /v1/aeron/cluster-state:
+    get:
+      tags: [Cluster]
+      summary: Get Aeron cluster state
+      operationId: getClusterState
+      responses:
+        '200':
+          description: Cluster state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterState'
+
+  /v1/aeron/raft-metrics:
+    get:
+      tags: [Cluster]
+      summary: Get Raft metrics
+      operationId: getRaftMetrics
+      responses:
+        '200':
+          description: Raft metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RaftMetrics'
+
+  /v1/aeron/replication-lag:
+    get:
+      tags: [Cluster]
+      summary: Get replication lag
+      description: Get replication lag between leader and followers.
+      operationId: getReplicationLag
+      responses:
+        '200':
+          description: Replication lag
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lagMs:
+                    type: integer
+                  behindCommits:
+                    type: integer
+
+  /v1/peers:
+    get:
+      tags: [Cluster]
+      summary: List peers
+      description: List all known peers in the cluster.
+      operationId: listPeers
+      responses:
+        '200':
+          description: Peer list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PeerInfo'
+
+  # ============================================================================
+  # BLOCKCHAIN CONFIG
+  # ============================================================================
+  /v1/blockchain/config:
+    get:
+      tags: [Cluster]
+      summary: Get blockchain configuration
+      description: Get the current blockchain mode and contract configuration.
+      operationId: getBlockchainConfig
+      responses:
+        '200':
+          description: Blockchain configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mode:
+                    type: string
+                    enum: [MOCK, SEPOLIA, MAINNET]
+                  contractAddress:
+                    type: string
+                  network:
+                    type: string
+
+  # ============================================================================
+  # GC (GARBAGE COLLECTION)
+  # ============================================================================
+  /v1/gc/estimate:
+    get:
+      tags: [GC]
+      summary: Estimate GC cost
+      description: Estimate the cost of garbage collection for a wallet.
+      operationId: estimateGCCost
+      parameters:
+        - name: wallet
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: GC cost estimate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GCCostEstimate'
+
+  /v1/gc/status:
+    get:
+      tags: [GC]
+      summary: Get GC status
+      operationId: getGCStatus
+      responses:
+        '200':
+          description: GC status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lastRun:
+                    type: integer
+                    format: int64
+                  nextScheduled:
+                    type: integer
+                    format: int64
+                  running:
+                    type: boolean
+
+  /v1/gc/account/{wallet}:
+    get:
+      tags: [GC]
+      summary: Get GC account
+      description: Get GC debt account for a wallet.
+      operationId: getGCAccount
+      parameters:
+        - name: wallet
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: GC account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GCAccount'
+
+  /v1/fragmentation/metrics:
+    get:
+      tags: [GC]
+      summary: Get fragmentation metrics
+      operationId: getFragmentationMetrics
+      responses:
+        '200':
+          description: Fragmentation metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalFragmentation:
+                    type: number
+                  walletMetrics:
+                    type: object
+                    additionalProperties:
+                      $ref: '#/components/schemas/FragmentationMetric'
+
+  # ============================================================================
+  # METRICS
+  # ============================================================================
+  /metrics:
+    get:
+      tags: [Health]
+      summary: Prometheus metrics
+      description: Prometheus-formatted metrics for monitoring.
+      operationId: getPrometheusMetrics
+      responses:
+        '200':
+          description: Prometheus metrics
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/metrics:
+    get:
+      tags: [Health]
+      summary: JSON metrics
+      description: JSON-formatted metrics.
+      operationId: getJsonMetrics
+      responses:
+        '200':
+          description: JSON metrics
+          content:
+            application/json:
+              schema:
+                type: object
+
+# ============================================================================
+# COMPONENTS
+# ============================================================================
+components:
+  schemas:
+    ContentNode:
+      type: object
+      properties:
+        jcr:primaryType:
+          type: string
+        jcr:mixinTypes:
+          type: array
+          items:
+            type: string
+        jcr:created:
+          type: string
+          format: date-time
+        jcr:lastModified:
+          type: string
+          format: date-time
+        oak:author:
+          type: string
+          description: Author wallet address
+        oak:signature:
+          type: string
+          description: Content signature
+      additionalProperties: true
+
+    WriteProposal:
+      type: object
+      required: [wallet, organization, path, content, paymentTier, txHash, signature, timestamp]
+      properties:
+        wallet:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{40}$
+          description: Author wallet address
+        organization:
+          type: string
+          description: Organization/brand scope
+        path:
+          type: string
+          description: Content path (relative to wallet namespace)
+        content:
+          $ref: '#/components/schemas/ContentNode'
+        paymentTier:
+          type: string
+          enum: [priority, express, standard]
+        txHash:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{64}$
+          description: Payment transaction hash
+        signature:
+          type: string
+          description: Wallet signature of the proposal
+        timestamp:
+          type: integer
+          format: int64
+
+    DeleteProposal:
+      type: object
+      required: [wallet, path, signature, timestamp]
+      properties:
+        wallet:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{40}$
+        path:
+          type: string
+          description: Full path to delete
+        signature:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    ProposalResponse:
+      type: object
+      properties:
+        proposalId:
+          type: string
+        status:
+          type: string
+          enum: [pending, committed, rejected]
+        path:
+          type: string
+          description: Full path where content was written
+        commitIndex:
+          type: integer
+        error:
+          type: string
+
+    ProposalStatus:
+      type: object
+      properties:
+        proposalId:
+          type: string
+        status:
+          type: string
+          enum: [pending, committed, rejected]
+        submittedAt:
+          type: integer
+          format: int64
+        committedAt:
+          type: integer
+          format: int64
+        commitIndex:
+          type: integer
+        error:
+          type: string
+
+    PaginatedContent:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentNode'
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        hasMore:
+          type: boolean
+
+    WalletStats:
+      type: object
+      properties:
+        wallet:
+          type: string
+        nodeCount:
+          type: integer
+        totalSize:
+          type: integer
+          format: int64
+        binaryCount:
+          type: integer
+        lastModified:
+          type: integer
+          format: int64
+
+    UploadStatus:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        status:
+          type: string
+          enum: [pending, uploading, completed, expired, failed]
+        cid:
+          type: string
+        expiresAt:
+          type: integer
+          format: int64
+
+    SSEEvent:
+      type: object
+      properties:
+        type:
+          type: string
+        id:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+        data:
+          type: object
+
+    ConsensusStatus:
+      type: object
+      properties:
+        clusterId:
+          type: string
+        leader:
+          $ref: '#/components/schemas/PeerInfo'
+        term:
+          type: integer
+        commitIndex:
+          type: integer
+        role:
+          type: string
+          enum: [leader, follower, candidate]
+
+    ClusterState:
+      type: object
+      properties:
+        nodeId:
+          type: integer
+        role:
+          type: string
+        leaderNodeId:
+          type: integer
+        term:
+          type: integer
+        members:
+          type: array
+          items:
+            type: object
+
+    RaftMetrics:
+      type: object
+      properties:
+        term:
+          type: integer
+        commitIndex:
+          type: integer
+        lastApplied:
+          type: integer
+        logSize:
+          type: integer
+
+    PeerInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        wallet:
+          type: string
+        endpoint:
+          type: string
+        role:
+          type: string
+        active:
+          type: boolean
+        lastHeartbeat:
+          type: integer
+          format: int64
+
+    GCCostEstimate:
+      type: object
+      properties:
+        wallet:
+          type: string
+        estimatedCostWei:
+          type: string
+        estimatedCostEth:
+          type: string
+        reclaimableBytes:
+          type: integer
+          format: int64
+        fragmentationRatio:
+          type: number
+
+    GCAccount:
+      type: object
+      properties:
+        wallet:
+          type: string
+        debtWei:
+          type: string
+        debtLimit:
+          type: string
+        pendingGC:
+          type: boolean
+
+    FragmentationMetric:
+      type: object
+      properties:
+        wallet:
+          type: string
+        fragmentationRatio:
+          type: number
+        totalBytes:
+          type: integer
+          format: int64
+        reclaimableBytes:
+          type: integer
+          format: int64
+
+    DeepHealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        storage:
+          type: object
+          properties:
+            healthy:
+              type: boolean
+            segmentCount:
+              type: integer
+            diskUsage:
+              type: integer
+              format: int64
+        cluster:
+          type: object
+          properties:
+            healthy:
+              type: boolean
+            role:
+              type: string
+            leaderConnected:
+              type: boolean
+        consensus:
+          type: object
+          properties:
+            healthy:
+              type: boolean
+            term:
+              type: integer
+            commitIndex:
+              type: integer
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Bearer token authentication
+    walletSignature:
+      type: apiKey
+      in: header
+      name: X-Wallet-Signature
+      description: Ethereum wallet signature for authentication
+
+security:
+  - bearerAuth: []
+  - walletSignature: []
