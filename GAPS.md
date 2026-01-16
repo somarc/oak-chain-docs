@@ -18,6 +18,12 @@ This file tracks gaps and improvements needed to maintain 100/100 documentation 
 | **SDK Package** | API docs reference `@oak-chain/sdk` which doesn't exist yet | Build SDK |
 | **Production URL** | API reference shows `validator.oak-chain.io` (future) | Deploy infra |
 
+### Deferred (Post-Mainnet)
+
+| Gap | Description | Notes |
+|-----|-------------|-------|
+| **Version 1.0 Release** | Merge feature branch to main, tag as `oak-chain-v1.0.0` | Keep fork lineage (preserves commit history, ADR context). Don't create new repo - would obfuscate implementation journey. |
+
 ### Medium Priority
 
 | Gap | Description | Effort |
