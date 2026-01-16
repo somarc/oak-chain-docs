@@ -23,7 +23,7 @@ Join the Oak Chain network and earn from content storage economics.
 
 ### Software
 
-- Java 11+
+- Java 21+ (LTS)
 - Docker (optional)
 - Access to Ethereum RPC (Infura, Alchemy, or own node)
 
