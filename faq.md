@@ -49,30 +49,6 @@ If we're wrong about the convergence itself, we've built a very good distributed
 
 ## Understanding Oak Chain
 
-### How is it different from IPFS?
-
-| Feature | Oak Chain | IPFS |
-|---------|-----------|------|
-| **Data model** | Hierarchical (JCR tree) | Content-addressed blobs |
-| **Mutability** | Mutable paths | Immutable CIDs |
-| **Consensus** | Raft (strong consistency) | DHT (eventual) |
-| **Payment** | Built-in (ETH) | Separate (Filecoin) |
-| **Query** | JCR queries | None (hash lookup only) |
-
-Oak Chain uses IPFS for binary storage, but structured content lives in Oak segments.
-
-### How is it different from Arweave?
-
-| Feature | Oak Chain | Arweave |
-|---------|-----------|---------|
-| **Data model** | Hierarchical (JCR tree) | Flat key-value |
-| **Mutability** | Mutable paths | Immutable (append-only) |
-| **Payment** | Per-write (ETH) | One-time "permanent" fee (AR) |
-| **Enterprise tooling** | JCR API, Sling, AEM patterns | Custom APIs |
-| **Consensus** | Raft (deterministic) | Proof of Access |
-
-Arweave optimizes for permanent archival. Oak Chain optimizes for enterprise content management with blockchain ownership.
-
 ### Who runs the validators?
 
 Anyone can run a validator node. The network is permissionless. Validators:
