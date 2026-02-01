@@ -132,6 +132,17 @@ Validators use **Aeron Raft** for consensus. Nodes start as Followers, become Ca
 4. **Consensus = Truth**: Majority agreement determines state
 5. **Immutable Storage**: Once written, content is permanent
 
+### Why These Principles?
+
+We didn't choose these arbitrarily. We broke down to fundamentals:
+
+- **What is identity?** → Cryptographic proof (wallet), not username/password
+- **What is authorization?** → Economic proof (payment), not role-based access
+- **What is truth?** → Consensus (majority), not single-authority
+- **What is persistence?** → Immutable (append-only), not mutable databases
+
+We reasoned up from these atoms. The result: a system that's fundamentally different from traditional CMS, but built on proven primitives (Ethereum, Oak, Raft).
+
 ---
 
 ## Cluster Topology

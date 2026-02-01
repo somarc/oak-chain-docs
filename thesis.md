@@ -160,6 +160,8 @@ Ethereum: battle-tested, institutionally adopted. Oak: production-hardened, ente
 
 ## The Honest Caveats
 
+**Close the loop on reality hard.** This is the most important thing.
+
 ### We're Early
 
 The convergence is happening. The timeline is uncertain. Oak Chain may be infrastructure that's needed in 2 years, or 10 years, or never.
@@ -176,6 +178,15 @@ Oak Chain's primitive is **trustless content ownership**:
 - Consensus = persistence (replicated, not backed up)
 
 We don't know what gets built on this. The primitive is real. The infrastructure needs to exist.
+
+### Utility × Impact
+
+We prioritize by `how useful × how many people impacted`. Oak Chain's utility is highest for:
+- **Fortune 500 enterprises** (high impact: millions of users)
+- **Content that needs cryptographic proof** (high utility: regulatory, legal, financial)
+- **Decentralized applications** (high utility: new use cases, high impact: global scale)
+
+We're not building for glory. We're building for real value.
 
 ---
 
@@ -204,6 +215,17 @@ We connected two things that already work:
 - **Oak** (content storage)
 
 The result is more than the sum of its parts, but the implementation is elegantly simple.
+
+### First Principles Approach
+
+We started with fundamentals: What are the atoms of this problem?
+
+- **Content ownership** → Wallet addresses (cryptographic, not contractual)
+- **Economic security** → Ethereum (proven, not experimental)
+- **Content storage** → Oak (entrenched, not hypothetical)
+- **Consensus** → Aeron Raft (production-grade, not custom-built)
+
+We reasoned up from these fundamentals, not by analogy. We didn't ask "what's like AEM?" We asked "what are the fundamental constraints?" The answer: Ethereum is physics. Oak is entrenched. Connect them.
 
 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 3rem 0;">
   <img src="/rickrubin.jpeg" alt="Rick Rubin - The Creative Act" style="max-width: 400px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); opacity: 0.9;" />

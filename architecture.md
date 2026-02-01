@@ -11,13 +11,25 @@ Oak Chain is a distributed content repository that bridges Ethereum's economic s
 
 Oak Chain supports two distinct integration patterns, each optimized for different use cases and existing infrastructure.
 
+**Why two models?** We asked: What are the fundamental constraints?
+
+- **Constraint 1**: New apps don't need AEM's complexity → SDK model
+- **Constraint 2**: Existing AEM customers can't migrate → Connector model
+- **Constraint 3**: Both need the same validator infrastructure → Shared architecture
+
+We didn't force one model. We optimized for utility × impact: SDK for new projects (high impact potential), Connector for existing AEM (high utility for entrenched users).
+
 <FlowGraph flow="two-models" :height="340" />
+
+<div class="model-card">
 
 ### Model 1: Blockchain-Native Applications (Top Flow)
 
 **For**: New applications built from scratch or modern web/mobile apps
 
+<div class="integration-path">
 **Integration Path**: `Application → Oak Chain SDK → Validators → Ethereum`
+</div>
 
 **How it works**:
 - Applications use the **Oak Chain SDK** (JavaScript/TypeScript) to interact with validators
@@ -32,11 +44,17 @@ Oak Chain supports two distinct integration patterns, each optimized for differe
 - Edge Delivery Services (EDS) deployments
 - Headless CMS architectures
 
+</div>
+
+<div class="model-card">
+
 ### Model 2: AEM Integration (Bottom Flow)
 
 **For**: Existing Adobe Experience Manager customers
 
+<div class="integration-path">
 **Integration Path**: `AEM → Oak Chain Connector → Validators → Ethereum`
+</div>
 
 **How it works**:
 - **Oak Chain Connector** installs as an AEM package (OSGi bundle)
@@ -52,6 +70,10 @@ Oak Chain supports two distinct integration patterns, each optimized for differe
 - Migrating existing content to blockchain-backed storage
 - Maintaining AEM workflows while adding blockchain provenance
 
+</div>
+
+<div class="shared-architecture">
+
 ### Shared Architecture
 
 Both models share the same validator cluster and storage layer:
@@ -61,7 +83,15 @@ Both models share the same validator cluster and storage layer:
 - **IPFS**: Binary storage (validators store CIDs only, 46 bytes each)
 - **Author IPFS**: Binaries live at the author's source, not in validators
 
+</div>
+
+<div class="key-insight">
+
 **Key insight**: Validators store **CIDs only** (46 bytes), not binaries. Binaries live at the author's source, enabling decentralized storage while keeping validator storage costs minimal.
+
+</div>
+
+<div class="diagram-explanation">
 
 ### Understanding the Diagram
 
@@ -73,6 +103,8 @@ The diagram above shows both integration models side-by-side:
 - **Shared IPFS node**: Both models reference the same Author IPFS storage for binaries
 
 Both models converge at the same validator cluster and Ethereum layer—the difference is in how applications connect to Oak Chain.
+
+</div>
 
 ---
 
@@ -97,6 +129,8 @@ Both models converge at the same validator cluster and Ethereum layer—the diff
 └─────────────────────────────────────────────────────────────┘
 ```
 
+<div class="layer-section">
+
 ## Layer 1: Content Ownership
 
 **Wallet address IS the namespace.**
@@ -120,6 +154,10 @@ Both models converge at the same validator cluster and Ethereum layer—the diff
 
 Only the wallet owner can write to their namespace. Self-sovereign, no central authority.
 
+</div>
+
+<div class="layer-section">
+
 ## Layer 2: Cluster Authority
 
 **Deterministic sharding by wallet hash.**
@@ -131,6 +169,10 @@ Cluster cluster = shardToCluster(shard);
 
 Each cluster is authoritative (read-write) for its shard range. Sharding is by **wallet**, not by organization name.
 
+</div>
+
+<div class="layer-section">
+
 ## Layer 3: Cross-Cluster Reads
 
 **Composite mounts for global content graph.**
@@ -140,6 +182,10 @@ Every cluster READ-ONLY mounts all other clusters via HTTP segment transfer. Thi
 - Cross-organization references
 - Local write authority with global reads
 
+</div>
+
+<div class="layer-section">
+
 ## Layer 4: Payment
 
 **One wallet per cluster.**
@@ -148,6 +194,10 @@ Every cluster READ-ONLY mounts all other clusters via HTTP segment transfer. Thi
 - Internal node distribution is off-chain
 - Payment verification via Ethereum smart contract
 
+</div>
+
+<div class="layer-section">
+
 ## Layer 5: Visual Abstraction (Future)
 
 **Pretty names for wallet addresses.**
@@ -155,6 +205,8 @@ Every cluster READ-ONLY mounts all other clusters via HTTP segment transfer. Thi
 - "Adobe" → `0xADOBE_CORP...`
 - Cosmetic only, doesn't affect storage
 - Deferred feature
+
+</div>
 
 ---
 
@@ -195,6 +247,10 @@ stateDiagram-v2
 ---
 
 ## Storage Architecture
+
+**Why Oak segments?** When told "you can't scale Oak to planetary scale," we asked "why?"
+
+The answer: You can. Oak segments are immutable, append-only, and content-addressed. The constraint isn't physics—it's engineering. We optimized for what matters: TB-scale segment stores, lazy segment fetching, hierarchical GC. The "impossible" became tractable by breaking down to fundamentals.
 
 ### Oak Segments
 
