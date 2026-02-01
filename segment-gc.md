@@ -253,7 +253,7 @@ This creates an incentive for validators to:
 ---
 
 <div style="text-align: center; margin-top: 3rem;">
-  <a href="/how-it-works" class="action-btn">← Back to How It Works</a>
+  <a href="/oak-chain-docs/how-it-works" class="action-btn">← Back to How It Works</a>
 </div>
 
 <style>

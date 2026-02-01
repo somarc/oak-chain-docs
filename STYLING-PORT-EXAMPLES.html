@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oak Chain - Styling Port Examples</title>
+  <link rel="stylesheet" href="STYLING-PORT.css">
+  <!-- Optional: Add Roboto fonts from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&family=Roboto+Condensed:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  
+  <!-- ============================================
+       HEADER EXAMPLE (Boilerplate Pattern)
+       ============================================ -->
+  
+  <header>
+    <div class="header" data-block-status="loaded">
+      <a href="#main-content" class="skip-to-content">Skip to content</a>
+      
+      <a href="/" class="logo-container">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Diamond/Ethereum icon placeholder -->
+          <path d="M12 2L2 12L12 22L22 12L12 2Z" fill="#627EEA"/>
+        </svg>
+        <span class="logo-text">Oak Chain</span>
+      </a>
+      
+      <div class="search-container">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" class="search-input" placeholder="Search" />
+        <span class="search-shortcut">⌘K</span>
+      </div>
+      
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <li><a href="/thesis" class="nav-link">The Thesis</a></li>
+        <li><a href="/how-it-works" class="nav-link">How It Works</a></li>
+        <li><a href="/architecture" class="nav-link">Architecture</a></li>
+        <li><a href="/guide" class="nav-link">Guide</a></li>
+        <li><a href="/operators" class="nav-link">Operators</a></li>
+        <li><a href="/faq" class="nav-link">FAQ</a></li>
+      </ul>
+      
+      <div class="nav-utils">
+        <button class="theme-toggle" aria-label="Toggle theme">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <!-- Theme toggle icon -->
+            <circle cx="12" cy="12" r="5"/>
+          </svg>
+        </button>
+        <a href="https://github.com/somarc/oak-chain-docs" class="github-link" aria-label="GitHub">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </header>
+  
+  <!-- ============================================
+       404 PAGE EXAMPLE
+       ============================================ -->
+  
+  <main>
+    <div class="page-404">
+      <h1>404</h1>
+      <h2>PAGE NOT FOUND</h2>
+      <div class="quote-box">
+        <p>But if you don't change your direction, and if you keep looking, you may end up where you are heading.</p>
+      </div>
+      <a href="/" class="home-button">Take me home</a>
+    </div>
+  </main>
+  
+  <!-- ============================================
+       MAIN PAGE / HERO EXAMPLE (Boilerplate Pattern)
+       ============================================ -->
+  
+  <main id="main-content" style="display: none;">
+    <section class="section">
+      <div>
+        <div class="hero-section">
+          <h1 class="hero-name">Oak Chain</h1>
+          <p class="hero-text">When Ethereum Meets Oak</p>
+          <p class="hero-tagline">Two planetary-scale systems. One inevitable convergence.</p>
+          <div class="hero-actions">
+            <a href="/thesis" class="button brand">The Thesis</a>
+            <a href="/how-it-works" class="button secondary">How It Works</a>
+            <a href="/operators" class="button secondary">Run a Validator</a>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <section class="section">
+      <div>
+        <h2>Features</h2>
+        <p>Content goes here...</p>
+        
+        <blockquote>
+          This is a blockquote example with the Ethereum purple left border and subtle background.
+        </blockquote>
+        
+        <h3>Code Example</h3>
+        <pre><code>// Example code block
+const example = "Oak Chain";
+console.log(example);</code></pre>
+        
+        <p>Inline <code>code</code> example with purple background.</p>
+        
+        <h3>Buttons</h3>
+        <p>
+          <a href="#" class="button">Primary Button</a>
+          <a href="#" class="button secondary">Secondary Button</a>
+          <a href="#" class="button brand">Brand Button</a>
+        </p>
+      </div>
+    </section>
+    
+    <section class="section highlight">
+      <div>
+        <h2>Highlighted Section</h2>
+        <p>This section uses the <code>.highlight</code> class for a different background.</p>
+      </div>
+    </section>
+  </main>
+  
+  <!-- ============================================
+       FOOTER EXAMPLE (Boilerplate Pattern)
+       ============================================ -->
+  
+  <footer>
+    <div class="footer" data-block-status="loaded">
+      <p class="footer-message">Apache 2.0 Licensed</p>
+      <p class="footer-copyright">Ethereum owns smart contracts. Oak owns enterprise content.</p>
+    </div>
+  </footer>
+  
+  <script>
+    // Boilerplate pattern: Show body when ready
+    document.body.classList.add('appear');
+  </script>
+  
+</body>
+</html>

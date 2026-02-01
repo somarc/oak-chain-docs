@@ -405,7 +405,7 @@ boolean valid = verifySignature(content, signature, walletAddress);
 ---
 
 <div style="text-align: center; margin-top: 3rem;">
-  <a href="/guide/" class="action-btn">← Back to Guide</a>
+  <a href="/oak-chain-docs/guide/" class="action-btn">← Back to Guide</a>
 </div>
 
 <style>

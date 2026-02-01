@@ -73,7 +73,7 @@ Jackrabbit Oak already stores the majority of the planet's high-stakes digital e
 </div>
 
 <div style="text-align: center; margin: 2rem 0;">
-  <a href="/thesis" style="color: #8C8DFC; font-weight: 500;">Read the full thesis →</a>
+  <a href="/oak-chain-docs/thesis" style="color: #8C8DFC; font-weight: 500;">Read the full thesis →</a>
 </div>
 
 ---
@@ -96,7 +96,7 @@ Oak Chain brings Ethereum's economic finality to Oak's content model.
 <FlowGraph flow="architecture" :height="340" />
 
 <div style="text-align: center; margin: 1rem 0 2rem;">
-  <a href="/how-it-works" style="color: #8C8DFC; font-weight: 500;">See all interactive flows →</a>
+  <a href="/oak-chain-docs/how-it-works" style="color: #8C8DFC; font-weight: 500;">See all interactive flows →</a>
 </div>
 
 ---

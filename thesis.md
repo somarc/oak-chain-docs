@@ -210,7 +210,7 @@ The result is more than the sum of its parts, but the implementation is elegantl
 ---
 
 <div style="text-align: center; margin-top: 3rem;">
-  <a href="/how-it-works" class="action-btn">See How It Works →</a>
+  <a href="/oak-chain-docs/how-it-works" class="action-btn">See How It Works →</a>
 </div>
 
 <style>
