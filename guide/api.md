@@ -234,12 +234,15 @@ Get the Oak journal (for sync).
 
 ### Why Structure Matters
 
-Oak Chain stores content flexibly—you can write any JSON structure. However, **consistent structure within your namespace is critical** for:
+Oak Chain stores content flexibly—you can write any JSON structure. However, **consistent structure within your namespace is critical** because:
 
-- **Query performance**: Oak indexes require consistent property names
-- **Content discoverability**: Queries fail if properties are inconsistent
+- **Queries WILL fail**: Oak's query engine aborts with read limits if indexes can't be used (inconsistent properties = no index hits = traversal limit exceeded)
+- **Oak Lucene indexing**: Requires consistent property names to build effective indexes
+- **Content discoverability**: Without consistent structure, queries abort rather than returning partial results
 - **Cross-wallet queries**: Aggregations need common structure patterns
 - **Tooling compatibility**: AEM tools expect consistent content models
+
+**Note**: Indexing is an **upstream concern** (not handled at consensus layer). An Oak index layer may be added in time per need, but for now, namespace-level style guides ensure queries work.
 
 ### Namespace-Level Style Guides
 
@@ -293,11 +296,13 @@ If content is unstructured chaos ("wild west slop"):
 -- This query works if all content has 'contentType'
 SELECT * FROM [nt:unstructured] WHERE [contentType] = 'page'
 
--- But fails if some content uses 'type', others use 'contentType', others have neither
--- Result: Only finds content with consistent structure, misses everything else
+-- But FAILS if some content uses 'type', others use 'contentType', others have neither
+-- Result: Oak query engine aborts with read limit exceeded (no index hits = full traversal = limit exceeded)
 ```
 
-**Indexes require consistency** - without it, queries are slow or fail entirely.
+**Indexes require consistency** - without it, queries **WILL fail** (Oak aborts with read limits, not just slow).
+
+**Oak Lucene indexing is a niche topic** - requires consistent property names to build effective indexes. Without consistency, queries can't use indexes and hit traversal limits.
 
 ### SDK Support
 
