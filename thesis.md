@@ -184,6 +184,31 @@ Oak Chain. Two things that already work, connected.
 
 ---
 
+## Design Philosophy
+
+> "The best way to get a good idea is to get a lot of ideas and throw the bad ones away."
+> 
+> — Rick Rubin
+
+Oak Chain follows a minimalist philosophy: **add the minimum necessary layer**.
+
+We didn't reinvent Oak. We didn't build a new consensus algorithm. We didn't create a new content model.
+
+We connected two things that already work:
+- **Ethereum** (economic finality)
+- **Oak** (content storage)
+
+The result is more than the sum of its parts, but the implementation is elegantly simple.
+
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 3rem 0;">
+  <img src="/rickrubin.jpeg" alt="Rick Rubin - The Creative Act" style="max-width: 400px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); opacity: 0.9;" />
+  <p style="color: #888; margin-top: 1rem; font-style: italic; max-width: 500px; text-align: center;">
+    Sometimes the best engineering is knowing what <em>not</em> to build.
+  </p>
+</div>
+
+---
+
 <div style="text-align: center; margin-top: 3rem;">
   <a href="/how-it-works" class="action-btn">See How It Works →</a>
 </div>
