@@ -34,6 +34,7 @@ const emit = defineEmits(['nodeClick'])
 
 const svgRef = ref<SVGSVGElement | null>(null)
 const hoveredNode = ref<Node | null>(null)
+const nodeScales = ref<Record<string, number>>({})
 const nodes = ref<Node[]>([])
 const edges = ref<Edge[]>([])
 const isAnimating = ref(false)
@@ -86,7 +87,64 @@ const width = computed(() => {
 
 const height = computed(() => props.height || 400)
 
+function getNodeTransform(node: Node): string {
+  const scale = nodeScales.value[node.id] || 1
+  return `scale(${scale})`
+}
+
+function handleNodeEnter(node: Node) {
+  hoveredNode.value = node
+  // Smoothly animate scale
+  const targetScale = 1.05
+  const duration = 200
+  const startScale = nodeScales.value[node.id] || 1
+  const startTime = performance.now()
+  
+  function animate() {
+    const elapsed = performance.now() - startTime
+    const progress = Math.min(elapsed / duration, 1)
+    const easeOut = 1 - Math.pow(1 - progress, 3) // Cubic ease-out
+    nodeScales.value[node.id] = startScale + (targetScale - startScale) * easeOut
+    
+    if (progress < 1) {
+      requestAnimationFrame(animate)
+    } else {
+      nodeScales.value[node.id] = targetScale
+    }
+  }
+  requestAnimationFrame(animate)
+}
+
+function handleNodeLeave(node: Node) {
+  hoveredNode.value = null
+  // Smoothly animate scale back
+  const targetScale = 1
+  const duration = 200
+  const startScale = nodeScales.value[node.id] || 1.05
+  const startTime = performance.now()
+  
+  function animate() {
+    const elapsed = performance.now() - startTime
+    const progress = Math.min(elapsed / duration, 1)
+    const easeOut = 1 - Math.pow(1 - progress, 3) // Cubic ease-out
+    nodeScales.value[node.id] = startScale + (targetScale - startScale) * easeOut
+    
+    if (progress < 1) {
+      requestAnimationFrame(animate)
+    } else {
+      nodeScales.value[node.id] = targetScale
+    }
+  }
+  requestAnimationFrame(animate)
+}
+
 function initFlow() {
+  // Reset scales when flow changes
+  nodeScales.value = {}
+  nodes.value.forEach(node => {
+    nodeScales.value[node.id] = 1
+  })
+  
   switch (props.flow) {
     case 'write':
       initWriteFlow()
@@ -131,6 +189,13 @@ function initFlow() {
       initTwoModelsFlow()
       break
   }
+  
+  // Initialize scales for all nodes
+  nodes.value.forEach(node => {
+    if (!(node.id in nodeScales.value)) {
+      nodeScales.value[node.id] = 1
+    }
+  })
 }
 
 function addNode(id: string, type: string, x: number, y: number, options: Partial<Node> = {}) {
@@ -511,8 +576,8 @@ function getEdgePath(edge: Edge): string {
   const dy = toNode.y - fromNode.y
   const dist = Math.sqrt(dx * dx + dy * dy)
   
-  const offsetFrom = (fromNode.radius || 28) + 5
-  const offsetTo = (toNode.radius || 28) + 15
+  const offsetFrom = (fromNode.radius || 28) + 8
+  const offsetTo = (toNode.radius || 28) + 8
   
   const startX = fromNode.x + (dx / dist) * offsetFrom
   const startY = fromNode.y + (dy / dist) * offsetFrom
@@ -521,7 +586,7 @@ function getEdgePath(edge: Edge): string {
   
   const midX = (startX + endX) / 2
   const midY = (startY + endY) / 2
-  const curvature = 0.15
+  const curvature = 0.2
   const ctrlX = midX - dy * curvature
   const ctrlY = midY + dx * curvature
   
@@ -537,11 +602,11 @@ function getEdgeLabelPosition(edge: Edge): { x: number; y: number } {
   const dy = toNode.y - fromNode.y
   const midX = (fromNode.x + toNode.x) / 2
   const midY = (fromNode.y + toNode.y) / 2
-  const curvature = 0.15
+  const curvature = 0.2
   
   return {
     x: midX - dy * curvature,
-    y: midY + dx * curvature - 8
+    y: midY + dx * curvature - 12
   }
 }
 
@@ -698,8 +763,8 @@ async function animatePacket(fromId: string, toId: string, color: string): Promi
   const dx = toNode.x - fromNode.x
   const dy = toNode.y - fromNode.y
   const dist = Math.sqrt(dx * dx + dy * dy)
-  const offsetFrom = (fromNode.radius || 28) + 5
-  const offsetTo = (toNode.radius || 28) + 15
+  const offsetFrom = (fromNode.radius || 28) + 8
+  const offsetTo = (toNode.radius || 28) + 8
   
   const startX = fromNode.x + (dx / dist) * offsetFrom
   const startY = fromNode.y + (dy / dist) * offsetFrom
@@ -708,7 +773,7 @@ async function animatePacket(fromId: string, toId: string, color: string): Promi
   
   const midX = (startX + endX) / 2
   const midY = (startY + endY) / 2
-  const curvature = 0.15
+  const curvature = 0.2
   const ctrlX = midX - dy * curvature
   const ctrlY = midY + dx * curvature
   
@@ -804,45 +869,50 @@ onMounted(() => {
             v-for="node in nodes" 
             :key="node.id"
             :transform="`translate(${node.x}, ${node.y})`"
-            class="node"
-            :class="{ hovered: hoveredNode?.id === node.id }"
-            @mouseenter="hoveredNode = node"
-            @mouseleave="hoveredNode = null"
-            @click="emit('nodeClick', node)"
+            class="node-wrapper"
           >
-            <!-- Glow -->
-            <circle
-              :r="(node.radius || 28) + 8"
-              fill="none"
-              :stroke="node.color"
-              stroke-width="1"
-              class="node-glow"
-            />
-            <!-- Main circle -->
-            <circle
-              :r="node.radius || 28"
-              fill="#1a1a2e"
-              :stroke="node.color"
-              stroke-width="2"
-              class="node-circle"
-            />
-            <!-- Icon -->
-            <text
-              text-anchor="middle"
-              dominant-baseline="central"
-              font-size="18"
-              class="node-icon"
+            <g
+              :transform="getNodeTransform(node)"
+              class="node"
+              :class="{ hovered: hoveredNode?.id === node.id }"
+              @mouseenter="handleNodeEnter(node)"
+              @mouseleave="handleNodeLeave(node)"
+              @click="emit('nodeClick', node)"
             >
-              {{ node.icon }}
-            </text>
-            <!-- Label -->
-            <text
-              text-anchor="middle"
-              :y="(node.radius || 28) + 18"
-              class="node-label"
-            >
-              {{ node.label }}
-            </text>
+              <!-- Glow -->
+              <circle
+                :r="(node.radius || 28) + 8"
+                fill="none"
+                :stroke="node.color"
+                stroke-width="1"
+                class="node-glow"
+              />
+              <!-- Main circle -->
+              <circle
+                :r="node.radius || 28"
+                fill="#1a1a2e"
+                :stroke="node.color"
+                stroke-width="2"
+                class="node-circle"
+              />
+              <!-- Icon -->
+              <text
+                text-anchor="middle"
+                dominant-baseline="central"
+                font-size="18"
+                class="node-icon"
+              >
+                {{ node.icon }}
+              </text>
+              <!-- Label -->
+              <text
+                text-anchor="middle"
+                :y="(node.radius || 28) + 18"
+                class="node-label"
+              >
+                {{ node.label }}
+              </text>
+            </g>
           </g>
         </g>
         
@@ -950,18 +1020,20 @@ onMounted(() => {
 }
 
 .edge-label {
-  fill: rgba(255, 255, 255, 0.5);
-  font-size: 10px;
+  fill: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
   font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.node-wrapper {
+  transform-origin: center;
 }
 
 .node {
   cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.node:hover {
-  transform: scale(1.05);
+  transform-origin: center;
 }
 
 .node-glow {
