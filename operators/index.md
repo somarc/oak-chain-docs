@@ -1,3 +1,8 @@
+---
+prev: /guide/testnet
+next: /changelog
+---
+
 # Running a Validator
 
 Join the Oak Chain network and earn from content storage economics.

@@ -1,3 +1,8 @@
+---
+prev: /architecture
+next: /guide/consensus
+---
+
 # Developer Guide
 
 Run a local Oak Chain cluster to understand the system before building on it.

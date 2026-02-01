@@ -1,3 +1,8 @@
+---
+prev: /guide/economics
+next: /guide/binaries
+---
+
 # Content Paths
 
 Oak Chain uses wallet-based namespacing with deterministic sharding.

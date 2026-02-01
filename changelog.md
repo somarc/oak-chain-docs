@@ -1,3 +1,8 @@
+---
+prev: /operators/
+next: /contributing
+---
+
 # Changelog
 
 All notable changes to Oak Chain.

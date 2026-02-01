@@ -1,3 +1,8 @@
+---
+prev: /faq
+next: /architecture
+---
+
 # How Oak Chain Works
 
 Interactive visual diagrams showing the architecture and data flows. **Click nodes** to see details, or hit **Play Animation** to watch data flow through the system.

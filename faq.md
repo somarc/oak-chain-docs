@@ -1,3 +1,8 @@
+---
+prev: /thesis
+next: /how-it-works
+---
+
 # FAQ
 
 Frequently asked questions about Oak Chain.

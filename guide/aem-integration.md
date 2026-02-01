@@ -1,3 +1,7 @@
+---
+prev: /guide/
+---
+
 # Integration Guide
 
 Integrate with Oak Chain's decentralized content repository. This guide covers architecture options, API access, and deployment considerations.

@@ -1,3 +1,8 @@
+---
+prev: /segment-gc
+next: /guide/auth
+---
+
 # API Reference
 
 Complete reference for the Oak Chain HTTP API.

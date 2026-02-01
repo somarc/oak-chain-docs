@@ -1,3 +1,8 @@
+---
+prev: /guide/consensus
+next: /guide/paths
+---
+
 # Economic Tiers
 
 Oak Chain uses Ethereum payments for economic security. Every write is backed by real value.

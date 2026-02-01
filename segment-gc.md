@@ -1,3 +1,8 @@
+---
+prev: /guide/streaming
+next: /guide/api
+---
+
 # Segment Store Garbage Collection
 
 Oak's segment store uses **generational garbage collection** to reclaim disk space. Content writes create immutable segments, but edits and deletes leave "garbage" (unreachable segments). GC compacts live data into a new generation and deletes old TAR files.

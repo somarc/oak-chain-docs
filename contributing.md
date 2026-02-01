@@ -1,3 +1,7 @@
+---
+prev: /changelog
+---
+
 # Contributing
 
 Thank you for your interest in contributing to Oak Chain!

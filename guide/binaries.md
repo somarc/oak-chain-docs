@@ -1,3 +1,8 @@
+---
+prev: /guide/paths
+next: /guide/streaming
+---
+
 # Binary Storage
 
 Oak Chain stores large binaries in IPFS, with CID references in Oak. Validators store **CIDs only** (46 bytes), not the binaries themselves.

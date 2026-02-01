@@ -1,3 +1,8 @@
+---
+prev: /guide/
+next: /guide/economics
+---
+
 # Consensus Model
 
 Oak Chain uses **Aeron Cluster** for Raft-based distributed consensus.

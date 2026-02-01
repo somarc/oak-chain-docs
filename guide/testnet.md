@@ -1,3 +1,8 @@
+---
+prev: /guide/auth
+next: /operators/
+---
+
 # Testnet Guide
 
 Run Oak Chain on Ethereum Sepolia testnet for realistic testing without real ETH.

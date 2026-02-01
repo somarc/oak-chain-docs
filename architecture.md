@@ -1,3 +1,8 @@
+---
+prev: /how-it-works
+next: /guide/
+---
+
 # Architecture
 
 Oak Chain is a distributed content repository that bridges Ethereum's economic security with Oak's enterprise content model.

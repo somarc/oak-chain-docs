@@ -1,3 +1,8 @@
+---
+prev: /guide/binaries
+next: /segment-gc
+---
+
 # Real-Time Streaming
 
 Oak Chain provides Server-Sent Events (SSE) for real-time content discovery.

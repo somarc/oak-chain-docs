@@ -1,3 +1,8 @@
+---
+prev: /guide/api
+next: /guide/testnet
+---
+
 # Authentication
 
 Oak Chain uses Ethereum wallets for identity and authorization.

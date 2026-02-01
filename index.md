@@ -1,5 +1,6 @@
 ---
 layout: home
+next: /thesis
 
 hero:
   name: "Oak Chain"

@@ -1,3 +1,8 @@
+---
+prev: /
+next: /faq
+---
+
 # The Thesis
 
 Oak Chain is built on two axioms. If you accept them, everything else follows.
