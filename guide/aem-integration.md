@@ -298,43 +298,20 @@ InputStream binary = ipfsClient.cat(cid);
 
 ---
 
-## Platform-Specific Guides
+## Platform-Specific Notes
 
-### On-Premises AEM
+> **⚠️ Important**: Platform-specific deployment procedures are not yet documented. The connector has been tested on local AEM instances via Package Manager installation. For AMS, AEMaaCS, or other deployment scenarios, refer to the [Oak Chain Connector README](https://github.com/oakchain/oak-chain-connector) and consult with your AEM administrator or Adobe Support.
 
-1. Deploy `oak-segment-http` bundle via Felix console
-2. Create OSGi config in `crx-quickstart/install/`
-3. Restart AEM
-4. Verify mount at `/oak-chain`
+**Currently Verified**:
+- ✅ Local AEM 6.5.x installation via Package Manager
+- ✅ Local AEM instance via Maven `autoInstallPackage` profile
 
-### Adobe Managed Services (AMS)
+**Not Yet Documented**:
+- ⚠️ Adobe Managed Services (AMS) deployment
+- ⚠️ AEM as a Cloud Service (AEMaaCS) deployment
+- ⚠️ Apache Sling standalone deployment
 
-1. Request custom OSGi configuration from Adobe Support
-2. Deploy bundle via Cloud Manager
-3. Configure via environment-specific configs
-4. Verify in Author and Publish instances
-
-### AEMaaCS
-
-1. Add bundle to `ui.apps/src/main/content/jcr_root/apps/{project}/install/`
-2. Add OSGi config to `ui.config/src/main/content/jcr_root/apps/{project}/osgiconfig/config/`
-3. Deploy via Cloud Manager pipeline
-4. Verify in Cloud Manager logs
-
-### Apache Sling
-
-```java
-// In your Sling application
-@Reference
-private ResourceResolverFactory resolverFactory;
-
-public void readOakChain() throws LoginException {
-    try (ResourceResolver resolver = resolverFactory.getServiceResourceResolver(null)) {
-        Resource content = resolver.getResource("/oak-chain/0x742d.../content");
-        // Process content...
-    }
-}
-```
+For the most current installation instructions, see the [Oak Chain Connector repository](https://github.com/oakchain/oak-chain-connector).
 
 ---
 
