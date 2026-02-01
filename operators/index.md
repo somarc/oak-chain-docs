@@ -249,4 +249,4 @@ See [Economic Tiers](/guide/economics) for full breakdown.
 - [Architecture](/architecture) - How the system works
 - [Consensus Model](/guide/consensus) - Aeron Raft details
 - [Economic Tiers](/guide/economics) - Payment and finality
-- [SDK](/guide/sdk) - Build applications on Oak Chain
+- [API Reference](/guide/api) - Build applications on Oak Chain

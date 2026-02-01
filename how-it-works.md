@@ -232,7 +232,7 @@ The architecture scales horizontally by adding clusters:
 The append-only segment store accumulates garbage over time. Learn how Oak's **generational garbage collection** reclaims disk space while maintaining data integrity.
 
 <div style="text-align: center; margin: 2rem 0;">
-  <a href="./segment-gc" class="action-btn secondary">🗑️ Segment Store GC →</a>
+  <a href="/segment-gc" class="action-btn secondary">🗑️ Segment Store GC →</a>
 </div>
 
 <style>
