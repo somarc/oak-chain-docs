@@ -10,8 +10,8 @@ Oak Chain supports two integration patterns for different use cases:
 
 | Model | Use Case | Integration Path |
 |-------|----------|------------------|
-| **Blockchain-Native** | New applications | Oak Chain SDK → Validators → Ethereum |
-| **AEM Integration** | Existing AEM customers | AEM → Oak Chain Connector → Validators |
+| **AEM Integration** | Existing AEM customers | AEM → Oak Chain Connector → Validators → Ethereum |
+| **Other Services** | EDS, web apps, mobile apps, etc. | Application → Oak Chain SDK → Validators → Ethereum |
 
 **Key insight**: Validators store **CIDs only** (46 bytes), not binaries. Binaries live at the author's source.
 
