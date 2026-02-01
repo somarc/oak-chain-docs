@@ -9,16 +9,70 @@ Oak Chain is a distributed content repository that bridges Ethereum's economic s
 
 ## Two Deployment Models
 
-Oak Chain supports two integration patterns for different use cases:
+Oak Chain supports two distinct integration patterns, each optimized for different use cases and existing infrastructure.
 
 <FlowGraph flow="two-models" :height="340" />
 
-| Model | Use Case | Integration Path |
-|-------|----------|------------------|
-| **AEM Integration** | Existing AEM customers | AEM → Oak Chain Connector → Validators → Ethereum |
-| **Other Services** | EDS, web apps, mobile apps, etc. | Application → Oak Chain SDK → Validators → Ethereum |
+### Model 1: Blockchain-Native Applications (Top Flow)
 
-**Key insight**: Validators store **CIDs only** (46 bytes), not binaries. Binaries live at the author's source.
+**For**: New applications built from scratch or modern web/mobile apps
+
+**Integration Path**: `Application → Oak Chain SDK → Validators → Ethereum`
+
+**How it works**:
+- Applications use the **Oak Chain SDK** (JavaScript/TypeScript) to interact with validators
+- SDK provides REST API client, wallet integration, and payment handling
+- Content writes go directly to validators via HTTPS API
+- Validators verify Ethereum payments and replicate via Raft consensus
+- **Example**: EDS (aem.live), React apps, Next.js sites, mobile apps
+
+**Best for**: 
+- New projects without existing AEM infrastructure
+- Modern JavaScript/TypeScript applications
+- Edge Delivery Services (EDS) deployments
+- Headless CMS architectures
+
+### Model 2: AEM Integration (Bottom Flow)
+
+**For**: Existing Adobe Experience Manager customers
+
+**Integration Path**: `AEM → Oak Chain Connector → Validators → Ethereum`
+
+**How it works**:
+- **Oak Chain Connector** installs as an AEM package (OSGi bundle)
+- Uses Oak's **composite mount** pattern to mount `/oak-chain` read-only
+- AEM authors continue using familiar JCR API and Sling patterns
+- Connector handles HTTP segment transfer and wallet services
+- Validators serve Oak segments via `oak-segment-http` module
+- **Example**: Existing AEM 6.5, AEM Cloud Service, or custom Oak deployments
+
+**Best for**:
+- Organizations already running AEM
+- Teams familiar with JCR/Sling APIs
+- Migrating existing content to blockchain-backed storage
+- Maintaining AEM workflows while adding blockchain provenance
+
+### Shared Architecture
+
+Both models share the same validator cluster and storage layer:
+
+- **Validators**: Raft consensus cluster storing Oak segments
+- **Ethereum**: Payment verification and economic security
+- **IPFS**: Binary storage (validators store CIDs only, 46 bytes each)
+- **Author IPFS**: Binaries live at the author's source, not in validators
+
+**Key insight**: Validators store **CIDs only** (46 bytes), not binaries. Binaries live at the author's source, enabling decentralized storage while keeping validator storage costs minimal.
+
+### Understanding the Diagram
+
+The diagram above shows both integration models side-by-side:
+
+- **Top flow (Model 1)**: Shows blockchain-native applications (EDS) connecting directly to validators via HTTPS API
+- **Bottom flow (Model 2)**: Shows existing AEM systems mounting Oak Chain via HTTP segment transfer
+- **"Model 1" and "Model 2" labels**: These are visual labels identifying each integration pattern, not functional components in the data flow
+- **Shared IPFS node**: Both models reference the same Author IPFS storage for binaries
+
+Both models converge at the same validator cluster and Ethereum layer—the difference is in how applications connect to Oak Chain.
 
 ---
 
