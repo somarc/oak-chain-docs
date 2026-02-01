@@ -230,6 +230,104 @@ Get the Oak journal (for sync).
 
 ---
 
+## Content Structure & Style Guides
+
+### Why Structure Matters
+
+Oak Chain stores content flexibly—you can write any JSON structure. However, **consistent structure within your namespace is critical** for:
+
+- **Query performance**: Oak indexes require consistent property names
+- **Content discoverability**: Queries fail if properties are inconsistent
+- **Cross-wallet queries**: Aggregations need common structure patterns
+- **Tooling compatibility**: AEM tools expect consistent content models
+
+### Namespace-Level Style Guides
+
+**Each wallet/brand maintains its own style guide** for content structure. This isn't enforced at the consensus layer (Oak Chain accepts any structure), but **brand maintainers should enforce consistency** within their namespace.
+
+**Example Style Guide** (stored at `/oak-chain/{wallet}/.style-guide`):
+
+```json
+{
+  "wallet": "0x742d35Cc6634c0532925a3b844bc9e7595f0beb",
+  "version": "1.0",
+  "contentTypes": {
+    "page": {
+      "required": ["title", "body"],
+      "optional": ["author", "publishedDate", "tags"],
+      "properties": {
+        "title": {"type": "string", "maxLength": 200},
+        "body": {"type": "string"},
+        "author": {"type": "string"},
+        "publishedDate": {"type": "number"},
+        "tags": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "asset": {
+      "required": ["name", "ipfsCid"],
+      "optional": ["mimeType", "altText", "width", "height"]
+    }
+  }
+}
+```
+
+### Best Practices
+
+**For Content Creators**:
+1. **Check your brand's style guide** before writing content
+2. **Follow required properties** - queries depend on consistency
+3. **Use consistent property names** - don't mix `title` and `headline`
+4. **Validate before sending** - SDK/connector can validate against style guide
+
+**For Brand Maintainers**:
+1. **Define your style guide** early (before content creation)
+2. **Store it in your namespace** at `/.style-guide` (self-documenting)
+3. **Enforce client-side** - validate before sending to validators
+4. **Version your style guide** - allow evolution over time
+
+### What Happens Without Structure?
+
+If content is unstructured chaos ("wild west slop"):
+
+```sql
+-- This query works if all content has 'contentType'
+SELECT * FROM [nt:unstructured] WHERE [contentType] = 'page'
+
+-- But fails if some content uses 'type', others use 'contentType', others have neither
+-- Result: Only finds content with consistent structure, misses everything else
+```
+
+**Indexes require consistency** - without it, queries are slow or fail entirely.
+
+### SDK Support
+
+The Oak Chain SDK can validate content against style guides:
+
+```javascript
+import { OakChainClient } from '@oak-chain/sdk';
+
+const client = new OakChainClient({
+  endpoint: 'http://localhost:8090',
+  wallet: window.ethereum,
+});
+
+// Load style guide for your wallet
+const styleGuide = await client.getStyleGuide();
+
+// Validate before writing
+const validator = new StyleGuideValidator(styleGuide);
+if (!validator.validate(content, 'page')) {
+  throw new Error('Content doesn\'t match style guide');
+}
+
+// Write (now guaranteed to match style guide)
+await client.write({...});
+```
+
+**Note**: Style guide validation is **client-side** (not enforced by validators). This keeps the consensus layer minimal while ensuring content quality.
+
+---
+
 ## Error Codes
 
 | Code | HTTP Status | Description |
@@ -317,4 +415,4 @@ curl http://localhost:8090/api/content/oak-chain/74/2d/35/0x742d35Cc.../MyBrand/
 
 - [Authentication](/guide/auth) - Wallet connection guide
 - [Economic Tiers](/guide/economics) - Payment details
-- [Content Paths](/guide/paths) - Path structure
+- [Content Paths](/guide/paths) - Path structure and namespace organization

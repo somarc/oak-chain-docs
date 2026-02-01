@@ -139,7 +139,14 @@ Content can reference other organizations (read-only):
 }
 ```
 
+## Content Structure Within Namespaces
+
+Each wallet/brand namespace should maintain **consistent content structure** for indexing and querying to work efficiently. See [API Reference - Content Structure](/guide/api#content-structure--style-guides) for details on namespace-level style guides.
+
+**Key point**: Oak Chain doesn't enforce content structure at the consensus layer, but **brand maintainers should enforce consistency** within their namespace for queries to work.
+
 ## Next Steps
 
+- [API Reference](/guide/api) - Content structure and style guides
 - [Architecture](/architecture) - Full system design
 - [Economics](/guide/economics) - Payment tiers
