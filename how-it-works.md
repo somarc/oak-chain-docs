@@ -4,7 +4,7 @@ Interactive visual diagrams showing the architecture and data flows. **Click nod
 
 ## Architecture Overview
 
-The complete system: Sling authors content, MetaMask handles payments, validators reach consensus, IPFS stores binaries, and Edge Delivery serves content globally.
+The complete system: Authors create content (via AEM Connector or SDK), MetaMask handles payments, validators reach consensus, IPFS stores binaries, and Edge Delivery serves content globally.
 
 <FlowGraph flow="architecture" :height="380" />
 
@@ -18,7 +18,7 @@ When an author creates or modifies content in Sling, the change is **signed with
 
 ### The Steps
 
-1. **Author creates content** in Sling (via Composum or AEM SDK)
+1. **Author creates content** via AEM Connector or Oak Chain SDK
 2. **Wallet signs** the content change with secp256k1 key
 3. **Write proposal** is created with signature
 4. **Raft leader** receives and validates the proposal
@@ -88,7 +88,7 @@ Validators use **Aeron Raft** for consensus. Nodes start as Followers, become Ca
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    AUTHORING LAYER                          │
-│  Sling Author + MetaMask Wallet + JCR API                   │
+│  AEM Connector / Oak Chain SDK + MetaMask Wallet            │
 └─────────────────────────────────────────────────────────────┘
                            │
                            ▼

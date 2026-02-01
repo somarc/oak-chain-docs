@@ -10,8 +10,8 @@ Oak Chain supports two integration patterns for different use cases:
 
 | Model | Use Case | Integration Path |
 |-------|----------|------------------|
-| **Blockchain-Native** | New applications | EDS (aem.live) → Validators → Ethereum |
-| **AEM Integration** | Existing AEM customers | AEM → oak-segment-http → Validators |
+| **Blockchain-Native** | New applications | Oak Chain SDK → Validators → Ethereum |
+| **AEM Integration** | Existing AEM customers | AEM → Oak Chain Connector → Validators |
 
 **Key insight**: Validators store **CIDs only** (46 bytes), not binaries. Binaries live at the author's source.
 
@@ -173,7 +173,7 @@ graph LR
 
 ## HTTP Segment Transfer
 
-Any Oak-based system can mount Oak Chain read-only via `oak-segment-http`:
+Any Oak-based system can mount Oak Chain read-only via **Oak Chain Connector** (for AEM) or **Oak Chain SDK** (for other applications):
 
 <FlowGraph flow="aem-integration" :height="280" />
 

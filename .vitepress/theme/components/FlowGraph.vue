@@ -165,7 +165,7 @@ function initWriteFlow() {
   nodes.value = []
   edges.value = []
   
-  addNode('author', 'AUTHOR', 70, 200, { label: 'Sling Author', description: 'Content editor creates/modifies content' })
+  addNode('author', 'AUTHOR', 70, 200, { label: 'Author', description: 'Content editor (AEM Connector or SDK)' })
   addNode('wallet', 'WALLET', 200, 100, { label: 'Author Wallet', description: 'Signs content with secp256k1 key' })
   addNode('proposal', 'SIGNATURE', 200, 300, { label: 'Write Proposal', description: 'Signed content change request' })
   addNode('leader', 'VALIDATOR', 380, 200, { label: 'Raft Leader', description: 'Receives and validates proposals' })
@@ -251,7 +251,7 @@ function initArchitectureFlow() {
   edges.value = []
   
   // Authoring layer
-  addNode('sling', 'AUTHOR', 100, 60, { label: 'Sling Author', description: 'Content authoring via JCR API' })
+  addNode('sling', 'AUTHOR', 100, 60, { label: 'Author', description: 'AEM Connector or Oak Chain SDK' })
   addNode('metamask', 'WALLET', 260, 60, { label: 'MetaMask', description: 'Wallet for signing & payment' })
   
   // Storage layer

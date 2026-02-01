@@ -12,34 +12,34 @@ Oak Chain exposes content via multiple integration paths:
 |------------------|--------------|----------|
 | **REST/GraphQL API** | ✅ Available | Any client (web, mobile, headless) |
 | **SSE Streaming** | ✅ Available | Real-time content updates, EDS delivery |
-| **Sling Author** | ✅ Available | JCR-native authoring (our tier, not AEM) |
-| **AEM Composite Mount** | ⚠️ Blocked | Requires Adobe acceptance of oak-segment-http |
+| **Oak Chain Connector** | ✅ Available | AEM integration (composite mount via `oak-chain-connector`) |
+| **Oak Chain SDK** | ✅ Available | JavaScript/TypeScript applications (React, Next.js, Node.js) |
 
 <FlowGraph flow="aem-integration" :height="280" />
 
-### The AEM Integration Gap
+### AEM Integration via Connector
 
-Direct integration with existing AEM instances (AMS, on-prem, AEMaaCS) via `oak-segment-http` composite mount is currently **blocked by Oak security restrictions** in AEM. Adobe controls the Oak bundles in AEM, and injecting custom persistence layers is not permitted.
+AEM customers integrate via **[Oak Chain Connector](https://github.com/oakchain/oak-chain-connector)** - an AEM-compatible add-on that uses Oak's public SPI layer. The connector:
 
-**This does not diminish the project.** Oak Chain stands on its own with:
-- Full JCR authoring via Sling
-- API access for any consumer
-- SSE streaming for delivery tiers
-- IPFS binary storage
+- Uses **only public Oak APIs** (no fork required)
+- Follows **Adobe AEM Project Archetype** structure
+- Works with **AEM 6.5 LTS** and **AEM as a Cloud Service**
+- Provides **composite mount** for read-only oak-chain content
+- Includes **wallet services** for write proposals
 
-AEM integration remains a future possibility contingent on Adobe's roadmap.
+**For non-AEM applications**, use the **[Oak Chain SDK](https://github.com/oakchain/sdk)** - a JavaScript/TypeScript library for any application.
 
 ---
 
 ## Architecture: JCR is Truth
 
-Oak Chain follows the same principle as traditional AEM: **JCR is the source of truth**. All content authoring happens via JCR API (Sling, AEM, Composum). EDS is a delivery optimization layer that consumes content changes via SSE.
+Oak Chain follows the same principle as traditional AEM: **JCR is the source of truth**. All content authoring happens via JCR API (AEM Connector) or REST API (Oak Chain SDK). EDS is a delivery optimization layer that consumes content changes via SSE.
 
 <FlowGraph flow="two-models" :height="340" />
 
 | Layer | Role | Technology | What's Stored |
 |-------|------|------------|---------------|
-| **Authoring** | Content creation via JCR API | Sling/AEM Author → Validators | — |
+| **Authoring** | Content creation via JCR API | AEM Connector / Oak Chain SDK → Validators | — |
 | **Storage (Structured)** | Consensus-replicated Oak segments | Validator cluster (Raft) | Content nodes + CIDs (46 bytes) |
 | **Storage (Binaries)** | IPFS binary hosting | Author-owned or Validator-hosted IPFS | Actual binary files |
 | **Delivery** | Edge-optimized content serving | EDS (aem.live) via SSE subscription | Cached content + binaries |
@@ -124,47 +124,68 @@ This guide focuses on **API-based integration** — the path that works today fo
 
 ## Implementation
 
-### Phase 1: Bundle Deployment
+### Phase 1: Connector Deployment
 
-Deploy `oak-segment-http-{version}.jar` to your AEM instance. The deployment method depends on your platform:
+Deploy **Oak Chain Connector** to your AEM instance. The connector is an AEM package that can be installed via Package Manager.
 
 **On-Premises AEM**:
 ```bash
-# Deploy via Felix console
-curl -u admin:admin -F file=@oak-segment-http-1.50.0.jar \
-  http://localhost:4502/system/console/bundles
-
-# Or place in crx-quickstart/install/ and restart
+# Upload connector package via Package Manager
+# Navigate to: http://localhost:4502/crx/packmgr
+# Upload: oak-chain-connector.all-1.0.0-SNAPSHOT.zip
+# Install and activate
 ```
 
 **AEMaaCS / Cloud Manager**:
-```
-ui.apps/src/main/content/jcr_root/apps/{project}/install/
-└── oak-segment-http-1.50.0.jar
+```bash
+# Add connector to your AEM project
+# Install via Cloud Manager pipeline
+# Configure via OSGi configuration files
 ```
 
-**AMS (Managed Services)**:
-- Coordinate with Adobe Support for custom bundle approval
-- Deploy via Cloud Manager after approval
+**Quick Install**:
+```bash
+# Clone connector repository
+git clone https://github.com/oakchain/oak-chain-connector.git
+cd oak-chain-connector
+
+# Build connector package
+mvn clean install
+
+# Install to local AEM instance
+mvn clean install -PautoInstallPackage
+```
+
+See [Oak Chain Connector README](https://github.com/oakchain/oak-chain-connector) for complete installation instructions.
 
 ### Phase 2: OSGi Configuration
 
-Create the composite mount configuration. This tells Oak to mount `/oak-chain` from the validator cluster.
+Configure the connector via OSGi configuration. The connector uses standard AEM configuration patterns.
 
-**Configuration file** (`org.apache.jackrabbit.oak.composite.CompositeNodeStore.cfg.json`):
+**HTTP Persistence Service** (`com.oakchain.connector.persistence.HttpPersistenceService.cfg.json`):
 
 ```json
 {
-  "mounts": [
-    {
-      "name": "oak-chain",
-      "readOnly": true,
-      "paths": ["/oak-chain"],
-      "persistence": "http",
-      "httpEndpoint": "https://validators.oak-chain.io"
-    }
-  ]
+  "globalStoreUrl": "$[env:OAK_CHAIN_VALIDATOR_URL;default=http://localhost:8090]",
+  "lazyMount": true,
+  "healthCheckIntervalSeconds": 10,
+  "connectionTimeoutMs": 3000
 }
+```
+
+**Wallet Service** (`com.oakchain.connector.wallet.SlingAuthorWalletService.cfg.json`):
+
+```json
+{
+  "enabled": true,
+  "keystorePath": "$[env:OAK_CHAIN_KEYSTORE_PATH]"
+}
+```
+
+**Environment Variables**:
+```bash
+export OAK_CHAIN_VALIDATOR_URL="https://validators.oak-chain.io"
+export OAK_CHAIN_KEYSTORE_PATH="/path/to/wallet.properties"
 ```
 
 **Environment-specific endpoints**:
@@ -320,10 +341,11 @@ public void readOakChain() throws LoginException {
 **Symptom**: `/oak-chain` path returns 404
 
 **Solutions**:
-1. Verify bundle is active: `/system/console/bundles` → search "oak-segment-http"
-2. Check OSGi config is deployed: `/system/console/configMgr`
+1. Verify connector bundle is active: `/system/console/bundles` → search "oak-chain-connector"
+2. Check OSGi config is deployed: `/system/console/configMgr` → search "HttpPersistenceService"
 3. Verify network connectivity to validator endpoint
 4. Check AEM error logs for connection errors
+5. Verify environment variables are set correctly
 
 ### Slow Performance
 
