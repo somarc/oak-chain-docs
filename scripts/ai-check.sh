@@ -36,7 +36,7 @@ for rel in "${files[@]}"; do
   fi
 
   out="$("$checker" "$file")"
-  score="$(printf "%s" "$out" | rg -o "\\*\\*Score\\*\\*\\s*\\|\\s*[0-9]+\\s*/\\s*7" | rg -o "[0-9]+" | head -n1 || true)"
+  score="$(printf "%s" "$out" | grep -oE "\\*\\*Score\\*\\*\\s*\\|\\s*[0-9]+\\s*/\\s*7" | grep -oE "[0-9]+" | head -n1 || true)"
   score="${score:-0}"
 
   if [ "$score" -ne 0 ]; then

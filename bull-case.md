@@ -13,11 +13,11 @@ next: /faq
 
 ## Executive Summary
 
-Enterprise content is moving from siloed repositories to verifiable, onchain systems. That shift needs a neutral infrastructure layer with strong security and clear economic incentives. **Oak-Chain (Blockchain AEM) provides that layer.**
+Enterprise content is moving from siloed repositories to verifiable, onchain systems. The evolution from centralized content stores to a decentralized, **cryptographically verifiable content fabric** demands a neutral infrastructure layer with strong security and clear economic incentives. **Oak-Chain (Blockchain AEM) provides that layer.**
 
 Oak-Chain combines **Ethereum’s economic security** with **Apache Jackrabbit Oak’s enterprise content model**. It creates a globally synchronized content repository where write operations are governed by Ethereum smart contracts, content mutations burn ETH (or USDC), and validators are paid to preserve integrity.
 
-**ETH powers Oak-Chain’s content economy.** Each CRUD write or delete consumes gas, validator fees are paid out via smart contracts, and publishers can accumulate ETH as treasury reserves. As enterprise content moves onchain, ETH usage scales with content operations.
+**ETH is the digital oil powering Oak-Chain’s content economy.** Each CRUD write or delete consumes gas, validator fees are paid out via smart contracts, and publishers can accumulate ETH as treasury reserves. As enterprise content moves onchain, ETH usage scales with content operations.
 
 **Oak-Chain’s core value is a direct bridge from existing AEM stacks.** It preserves the segment format, JCR API, and Sling framework, so large enterprises can migrate without abandoning tools, custom components, or institutional knowledge.
 
@@ -28,7 +28,7 @@ Oak-Chain plays multiple roles:
 - **Enterprise bridge** between AEM and Ethereum
 - **Familiar tooling** that avoids a full-stack rewrite
 
-Bitcoin is primarily a store of value. **ETH functions as the operational fuel of a decentralized content economy.**
+Bitcoin is primarily a store of value. **ETH is digital oil for the tokenized content infrastructure.**
 
 ---
 

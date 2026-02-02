@@ -9,6 +9,21 @@ fi
 input="$1"
 multiplier="${2:-}"
 
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+root="$(cd "$script_dir/.." && pwd)"
+
+detector_root="${AI_WRITING_DETECTOR_ROOT:-$root/scripts/ai-writing-detector}"
+detector_script="$detector_root/scripts/check_ai_patterns.sh"
+
+if [ ! -x "$detector_script" ]; then
+  detector_script="/tmp/ai-writing-detector/ai-writing-detector/scripts/check_ai_patterns.sh"
+fi
+
+if [ ! -x "$detector_script" ]; then
+  echo "Error: AI detector not found. Set AI_WRITING_DETECTOR_ROOT or add scripts/ai-writing-detector." >&2
+  exit 1
+fi
+
 # Preprocess markdown to reduce false positives:
 # - Strip fenced code blocks (``` or ~~~)
 # - Strip inline code (`...`)
@@ -42,9 +57,9 @@ pathlib.Path(sys.argv[2]).write_text(src)
 PY
 
 if [ -n "$multiplier" ]; then
-  /tmp/ai-writing-detector/ai-writing-detector/scripts/check_ai_patterns.sh "$tmpfile" "$multiplier"
+  "$detector_script" "$tmpfile" "$multiplier"
 else
-  /tmp/ai-writing-detector/ai-writing-detector/scripts/check_ai_patterns.sh "$tmpfile"
+  "$detector_script" "$tmpfile"
 fi
 
 rm -f "$tmpfile"
