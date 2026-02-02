@@ -327,14 +327,15 @@ await client.write({...});
 **Error Response Format**
 ```json
 {
-  "status": "rejected",
-  "error": "ERROR_CODE",
-  "message": "Human-readable description",
-  "details": {
-    "field": "additional context"
-  }
+  "success": false,
+  "error": "Human-readable description",
+  "code": "error_code",
+  "status": 400,
+  "timestamp": 1738454400000
 }
 ```
+
+**Note:** Some endpoints include additional fields alongside the standard error schema.
 
 ---
 
