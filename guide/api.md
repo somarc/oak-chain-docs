@@ -200,6 +200,56 @@ Oak Chain stores content flexibly—you can write any JSON structure. However, *
 }
 ```
 
+### How JSON Maps to JCR
+
+When you send `message` in `POST /v1/propose-write`, the validator parses it as JSON and **materializes it into JCR nodes/properties** under the generated content path:
+
+```
+/oak-chain/{shard1}/{shard2}/{shard3}/0x{wallet}/{organization}/content/{contentType}-{timestamp}
+```
+
+**Mapping rules** (practical behavior):
+
+- **Scalars** → **properties** on the node  
+  `"title": "Hello"` → `title = "Hello"`
+- **Objects** → **child nodes**  
+  `"metadata": { "author": "0xabc..." }` → child node `metadata` with property `author`
+- **Arrays of scalars** → **multi‑value properties**  
+  `"tags": ["news","launch"]`
+- **Arrays of objects** → **child nodes** (implementation-defined names like `item-0`, `item-1`)
+- **JCR system fields** are honored when present:  
+  `"jcr:primaryType"`, `"jcr:mixinTypes"`, `"jcr:created"`, `"jcr:lastModified"`
+
+**Example**
+
+`message` payload:
+```json
+{
+  "jcr:primaryType": "nt:unstructured",
+  "title": "Hello World",
+  "body": "Welcome to Oak Chain!",
+  "metadata": {
+    "author": "0xabc...",
+    "tags": ["launch", "news"]
+  }
+}
+```
+
+Resulting JCR structure (conceptual):
+```
+/oak-chain/.../content/page-<timestamp>
+  - jcr:primaryType = nt:unstructured
+  - title = "Hello World"
+  - body = "Welcome to Oak Chain!"
+  + metadata
+      - author = "0xabc..."
+      - tags = ["launch", "news"]
+```
+
+### Diagram (JSON → JCR)
+
+<FlowGraph flow="json-to-jcr" :height="420" />
+
 ### Best Practices
 
 **For Content Creators**:

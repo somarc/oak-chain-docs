@@ -25,7 +25,7 @@ interface Edge {
 }
 
 const props = defineProps<{
-  flow: 'write' | 'payment' | 'ipfs' | 'consensus' | 'architecture' | 'gc-overview' | 'gc-compaction' | 'gc-generations' | 'gc-cleanup' | 'gc-modes' | 'aem-integration' | 'binary-flow' | 'validator-auth' | 'two-models'
+  flow: 'write' | 'payment' | 'ipfs' | 'consensus' | 'architecture' | 'gc-overview' | 'gc-compaction' | 'gc-generations' | 'gc-cleanup' | 'gc-modes' | 'aem-integration' | 'binary-flow' | 'validator-auth' | 'two-models' | 'json-to-jcr'
   height?: number
   interactive?: boolean
 }>()
@@ -80,6 +80,7 @@ const width = computed(() => {
     case 'binary-flow': return 950
     case 'validator-auth': return 800
     case 'two-models': return 950
+    case 'json-to-jcr': return 900
     default: return 850
   }
 })
@@ -138,6 +139,9 @@ function initFlow() {
       break
     case 'two-models':
       initTwoModelsFlow()
+      break
+    case 'json-to-jcr':
+      initJsonToJcrFlow()
       break
   }
 }
@@ -511,6 +515,40 @@ function initTwoModelsFlow() {
   addEdge('validators2', 'ipfs', 'ASYNC', { label: 'CID' })
 }
 
+function initJsonToJcrFlow() {
+  nodes.value = []
+  edges.value = []
+
+  // Top row: JSON -> JCR materialization
+  addNode('json', 'CONTENT', 70, 110, { label: 'message JSON', description: 'Raw JSON payload' })
+  addNode('parser', 'SEGMENT', 220, 110, { label: 'JSON Parser', description: 'Parse + validate' })
+  addNode('mapper', 'CONTENT', 370, 110, { label: 'Mapping Rules', description: 'Scalars → props, objects → nodes' })
+  addNode('jcr', 'OAK_STORE', 520, 110, { label: 'JCR Node', description: 'Materialized content node' })
+  addNode('props', 'CONTENT', 700, 60, { label: 'Properties', description: 'Scalars + arrays of scalars', radius: 22 })
+  addNode('children', 'CONTENT', 700, 160, { label: 'Child Nodes', description: 'Objects + arrays of objects', radius: 22 })
+
+  // Bottom row: path derivation
+  addNode('wallet', 'WALLET', 70, 300, { label: 'Wallet', description: '0x...' })
+  addNode('org', 'AUTHOR', 220, 300, { label: 'Organization', description: 'Brand scope' })
+  addNode('ctype', 'CONTENT', 370, 300, { label: 'Content Type', description: 'page, asset, ...' })
+  addNode('time', 'TRANSACTION', 520, 300, { label: 'Timestamp', description: 'contentType-{timestamp}' })
+  addNode('path', 'SEGMENT', 670, 300, { label: 'Path Builder', description: 'Shard + wallet + org' })
+  addNode('pathOut', 'OAK_STORE', 820, 300, { label: 'Content Path', description: '/oak-chain/.../content/*', radius: 24 })
+
+  addEdge('json', 'parser', 'DATA', { label: 'parse' })
+  addEdge('parser', 'mapper', 'CONTROL', { label: 'apply rules' })
+  addEdge('mapper', 'jcr', 'DATA', { label: 'materialize' })
+  addEdge('jcr', 'props', 'DATA', { label: 'scalars' })
+  addEdge('jcr', 'children', 'DATA', { label: 'objects' })
+
+  addEdge('wallet', 'path', 'CONTROL', { label: 'wallet' })
+  addEdge('org', 'path', 'CONTROL', { label: 'org' })
+  addEdge('ctype', 'path', 'CONTROL', { label: 'type' })
+  addEdge('time', 'path', 'CONTROL', { label: 'time' })
+  addEdge('path', 'pathOut', 'DATA', { label: 'derive' })
+  addEdge('pathOut', 'jcr', 'ASYNC', { label: 'location' })
+}
+
 function getEdgePath(edge: Edge): string {
   const fromNode = nodes.value.find(n => n.id === edge.from)
   const toNode = nodes.value.find(n => n.id === edge.to)
@@ -587,6 +625,16 @@ async function playAnimation() {
       [{ from: 'pin', to: 'oak', color: '#65c2cb' }, { from: 'cid', to: 'oak', color: '#627EEA' }],
       [{ from: 'oak', to: 'dht', color: '#65c2cb' }],
       [{ from: 'dht', to: 'retrieve', color: '#627EEA' }, { from: 'cid', to: 'retrieve', color: '#8C8DFC' }],
+    ],
+    'json-to-jcr': [
+      [{ from: 'json', to: 'parser', color: '#627EEA' }],
+      [{ from: 'parser', to: 'mapper', color: '#8C8DFC' }],
+      [{ from: 'mapper', to: 'jcr', color: '#627EEA' }],
+      [{ from: 'jcr', to: 'props', color: '#e6edf3' }, { from: 'jcr', to: 'children', color: '#e6edf3' }],
+      [{ from: 'wallet', to: 'path', color: '#f0b429' }, { from: 'org', to: 'path', color: '#8C8DFC' }],
+      [{ from: 'ctype', to: 'path', color: '#627EEA' }, { from: 'time', to: 'path', color: '#4ade80' }],
+      [{ from: 'path', to: 'pathOut', color: '#627EEA' }],
+      [{ from: 'pathOut', to: 'jcr', color: '#65c2cb' }],
     ],
     consensus: [
       [{ from: 'follower', to: 'election', color: '#8C8DFC' }],
