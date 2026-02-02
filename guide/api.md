@@ -36,6 +36,16 @@ Read operations are public.
 - `GET /metrics` (Prometheus)
 - `GET /api/metrics` (JSON; local/dev only)
 
+All health/metrics JSON responses include:
+```json
+{
+  "success": true,
+  "status": "UP",
+  "timestamp": 1738454400000
+}
+```
+Additional fields are included per endpoint.
+
 ### Content
 - `GET /api/explore?path=/...`
 - `GET /v1/wallets/content?wallet=0x...&page=&pageSize=`

@@ -73,14 +73,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: ok
-                  timestamp:
-                    type: integer
-                    format: int64
+                $ref: '#/components/schemas/BasicHealthResponse'
+        '503':
+          description: Validator unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BasicHealthResponse'
 
   /health/deep:
     get:
@@ -112,9 +111,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ClusterHealth'
+                $ref: '#/components/schemas/ClusterHealthResponse'
         '503':
           description: Cluster unhealthy or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterHealthResponse'
 
   /api-browser:
     get:
@@ -1221,13 +1224,55 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/MetricsResponse'
 
 # ============================================================================
 # COMPONENTS
 # ============================================================================
 components:
   schemas:
+    BasicHealthResponse:
+      type: object
+      description: Basic validator health response.
+      properties:
+        success:
+          type: boolean
+        status:
+          type: string
+          enum: [UP, UNHEALTHY]
+        timestamp:
+          type: integer
+          format: int64
+      additionalProperties: true
+
+    ClusterHealthResponse:
+      type: object
+      description: Cluster-only health response.
+      properties:
+        success:
+          type: boolean
+        status:
+          type: string
+          enum: [UP, UNHEALTHY, UNAVAILABLE]
+        timestamp:
+          type: integer
+          format: int64
+      additionalProperties: true
+
+    MetricsResponse:
+      type: object
+      description: JSON metrics response.
+      properties:
+        success:
+          type: boolean
+          example: true
+        status:
+          type: string
+          example: UP
+        timestamp:
+          type: integer
+          format: int64
+      additionalProperties: true
     ErrorResponse:
       type: object
       description: Standard error response for Oak Chain APIs.
