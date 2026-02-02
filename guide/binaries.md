@@ -15,9 +15,9 @@ This is the beautiful insight: Oak Chain is the **source of truth** (CIDs), whil
 
 ### How It Works
 
-1. **Oak Chain** stores the CID (content-addressed hash) — this is the **truth**
-2. **Author** hosts the binary (IPFS, Azure Blob, or pinning service) — this is **provenance**
-3. **Edge CDN** caches the binary globally (Cloudflare R2, Fastly) — this is **delivery**
+1. **Oak Chain** stores the CID (content-addressed hash). This is the **truth**.
+2. **Author** hosts the binary (IPFS, Azure Blob, or pinning service). This is **provenance**.
+3. **Edge CDN** caches the binary globally (Cloudflare R2, Fastly). This is **delivery**.
 4. **User** can verify binary integrity by hashing and comparing to the CID
 
 ### Why This Is Beautiful

@@ -178,7 +178,7 @@ Oak Chain stores content flexibly—you can write any JSON structure. However, *
 - **Cross-wallet queries**: Aggregations need common structure patterns
 - **Tooling compatibility**: AEM tools expect consistent content models
 
-**Note**: Indexing is an **upstream concern** (not handled at consensus layer). An Oak index layer may be added in time per need, but for now, namespace-level style guides ensure queries work.
+**Note**: Indexing is an **upstream concern** (not handled at consensus layer). An Oak index layer may be added in time per need, but for now, namespace-level style guides keep queries working.
 
 ### Namespace-Level Style Guides
 

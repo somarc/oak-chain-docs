@@ -13,101 +13,104 @@ next: /faq
 
 ## Executive Summary
 
-The global content management industry is on the cusp of a generational transformation, as enterprise content becomes digitized, tokenized, and transitioned onchain. The evolution from siloed, centralized content repositories to a fully decentralized, cryptographically verifiable content fabric demands a secure, neutral, and reliable global infrastructure layer. **Oak-Chain (Blockchain AEM) has emerged as this foundation.**
+Enterprise content is moving from siloed repositories to verifiable, onchain systems. That shift needs a neutral infrastructure layer with strong security and clear economic incentives. **Oak-Chain (Blockchain AEM) provides that layer.**
 
-Oak-Chain’s positioning leverages the convergence of two dominant platforms: **Ethereum’s economic security** and **Apache Jackrabbit Oak’s enterprise content infrastructure**. This fusion creates the first globally synchronized content repository where every write operation is governed by Ethereum smart contracts, every content mutation burns ETH (or USDC), and every Oak-Chain validator (oak-segment-consensus node) is economically incentivized to maintain network integrity.
+Oak-Chain combines **Ethereum’s economic security** with **Apache Jackrabbit Oak’s enterprise content model**. It creates a globally synchronized content repository where write operations are governed by Ethereum smart contracts, content mutations burn ETH (or USDC), and validators are paid to preserve integrity.
 
-**ETH is the digital oil powering Oak-Chain’s content economy**—burned as gas for every CRUD operation, paid to Oak-Chain validators (oak-segment-consensus nodes) for storing JCR/CID data, and accumulated as treasury reserves by content publishers. As enterprise content transitions onchain, ETH network usage from Oak-Chain operations will scale proportionally with the tokenized content economy.
+**ETH powers Oak-Chain’s content economy.** Each CRUD write or delete consumes gas, validator fees are paid out via smart contracts, and publishers can accumulate ETH as treasury reserves. As enterprise content moves onchain, ETH usage scales with content operations.
 
-**Oak-Chain’s value proposition lies in providing a natural and familiar bridge** for the world’s enterprise content, which is effectively siloed in disparate AEM instances today. By maintaining AEM compatibility (same segment format, JCR API, Sling framework), Oak-Chain enables Fortune 500 enterprises to transition their existing content infrastructure to blockchain-native architecture without abandoning decades of accumulated knowledge, tools, and custom components.
+**Oak-Chain’s core value is a direct bridge from existing AEM stacks.** It preserves the segment format, JCR API, and Sling framework, so large enterprises can migrate without abandoning tools, custom components, or institutional knowledge.
 
-Oak-Chain is more than just a blockchain CMS—it serves as:
-- **Cryptographic fuel** for content operations (every write/delete burns ETH via smart contracts)
-- **Economic infrastructure** for decentralized content ownership (wallet-based namespaces)
-- **Enterprise bridge** connecting AEM’s existing moat with Ethereum’s global network
-- **Familiar tooling** enabling seamless migration from siloed AEM instances to decentralized content infrastructure
+Oak-Chain plays multiple roles:
 
-Whereas Bitcoin is a commodity that serves as a simple store of value, **ETH is a commodity that powers the entire decentralized content economy**—effectively making it **digital oil for the tokenized content infrastructure**.
+- **Cryptographic fuel** for content operations (writes/deletes burn ETH)
+- **Economic infrastructure** for decentralized ownership (wallet namespaces)
+- **Enterprise bridge** between AEM and Ethereum
+- **Familiar tooling** that avoids a full-stack rewrite
+
+Bitcoin is primarily a store of value. **ETH functions as the operational fuel of a decentralized content economy.**
 
 ---
 
 ## Report Overview
 
-This report examines why Oak-Chain represents a fundamental shift in how enterprise content is stored, owned, and transacted—and why Oak-Chain’s AEM compatibility creates a natural bridge for unlocking the world’s siloed enterprise content. It is divided into three core sections:
+This report explains why Oak-Chain changes how enterprise content is stored, owned, and transacted, and why AEM compatibility unlocks migration at scale. It is divided into three sections:
 
 ### 1. Understanding Oak-Chain: The Infrastructure Layer for Tokenized Content
 
-This section explores the relationship between Ethereum and Oak-Chain, how ETH powers every content operation through smart contracts, the unique tokenomics model that governs CRUD operations, and why Oak-Chain’s AEM compatibility creates an unassailable business moat.
+How Ethereum and Oak-Chain connect, how ETH powers content operations, and why AEM compatibility creates a defensible moat.
 
 ### 2. Ethereum: The Settlement Layer Driving Oak-Chain’s Ascent
 
-This section covers the structural, technological, and economic drivers behind Ethereum’s position as the foundational layer for decentralized applications—and how Oak-Chain leverages this infrastructure to create the first globally synchronized content repository with cryptographic finality.
+Why Ethereum provides the economic and technical base for decentralized applications, and how Oak-Chain uses that base to deliver cryptographic finality for content.
 
-### 3. Oak-Chain & The Future: The Content Infrastructure for the Autonomous Economy
+### 3. Oak-Chain & The Future: Content Infrastructure for an Autonomous Economy
 
-This section looks to the future to evaluate Oak-Chain’s—and by extension, ETH’s—potential role and value in a content economy powered by autonomous agents, where content ownership, licensing, and distribution are governed programmatically via smart contracts.
+What happens as agent-driven content ownership, licensing, and distribution become programmatic and onchain.
 
 ---
 
 ## Key Takeaways
 
-### ETH Is Digital Oil for Content Operations
+### ETH Is Fuel for Content Operations
 
 **Every CRUD operation burns ETH** through Ethereum smart contracts:
-- **Writes**: `OakWriteAuthorizationV5` contract consumes gas for every content proposal
-- **Deletes**: GC operations require higher fees (fragmentation tax)
-- **Reads**: Free (read-only operations don’t require onchain verification)
-- **Updates**: Governed by write authorization contracts (`authorizeWrite()`)
 
-**Payment flexibility**: ETH or USDC (enterprises prefer stablecoins, but ETH remains the native asset)
+- **Writes**: `OakWriteAuthorizationV5` consumes gas per proposal
+- **Deletes**: GC operations carry higher fees (fragmentation tax)
+- **Reads**: Free (read-only operations avoid onchain validation)
+- **Updates**: Governed by `authorizeWrite()`
 
-**Result**: ETH demand scales directly with content operations. As enterprise content transitions onchain, ETH consumption grows proportionally.
+**Payment options**: ETH or USDC (enterprises may prefer stablecoins, but ETH remains native)
+
+**Result**: ETH demand tracks content activity. As enterprise content moves onchain, ETH consumption grows.
 
 ### Oak-Chain Is Censorship-Resistant Content Infrastructure
 
 **Wallet-based ownership model**:
+
 - Wallet address = namespace: `/oak-chain/{shard}/0x{wallet}/...`
-- Only wallet owner can write to their namespace (cryptographically enforced)
-- Self-sovereign content ownership
+- Only the wallet owner can write into its namespace
+- Self-sovereign ownership enforced onchain
 
 **Ethereum as settlement layer**:
+
 - Smart contracts verify ownership before accepting writes
-- Onchain events provide cryptographic proof of content mutations
-- Oak-Chain validators maintain consensus via Aeron Raft + Ethereum finality
+- Onchain events provide proof of content mutations
+- Validators maintain consensus via Aeron Raft + Ethereum finality
 
-### Oak-Chain Is Not a Tech Company—It’s Infrastructure
+### Oak-Chain Is Infrastructure, Not a Product Company
 
-**The AEM compatibility moat**:
+**AEM compatibility moat**:
+
 - Same segment format → AEM content works natively
 - Same JCR API → Existing tools work (Composum, IDE plugins, monitoring)
-- Same Sling framework → Developers already trained
-- Same ecosystem → Custom components, workflow integrations
-- **NEW**: Blockchain layer (decentralized, transparent, wallet-based)
+- Same Sling framework → Developer skills transfer directly
+- Same ecosystem → Custom components and workflows carry over
+- **New**: Blockchain layer (decentralized, transparent, wallet-based)
 
-**Strategic positioning**: "Keep your AEM content, tools, and knowledge. Get blockchain benefits. Pay less."
+**Positioning**: Keep your AEM content and tools. Add blockchain guarantees. Reduce operational friction.
 
 ### Programmatic Issuance + Burn = Predictable Scarcity
 
-**Oak-Chain operations increase burn**: Every write/delete operation consumes gas, reducing ETH supply. As usage grows, ETH becomes increasingly scarce.
+**Oak-Chain operations increase burn.** Every write/delete consumes gas, reducing ETH supply. As usage grows, ETH becomes scarcer.
 
-### ETH Offers Economic Incentives for Oak-Chain Validators
+### ETH Incentivizes Oak-Chain Validators
 
-Oak-Chain validators earn fees from write/delete operations (distributed proportionally by share). Ethereum smart contracts govern payment distribution, ensuring validators are compensated fairly and incentivized to maintain network integrity.
+Validators earn fees from write/delete operations, distributed by smart contracts. Incentives stay aligned with network integrity.
 
-### Oak-Chain’s Role in the Future AI Economy Is Not Priced In
+### Oak-Chain’s Role in the Future AI Economy Is Underpriced
 
-As autonomous agents integrate into content management, new infrastructure is required. Oak-Chain’s `oak-segment-agentic` module and future EIP-8004 integration position Oak-Chain for standardized agent discovery, reputation, and validation—creating additional ETH network usage.
+As autonomous agents enter content management, new infrastructure is required. Oak-Chain’s `oak-segment-agentic` module and planned EIP-8004 integration position the network for agent discovery, reputation, and validation, increasing ETH usage.
 
 ---
 
 ## Conclusion
 
-**Oak-Chain represents the convergence of two dominant platforms**: Ethereum’s economic security and Apache Jackrabbit Oak’s enterprise content infrastructure. This fusion creates the first globally synchronized content repository where every write operation is governed by Ethereum smart contracts, every content mutation burns ETH, and every Oak-Chain validator (oak-segment-consensus node) is economically incentivized to maintain network integrity.
+**Oak-Chain links two dominant platforms**: Ethereum’s economic security and Jackrabbit Oak’s enterprise content stack. The result is a synchronized content repository where writes are authorized by smart contracts, content mutations burn ETH, and validators are paid to maintain integrity.
 
-**ETH is the digital oil powering Oak-Chain’s content economy**—burned as gas for every CRUD operation, paid to Oak-Chain validators (oak-segment-consensus nodes) for storing JCR/CID data, and accumulated as treasury reserves by content publishers. As enterprise content transitions onchain, ETH network usage from Oak-Chain operations will scale proportionally with the tokenized content economy.
+**ETH is the operational fuel.** It pays for CRUD activity, funds validators, and can accumulate in publisher treasuries. As content migrates onchain, ETH usage scales with that activity.
 
-**Oak-Chain’s value proposition lies in providing a natural and familiar bridge** for the world’s enterprise content, which is effectively siloed in disparate AEM instances today. By maintaining AEM compatibility, Oak-Chain enables seamless migration from siloed repositories to decentralized content infrastructure.
+**Oak-Chain offers a direct bridge from AEM.** It preserves existing formats and tooling while adding a decentralized settlement layer.
 
-**The opportunity is asymmetric**: Ethereum has won smart contracts, Oak stores Fortune 500 enterprise content, and the convergence is inevitable—but not yet priced into ETH’s valuation.
-
-**Oak-Chain is not just a blockchain CMS**—it’s the infrastructure layer for the decentralized content economy, with ETH as its native asset and reserve currency.
+**The opportunity is asymmetric.** Ethereum owns smart contracts, Oak holds enterprise content, and the convergence is underway. Oak-Chain is the infrastructure layer for a decentralized content economy, with ETH as the native asset and reserve currency.

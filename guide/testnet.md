@@ -243,7 +243,7 @@ async function testSepoliaWrite() {
 
 - Verify INFURA_API_KEY is set
 - Check Infura project is active
-- Ensure project has Sepolia enabled
+- Confirm the project has Sepolia enabled
 
 ## Next Steps
 

@@ -133,7 +133,7 @@ VALIDATOR_WALLET=0x...
 | 20001 | TCP | Aeron member |
 | 20002 | TCP | Aeron log |
 
-Ensure these ports are open between all cluster members.
+Confirm these ports are open between all cluster members.
 
 ## Storage
 
@@ -226,7 +226,7 @@ docker logs oak-validator
 nc -zv validator-1.example.com 20000
 
 # Check firewall rules
-# Ensure ports 20000-20002 are open
+# Confirm ports 20000-20002 are open
 ```
 
 ### Leader Election Stuck

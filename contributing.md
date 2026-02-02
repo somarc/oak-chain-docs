@@ -101,7 +101,7 @@ docker-compose -f docker-compose/testing/3-validators-aeron.yml logs -f
 ## Pull Request Process
 
 1. **Branch naming**: `feature/description` or `fix/description`
-2. **Commit messages**: Clear, imperative mood ("Add feature" not "Added feature")
+2. **Commit messages**: Clear, command form ("Add feature" not "Added feature")
 3. **Description**: Explain what and why
 4. **Tests**: Include if applicable
 5. **Review**: Wait for maintainer review

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vitepress dev",
-    "build": "vitepress build",
+    "ai-check": "./scripts/ai-check.sh",
+    "build": "npm run ai-check && vitepress build",
     "preview": "vitepress preview"
   },
   "devDependencies": {
