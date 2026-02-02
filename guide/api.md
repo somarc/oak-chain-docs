@@ -5,218 +5,144 @@ next: /guide/auth
 
 # API Reference
 
-Complete reference for the Oak Chain HTTP API.
+Authoritative, full mapping of the Oak Chain validator HTTP API.
+
+**Source of truth:** `public/openapi.yaml`. The API browser UI at `/api-browser` is generated from live validator state and should match this page.
 
 ## Base URL
 
 ```
-http://localhost:8090   # Local development
-https://validator.oak-chain.io   # Production (future)
+http://localhost:8090             # Local development
+https://validators.oak-chain.io   # Production (future)
+https://sepolia.validators.oak-chain.io  # Testnet (future)
 ```
 
 ## Authentication
 
 All write operations require:
-1. **Ethereum wallet signature** - Content signed with your private key
-2. **Payment transaction** - ETH payment to smart contract
+1. **Ethereum wallet signature** (signed message)
+2. **Payment transaction hash** (Ethereum payment)
 
 Read operations are public.
 
 ---
 
-## Endpoints
+## Endpoints (By Category)
 
-### Health & Status
+### Health
+- `GET /health`
+- `GET /health/deep`
+- `GET /health/cluster`
+- `GET /metrics` (Prometheus)
+- `GET /api/metrics` (JSON; local/dev only)
 
-#### `GET /health`
+### Content
+- `GET /api/explore?path=/...`
+- `GET /v1/wallets/content?wallet=0x...&page=&pageSize=`
+- `GET /v1/wallets/stats?wallet=0x...`
 
-Check validator health.
+### Write (form-encoded or multipart)
+- `POST /v1/propose-write`
+- `POST /v1/propose-delete`
+- `GET /v1/proposals/{proposalId}/status`
+- `GET /v1/proposals/pending/count`
 
-**Response**
-```json
-{
-  "status": "healthy",
-  "role": "LEADER",
-  "peers": 2,
-  "lastCommit": "2026-01-10T12:00:00Z"
-}
-```
+### Binary
+- `POST /v1/binary/declare-intent`
+- `GET /v1/binary/check-intent/{sessionId}`
+- `POST /v1/binary/complete-upload`
+- `GET /api/blob/{blobId}`
+- `GET /api/cid/{blobId}`
+- `GET /api/cid/reverse/{cid}`
+- `GET /api/cid/stats`
+- `GET /api/cid/gateway/{blobId}` (redirect)
 
-#### `GET /v1/status`
+### Streaming (SSE)
+- `GET /v1/events/stream`
+- `GET /v1/events/recent`
+- `GET /v1/events/stats`
 
-Get detailed cluster status.
+### Cluster & Consensus
+- `GET /v1/consensus/status`
+- `GET /v1/head`
+- `GET /v1/peers`
+- `GET /v1/ngrok-url`
+- `GET /v1/blockchain/config`
+- `GET /v1/aeron/cluster-state`
+- `GET /v1/aeron/raft-metrics`
+- `GET /v1/aeron/node-status`
+- `GET /v1/aeron/leadership-history`
+- `GET /v1/aeron/replication-lag`
+- `POST /v1/follower/head-update` (internal)
 
-**Response**
-```json
-{
-  "role": "LEADER",
-  "term": 42,
-  "peers": ["validator-1", "validator-2"],
-  "epoch": 12345,
-  "commitIndex": 98765,
-  "lastApplied": 98765
-}
-```
-
-#### `GET /v1/cluster/state`
-
-Get full cluster state including peer details.
-
-**Response**
-```json
-{
-  "role": "LEADER",
-  "term": 42,
-  "commitIndex": 12345,
-  "lastApplied": 12345,
-  "peers": [
-    {"id": 1, "state": "FOLLOWER", "matchIndex": 12345},
-    {"id": 2, "state": "FOLLOWER", "matchIndex": 12340}
-  ]
-}
-```
-
----
-
-### Content Operations
-
-#### `POST /v1/propose-write`
-
-Propose a content write to the cluster.
-
-**Request Body**
-```json
-{
-  "wallet": "0x742d35Cc6634c0532925a3b844bc9e7595f0beb",
-  "organization": "MyBrand",
-  "path": "content/pages/hello-world",
-  "content": {
-    "jcr:primaryType": "nt:unstructured",
-    "title": "Hello World",
-    "body": "Welcome to Oak Chain!"
-  },
-  "paymentTier": "express",
-  "txHash": "0xabc123...",
-  "signature": "0xdef456..."
-}
-```
-
-**Parameters**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `wallet` | string | Yes | Ethereum wallet address (0x...) |
-| `organization` | string | No | Organization/brand scope |
-| `path` | string | Yes | Content path (relative to wallet scope) |
-| `content` | object | Yes | JSON content to store |
-| `paymentTier` | string | Yes | `priority`, `express`, or `standard` |
-| `txHash` | string | Yes* | Payment transaction hash (*mock mode: optional) |
-| `signature` | string | Yes | Content signature from wallet |
-
-**Response (Success)**
-```json
-{
-  "status": "accepted",
-  "path": "/oak-chain/74/2d/35/0x742d35Cc.../MyBrand/content/pages/hello-world",
-  "commitIndex": 12346,
-  "tier": "express",
-  "estimatedFinality": "2026-01-10T12:06:24Z"
-}
-```
-
-**Response (Error)**
-```json
-{
-  "status": "rejected",
-  "error": "INVALID_SIGNATURE",
-  "message": "Signature does not match wallet address"
-}
-```
-
-#### `POST /v1/propose-delete`
-
-Propose content deletion.
-
-**Request Body**
-```json
-{
-  "wallet": "0x742d35Cc6634c0532925a3b844bc9e7595f0beb",
-  "organization": "MyBrand",
-  "path": "content/pages/old-page",
-  "paymentTier": "standard",
-  "txHash": "0xabc123...",
-  "signature": "0xdef456..."
-}
-```
-
-**Response**
-```json
-{
-  "status": "accepted",
-  "path": "/oak-chain/74/2d/35/0x742d35Cc.../MyBrand/content/pages/old-page",
-  "action": "delete",
-  "commitIndex": 12347
-}
-```
-
-#### `GET /api/content/{path}`
-
-Read content at a path.
-
-**Example**
-```bash
-curl http://localhost:8090/api/content/oak-chain/74/2d/35/0x742d35Cc.../MyBrand/content/pages/hello-world
-```
-
-**Response**
-```json
-{
-  "jcr:primaryType": "nt:unstructured",
-  "title": "Hello World",
-  "body": "Welcome to Oak Chain!",
-  "jcr:created": "2026-01-10T12:00:00Z",
-  "jcr:createdBy": "0x742d35Cc..."
-}
-```
-
----
-
-### Real-Time Streaming
-
-#### `GET /v1/feed`
-
-Server-Sent Events stream of all writes.
-
-**Query Parameters**
-
-| Param | Type | Description |
-|-------|------|-------------|
-| `wallet` | string | Filter by wallet address |
-| `org` | string | Filter by organization (requires wallet) |
-| `prefix` | string | Filter by path prefix |
-
-**Example**
-```bash
-curl -N "http://localhost:8090/v1/feed?wallet=0x742d35Cc..."
-```
-
-**Events**
-```
-event: write
-data: {"path":"/oak-chain/74/2d/35/0xWALLET/org/content/page","timestamp":1704844800,"wallet":"0x742d35Cc...","tier":"express"}
-
-event: delete
-data: {"path":"/oak-chain/74/2d/35/0xWALLET/org/content/old","timestamp":1704844801,"wallet":"0x742d35Cc..."}
-
-event: heartbeat
-data: {"timestamp":1704844810}
-```
-
----
+### GC & Fragmentation
+- `GET /v1/gc/estimate?wallet=0x...`
+- `GET /v1/gc/status`
+- `GET /v1/gc/account/{wallet}`
+- `POST /v1/gc/account/{wallet}/pay`
+- `POST /v1/gc/account/{wallet}/set-limit`
+- `POST /v1/gc/account/{wallet}/execute-pending`
+- `GET /v1/fragmentation/metrics`
+- `GET /v1/fragmentation/metrics/{wallet}`
+- `GET /v1/fragmentation/top`
+- `GET /v1/compaction/proposals`
+- `POST /v1/propose-gc`
+- `POST /v1/gc/execute`
+- `POST /v1/gc/trigger`
 
 ### Segments (Advanced)
+- `GET /api/segments/recent`
+- `GET /api/segments/tars`
 
-#### `GET /segments/{segmentId}`
+### Mock Mode (Local Dev)
+- `POST /api/mock/advance-epoch?epochs=N`
+- `POST /api/mock/set-epoch-offset?offset=N`
+- `GET /api/mock/epoch-status`
+
+### Internal / UI
+- `GET /api-browser`
+- `POST /v1/chat` (if oak-segment-agentic enabled)
+
+---
+
+## Request Formats (Write/Delete)
+
+**Write**: `application/x-www-form-urlencoded` or `multipart/form-data`
+
+Required fields:
+- `walletAddress`
+- `signature`
+- `message`
+- `ethereumTxHash`
+
+Optional fields:
+- `contentType` (default `page`)
+- `paymentTier` (`standard`, `express`, `priority`)
+- `organization`
+- `intentToken`
+- `ipfsCid`
+- `clientId`
+- `file` (multipart binary)
+
+**Delete**: `application/x-www-form-urlencoded`
+
+Required fields:
+- `walletAddress`
+- `signature`
+- `contentPath`
+- `ethereumTxHash`
+
+Optional fields:
+- `clientId`
+
+---
+
+## OpenAPI Spec
+
+The OpenAPI spec lives at:
+- `public/openapi.yaml`
+
+It is the canonical source for schemas, request/response types, and status codes.
 
 Fetch a raw Oak segment (for HTTP segment transfer).
 
@@ -367,8 +293,8 @@ await client.write({...});
 | Endpoint | Limit |
 |----------|-------|
 | `POST /v1/propose-write` | 100/min per wallet |
-| `GET /v1/feed` | 10 connections per IP |
-| `GET /api/content/*` | 1000/min per IP |
+| `GET /v1/events/stream` | 10 connections per IP |
+| `GET /api/explore` | 1000/min per IP |
 
 ---
 
@@ -381,18 +307,19 @@ import { OakChainClient } from '@oak-chain/sdk';
 
 const client = new OakChainClient({
   endpoint: 'http://localhost:8090',
-  wallet: window.ethereum, // MetaMask
+  signer: window.ethereum, // MetaMask signer
 });
 
 // Write content
-const result = await client.write({
+const proposal = await signWriteProposal(window.ethereum, {
+  message: JSON.stringify({ title: 'Hello!' }),
+  ethereumTxHash: '0x...',
+  paymentTier: 'express',
   organization: 'MyBrand',
-  path: 'content/pages/hello',
-  content: { title: 'Hello!' },
-  tier: 'express',
 });
 
-console.log('Written to:', result.path);
+const result = await client.proposeWrite(proposal);
+console.log('Proposal:', result.data?.proposalId);
 ```
 
 ### cURL
@@ -400,18 +327,15 @@ console.log('Written to:', result.path);
 ```bash
 # Write content (mock mode)
 curl -X POST http://localhost:8090/v1/propose-write \
-  -H "Content-Type: application/json" \
-  -d '{
-    "wallet": "0x742d35Cc6634c0532925a3b844bc9e7595f0beb",
-    "organization": "MyBrand",
-    "path": "content/pages/hello",
-    "content": {"title": "Hello!"},
-    "paymentTier": "standard",
-    "signature": "mock"
-  }'
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "walletAddress=0x742d35Cc6634c0532925a3b844bc9e7595f0beb" \
+  -d "message={\"title\":\"Hello!\"}" \
+  -d "paymentTier=standard" \
+  -d "ethereumTxHash=0xabc123..." \
+  -d "signature=0xmock"
 
 # Read content
-curl http://localhost:8090/api/content/oak-chain/74/2d/35/0x742d35Cc.../MyBrand/content/pages/hello
+curl "http://localhost:8090/api/explore?path=/oak-chain/74/2d/35/0x742d35Cc.../MyBrand/content/pages/hello"
 ```
 
 ---

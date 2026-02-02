@@ -202,11 +202,7 @@ async function testSepoliaWrite() {
   
   // 4. Sign content
   const content = { title: 'Sepolia Test!' };
-  const message = JSON.stringify({
-    path: 'content/test',
-    content,
-    timestamp: Date.now(),
-  });
+  const message = JSON.stringify({ content, timestamp: Date.now() });
   
   const signature = await window.ethereum.request({
     method: 'personal_sign',
@@ -216,13 +212,12 @@ async function testSepoliaWrite() {
   // 5. Submit to validator
   const response = await fetch('http://localhost:8090/v1/propose-write', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      wallet,
-      path: 'content/test',
-      content,
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      walletAddress: wallet,
+      message,
       paymentTier: 'express',
-      txHash: paymentTx,
+      ethereumTxHash: paymentTx,
       signature,
     }),
   });

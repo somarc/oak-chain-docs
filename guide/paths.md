@@ -110,20 +110,19 @@ public static String getContentPath(String wallet, String org) {
 
 ```bash
 curl -X POST http://localhost:8090/v1/propose-write \
-  -H "Content-Type: application/json" \
-  -d '{
-    "wallet": "0x742d35Cc6634c0532925a3b844bc9e7595f0beb",
-    "organization": "PixelPirates",
-    "path": "content/games/nft-drop",
-    "content": {"title": "New NFT Drop!", "date": "2026-01-10"},
-    "paymentTier": "express",
-    "txHash": "0x..."
-  }'
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "walletAddress=0x742d35Cc6634c0532925a3b844bc9e7595f0beb" \
+  -d "organization=PixelPirates" \
+  -d "message={\"title\":\"New NFT Drop!\",\"date\":\"2026-01-10\"}" \
+  -d "contentType=page" \
+  -d "paymentTier=express" \
+  -d "ethereumTxHash=0x..." \
+  -d "signature=0x..."
 ```
 
-The validator constructs the full path:
+The validator constructs the full path (content IDs are generated):
 ```
-/oak-chain/74/2d/35/0x742d35Cc.../PixelPirates/content/games/nft-drop
+/oak-chain/74/2d/35/0x742d35Cc.../PixelPirates/content/page-<timestamp>
 ```
 
 ## Cross-Organization References

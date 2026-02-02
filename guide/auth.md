@@ -128,7 +128,7 @@ const signature = await signer.signMessage(message);
 ## Complete Write Flow
 
 ```javascript
-async function writeContent(organization, path, content, tier) {
+async function writeContent(organization, content, tier, txHash) {
   // 1. Get wallet
   const accounts = await window.ethereum.request({
     method: 'eth_requestAccounts'
@@ -136,12 +136,7 @@ async function writeContent(organization, path, content, tier) {
   const wallet = accounts[0];
   
   // 2. Sign content
-  const message = JSON.stringify({
-    path,
-    content,
-    timestamp: Date.now(),
-    nonce: crypto.randomUUID(),
-  });
+  const message = JSON.stringify({ content, timestamp: Date.now() });
   
   const signature = await window.ethereum.request({
     method: 'personal_sign',
@@ -151,15 +146,14 @@ async function writeContent(organization, path, content, tier) {
   // 3. Submit to validator
   const response = await fetch('http://localhost:8090/v1/propose-write', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      wallet,
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      walletAddress: wallet,
       organization,
-      path,
-      content,
+      message,
       paymentTier: tier,
+      ethereumTxHash: txHash,
       signature,
-      // txHash from payment (see Economics guide)
     }),
   });
   
@@ -169,9 +163,9 @@ async function writeContent(organization, path, content, tier) {
 // Usage
 const result = await writeContent(
   'MyBrand',
-  'content/pages/hello',
   { title: 'Hello World!' },
-  'express'
+  'express',
+  '0x...'
 );
 ```
 
@@ -223,13 +217,13 @@ OAK_BLOCKCHAIN_MODE=mock
 // Mock mode accepts any signature
 const response = await fetch('http://localhost:8090/v1/propose-write', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    wallet: '0x742d35Cc6634c0532925a3b844bc9e7595f0beb',
-    path: 'content/test',
-    content: { title: 'Test' },
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({
+    walletAddress: '0x742d35Cc6634c0532925a3b844bc9e7595f0beb',
+    message: JSON.stringify({ title: 'Test' }),
     paymentTier: 'standard',
-    signature: 'mock', // Accepted in mock mode
+    ethereumTxHash: '0xabc123...',
+    signature: '0xmock', // Accepted in mock mode
   }),
 });
 ```

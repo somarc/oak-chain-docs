@@ -52,13 +52,13 @@ Oak Chain uses Ethereum's **epoch** system for finality:
 
 ```bash
 curl -X POST http://localhost:8090/v1/propose-write \
-  -H "Content-Type: application/json" \
-  -d '{
-    "path": "/oak-chain/74/2d/35/0xWALLET/org/content/breaking-news",
-    "content": "...",
-    "paymentTier": "priority",
-    "txHash": "0x..."
-  }'
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "walletAddress=0xWALLET" \
+  -d "message=Breaking news..." \
+  -d "contentType=page" \
+  -d "paymentTier=priority" \
+  -d "ethereumTxHash=0x..." \
+  -d "signature=0x..."
 ```
 
 - **Bypasses** epoch batching
@@ -70,13 +70,13 @@ curl -X POST http://localhost:8090/v1/propose-write \
 
 ```bash
 curl -X POST http://localhost:8090/v1/propose-write \
-  -H "Content-Type: application/json" \
-  -d '{
-    "path": "/oak-chain/74/2d/35/0xWALLET/org/content/article",
-    "content": "...",
-    "paymentTier": "express",
-    "txHash": "0x..."
-  }'
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "walletAddress=0xWALLET" \
+  -d "message=Article content..." \
+  -d "contentType=page" \
+  -d "paymentTier=express" \
+  -d "ethereumTxHash=0x..." \
+  -d "signature=0x..."
 ```
 
 - **Waits** for current epoch to finalize
@@ -88,13 +88,13 @@ curl -X POST http://localhost:8090/v1/propose-write \
 
 ```bash
 curl -X POST http://localhost:8090/v1/propose-write \
-  -H "Content-Type: application/json" \
-  -d '{
-    "path": "/oak-chain/74/2d/35/0xWALLET/org/content/archive/2024",
-    "content": "...",
-    "paymentTier": "standard",
-    "txHash": "0x..."
-  }'
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "walletAddress=0xWALLET" \
+  -d "message=Archive content..." \
+  -d "contentType=page" \
+  -d "paymentTier=standard" \
+  -d "ethereumTxHash=0x..." \
+  -d "signature=0x..."
 ```
 
 - **Waits** for 2 epochs (full finality)

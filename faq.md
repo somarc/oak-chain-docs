@@ -1,5 +1,5 @@
 ---
-prev: /thesis
+prev: /bull-case
 next: /how-it-works
 ---
 
@@ -405,13 +405,19 @@ Yes. Oak Chain exposes a REST API:
 
 ```javascript
 // Read content
-const response = await fetch('http://validator:8090/api/content/...');
+const response = await fetch('http://validator:8090/api/explore?path=/oak-chain/...');
 const content = await response.json();
 
 // Write content (with wallet signature)
 await fetch('http://validator:8090/v1/propose-write', {
   method: 'POST',
-  body: JSON.stringify({ wallet, path, content, signature }),
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({
+    walletAddress: wallet,
+    message: JSON.stringify(content),
+    ethereumTxHash: txHash,
+    signature,
+  }),
 });
 ```
 
@@ -456,7 +462,7 @@ Yes. Organizations can use multiple wallets for:
 **How it works**:
 - Each write creates a new **revision** (like Git commits)
 - Previous revisions remain accessible until GC
-- Access via revision ID: `/api/content/...?revision={id}`
+- Revision access via HTTP is not yet exposed (planned).
 
 **Limitations**:
 - No **JCR versioning API** yet (planned)

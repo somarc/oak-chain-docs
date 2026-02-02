@@ -39,7 +39,7 @@ Must be stable before GraphQL, SDK, or other features.
 | **Docker Images** | No published Docker images yet - docs say "coming soon" | CI/CD pipeline |
 | **Smart Contract Address** | Testnet guide has TBD for Sepolia contract address | Deploy contract |
 | **SDK Package** | `oak-chain-sdk/` exists but not published to npm | Publish + docs |
-| **Production URL** | API reference shows `validator.oak-chain.io` (future) | Deploy infra |
+| **Production URL** | API reference shows `validators.oak-chain.io` (future) | Deploy infra |
 
 ---
 

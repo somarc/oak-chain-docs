@@ -73,33 +73,21 @@ ipfs add my-image.jpg
 
 ```bash
 curl -X POST http://localhost:8090/v1/propose-write \
-  -H "Content-Type: application/json" \
-  -d '{
-    "wallet": "0x742d35Cc...",
-    "organization": "PixelPirates",
-    "path": "content/dam/images/hero",
-    "content": {
-      "jcr:primaryType": "dam:Asset",
-      "jcr:content": {
-        "renditions": {
-          "original": {
-            "ipfs:cid": "QmXyz...abc",
-            "jcr:mimeType": "image/jpeg",
-            "size": 1048576
-          }
-        }
-      }
-    },
-    "paymentTier": "express",
-    "txHash": "0x..."
-  }'
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "walletAddress=0x742d35Cc..." \
+  -d "organization=PixelPirates" \
+  -d "message={\"jcr:primaryType\":\"dam:Asset\",\"jcr:content\":{\"renditions\":{\"original\":{\"ipfs:cid\":\"QmXyz...abc\",\"jcr:mimeType\":\"image/jpeg\",\"size\":1048576}}}}" \
+  -d "contentType=dam:Asset" \
+  -d "paymentTier=express" \
+  -d "ethereumTxHash=0x..." \
+  -d "signature=0x..."
 ```
 
 ### 3. Readers Fetch from IPFS
 
 ```bash
 # Get metadata from Oak
-curl http://localhost:8090/api/content/oak-chain/.../content/dam/images/hero
+curl "http://localhost:8090/api/explore?path=/oak-chain/.../content/dam/images/hero"
 
 # Response includes CID
 {
@@ -122,7 +110,7 @@ For performance, use direct IPFS access:
 ```javascript
 async function getAsset(path) {
   // 1. Get metadata from Oak
-  const meta = await fetch(`http://validator:8090/api/content${path}`);
+  const meta = await fetch(`http://validator:8090/api/explore?path=${encodeURIComponent(path)}`);
   const { renditions } = await meta.json();
   
   // 2. Get binary from IPFS (direct, no validator)
@@ -178,20 +166,21 @@ async function uploadImage(file, wallet, org) {
   // 2. Write metadata to Oak
   const response = await fetch('http://validator:8090/v1/propose-write', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      wallet,
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      walletAddress: wallet,
       organization: org,
-      path: `content/dam/uploads/${file.name}`,
-      content: {
+      message: JSON.stringify({
         'jcr:primaryType': 'dam:Asset',
         'ipfs:cid': cid.toString(),
         'jcr:mimeType': file.type,
         'size': file.size,
         'uploadedAt': new Date().toISOString()
-      },
+      }),
+      contentType: 'dam:Asset',
       paymentTier: 'express',
-      txHash: '0x...' // From payment
+      ethereumTxHash: '0x...', // From payment
+      signature: '0x...' // Signed message
     })
   });
   

@@ -135,17 +135,17 @@ services:
 
 ```bash
 # Cluster state
-curl http://localhost:8090/v1/cluster/state
+curl http://localhost:8090/v1/aeron/cluster-state
 
 # Response
 {
   "role": "LEADER",
-  "term": 42,
-  "commitIndex": 12345,
-  "lastApplied": 12345,
-  "peers": [
-    {"id": 1, "state": "FOLLOWER", "matchIndex": 12345},
-    {"id": 2, "state": "FOLLOWER", "matchIndex": 12340}
+  "leadershipTermId": 42,
+  "clusterMemberCount": 3,
+  "members": [
+    {"memberId": 0, "role": "LEADER"},
+    {"memberId": 1, "role": "FOLLOWER"},
+    {"memberId": 2, "role": "FOLLOWER"}
   ]
 }
 ```

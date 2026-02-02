@@ -9,43 +9,45 @@ Oak Chain provides Server-Sent Events (SSE) for real-time content discovery.
 
 ## SSE Feed
 
-Subscribe to the live feed of all writes:
+Subscribe to the live event stream:
 
 ```bash
-curl -N http://localhost:8090/v1/feed
+curl -N http://localhost:8090/v1/events/stream
 ```
 
 ### Event Format
 
 ```
-event: write
-data: {"path":"/oak-chain/74/2d/35/0xWALLET/org/content/page","timestamp":1704844800,"wallet":"0x742d35Cc...","tier":"express"}
+event: content
+data: {"id":"1704844800","type":"content","action":"write","path":"/oak-chain/74/2d/35/0xWALLET/org/content/page","wallet":"0x742d35Cc...","timestamp":1704844800}
 
-event: write
-data: {"path":"/oak-chain/ab/cd/ef/0xOTHER/brand/content/article","timestamp":1704844801,"wallet":"0xabcdef...","tier":"standard"}
+event: delete
+data: {"id":"1704844801","type":"delete","action":"delete","path":"/oak-chain/ab/cd/ef/0xOTHER/brand/content/article","wallet":"0xabcdef...","timestamp":1704844801}
 
-event: heartbeat
-data: {"timestamp":1704844810}
+event: binary
+data: {"id":"1704844802","type":"binary","action":"write","path":"/oak-chain/...","wallet":"0x742d35Cc...","ipfsCid":"Qm..."}
 ```
 
 ### Event Types
 
 | Event | Description |
 |-------|-------------|
-| `write` | New content written |
-| `delete` | Content deleted |
-| `heartbeat` | Keep-alive (every 30s) |
+| `content` | Content writes |
+| `delete` | Content deletions |
+| `binary` | Binary/CID events |
+| `wallet` | Wallet registration |
+| `consensus` | Leader/commit events |
 
 ## JavaScript Client
 
 ```javascript
-const eventSource = new EventSource('http://localhost:8090/v1/feed');
+const eventSource = new EventSource('http://localhost:8090/v1/events/stream');
 
-eventSource.addEventListener('write', (event) => {
+eventSource.addEventListener('content', (event) => {
   const data = JSON.parse(event.data);
   console.log('New content:', data.path);
   console.log('By wallet:', data.wallet);
-  console.log('Tier:', data.tier);
+  console.log('Action:', data.action);
 });
 
 eventSource.addEventListener('delete', (event) => {
@@ -64,7 +66,7 @@ eventSource.onerror = (error) => {
 ### By Wallet
 
 ```bash
-curl -N "http://localhost:8090/v1/feed?wallet=0x742d35Cc..."
+curl -N "http://localhost:8090/v1/events/stream?wallets=0x742d35Cc..."
 ```
 
 Only events from that wallet.
@@ -72,7 +74,7 @@ Only events from that wallet.
 ### By Organization
 
 ```bash
-curl -N "http://localhost:8090/v1/feed?wallet=0x742d35Cc...&org=PixelPirates"
+curl -N "http://localhost:8090/v1/events/stream?wallets=0x742d35Cc...&organizations=PixelPirates"
 ```
 
 Only events from that wallet's organization.
@@ -80,7 +82,7 @@ Only events from that wallet's organization.
 ### By Path Prefix
 
 ```bash
-curl -N "http://localhost:8090/v1/feed?prefix=/oak-chain/74"
+curl -N "http://localhost:8090/v1/events/stream?path=/oak-chain/74"
 ```
 
 Only events under that path prefix.
@@ -114,8 +116,8 @@ function LiveFeed() {
   const [events, setEvents] = useState([]);
   
   useEffect(() => {
-    const es = new EventSource('/v1/feed');
-    es.addEventListener('write', (e) => {
+    const es = new EventSource('/v1/events/stream');
+    es.addEventListener('content', (e) => {
       setEvents(prev => [JSON.parse(e.data), ...prev].slice(0, 100));
     });
     return () => es.close();
@@ -136,9 +138,9 @@ function LiveFeed() {
 Forward SSE to webhooks:
 
 ```javascript
-const eventSource = new EventSource('http://localhost:8090/v1/feed');
+const eventSource = new EventSource('http://localhost:8090/v1/events/stream');
 
-eventSource.addEventListener('write', async (event) => {
+eventSource.addEventListener('content', async (event) => {
   const data = JSON.parse(event.data);
   
   await fetch('https://your-webhook.com/oak-chain', {

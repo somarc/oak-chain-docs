@@ -50,6 +50,12 @@ tags:
     description: Payment verification
   - name: GC
     description: Garbage collection operations
+  - name: Segments
+    description: Segment store inspection endpoints
+  - name: Mock
+    description: Mock-mode only endpoints (local development)
+  - name: Internal
+    description: Internal or UI-only endpoints
 
 paths:
   # ============================================================================
@@ -91,6 +97,38 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeepHealthResponse'
+        '503':
+          description: Degraded health
+
+  /health/cluster:
+    get:
+      tags: [Health]
+      summary: Cluster health check
+      description: Cluster-only health check for quorum/leader status.
+      operationId: clusterHealth
+      responses:
+        '200':
+          description: Cluster healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterHealth'
+        '503':
+          description: Cluster unhealthy or unavailable
+
+  /api-browser:
+    get:
+      tags: [Internal]
+      summary: API browser UI
+      description: HTML API browser dashboard (local UI).
+      operationId: getApiBrowser
+      responses:
+        '200':
+          description: HTML response
+          content:
+            text/html:
+              schema:
+                type: string
 
   # ============================================================================
   # CONTENT
@@ -117,6 +155,84 @@ paths:
                 $ref: '#/components/schemas/ContentNode'
         '404':
           description: Path not found
+
+  /api/segments/recent:
+    get:
+      tags: [Segments]
+      summary: Recent segment writes
+      description: Returns recent segment writes from the journal.
+      operationId: getRecentSegments
+      responses:
+        '200':
+          description: Recent segments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    timestamp:
+                      type: string
+
+  /api/segments/tars:
+    get:
+      tags: [Segments]
+      summary: Segment TAR files
+      description: List TAR files and storage blocks for the segment store.
+      operationId: getTarFiles
+      responses:
+        '200':
+          description: TAR file list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    size:
+                      type: integer
+                      format: int64
+                    sizeFormatted:
+                      type: string
+                    segmentCount:
+                      type: integer
+                    estimatedCount:
+                      type: boolean
+                    created:
+                      type: string
+                    modified:
+                      type: string
+
+  /api/blob/{blobId}:
+    get:
+      tags: [Binary]
+      summary: Stream blob by Oak blob ID
+      description: Stream binary from Oak BlobStore (no CID mapping required).
+      operationId: streamBlob
+      parameters:
+        - name: blobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Binary stream
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Blob not found
+        '503':
+          description: BlobStore not configured
 
   /v1/wallets/content:
     get:
@@ -189,16 +305,25 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/WriteProposal'
+              $ref: '#/components/schemas/WriteProposalForm'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WriteProposalMultipart'
       responses:
-        '202':
-          description: Proposal accepted
+        '200':
+          description: Proposal accepted (immediate mode)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProposalResponse'
+                $ref: '#/components/schemas/WriteProposalResponse'
+        '202':
+          description: Proposal accepted (queued)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WriteProposalResponse'
         '400':
           description: Invalid proposal
         '402':
@@ -217,16 +342,16 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/DeleteProposal'
+              $ref: '#/components/schemas/DeleteProposalForm'
       responses:
         '202':
           description: Delete proposal accepted
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProposalResponse'
+                $ref: '#/components/schemas/DeleteProposalResponse'
         '403':
           description: Not authorized to delete this path
 
@@ -266,7 +391,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  pending:
+                  pendingCount:
                     type: integer
 
   # ============================================================================
@@ -421,6 +546,24 @@ paths:
                     type: string
         '404':
           description: CID not found
+
+  /api/cid/gateway/{blobId}:
+    get:
+      tags: [Binary]
+      summary: Redirect to IPFS gateway
+      description: Redirect to the IPFS gateway URL for a blob ID.
+      operationId: getCidGateway
+      parameters:
+        - name: blobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to gateway URL
+        '404':
+          description: Mapping not found
 
   /api/cid/stats:
     get:
@@ -577,6 +720,25 @@ paths:
                   committedEpoch:
                     type: integer
 
+  /v1/follower/head-update:
+    post:
+      tags: [Internal]
+      summary: Follower HEAD update
+      description: Internal endpoint for leader to broadcast HEAD updates to followers.
+      operationId: followerHeadUpdate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Update accepted
+        '400':
+          description: Invalid request
+
   /v1/aeron/cluster-state:
     get:
       tags: [Cluster]
@@ -602,6 +764,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RaftMetrics'
+
+  /v1/aeron/node-status:
+    get:
+      tags: [Cluster]
+      summary: Get Aeron node status
+      operationId: getAeronNodeStatus
+      responses:
+        '200':
+          description: Node status
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /v1/aeron/leadership-history:
+    get:
+      tags: [Cluster]
+      summary: Get leadership history
+      operationId: getLeadershipHistory
+      responses:
+        '200':
+          description: Leadership history
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
 
   /v1/aeron/replication-lag:
     get:
@@ -637,6 +827,21 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/PeerInfo'
+
+  /v1/ngrok-url:
+    get:
+      tags: [Cluster]
+      summary: Get ngrok URL
+      description: Returns ngrok URL if configured (local dev convenience).
+      operationId: getNgrokUrl
+      responses:
+        '200':
+          description: Ngrok URL
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
 
   # ============================================================================
   # BLOCKCHAIN CONFIG
@@ -728,6 +933,69 @@ paths:
               schema:
                 $ref: '#/components/schemas/GCAccount'
 
+  /v1/gc/account/{wallet}/pay:
+    post:
+      tags: [GC]
+      summary: Pay GC debt
+      description: Record payment against GC debt for a wallet.
+      operationId: payGCDebt
+      parameters:
+        - name: wallet
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Payment accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /v1/gc/account/{wallet}/set-limit:
+    post:
+      tags: [GC]
+      summary: Set GC debt limit
+      description: Update GC debt limit for a wallet.
+      operationId: setGCDebtLimit
+      parameters:
+        - name: wallet
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Limit updated
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /v1/gc/account/{wallet}/execute-pending:
+    post:
+      tags: [GC]
+      summary: Execute pending GC debt
+      description: Convert pending GC debt to executed for a wallet.
+      operationId: executePendingGCDebt
+      parameters:
+        - name: wallet
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pending debt executed
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
   /v1/fragmentation/metrics:
     get:
       tags: [GC]
@@ -747,6 +1015,182 @@ paths:
                     type: object
                     additionalProperties:
                       $ref: '#/components/schemas/FragmentationMetric'
+
+  /v1/fragmentation/metrics/{wallet}:
+    get:
+      tags: [GC]
+      summary: Get fragmentation metrics for a wallet
+      operationId: getWalletFragmentationMetrics
+      parameters:
+        - name: wallet
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Wallet fragmentation metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FragmentationMetric'
+
+  /v1/fragmentation/top:
+    get:
+      tags: [GC]
+      summary: Get top fragmented wallets
+      operationId: getTopFragmented
+      responses:
+        '200':
+          description: Top fragmented wallets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+
+  /v1/compaction/proposals:
+    get:
+      tags: [GC]
+      summary: Get compaction proposals
+      operationId: getCompactionProposals
+      responses:
+        '200':
+          description: Compaction proposals
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /v1/propose-gc:
+    post:
+      tags: [GC]
+      summary: Propose GC
+      operationId: proposeGC
+      responses:
+        '200':
+          description: GC proposal accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /v1/gc/execute:
+    post:
+      tags: [GC]
+      summary: Execute GC
+      operationId: executeGC
+      responses:
+        '200':
+          description: GC execution started
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /v1/gc/trigger:
+    post:
+      tags: [GC]
+      summary: Trigger GC (manual)
+      description: Manual GC trigger (testing).
+      operationId: triggerGC
+      responses:
+        '200':
+          description: GC triggered
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /v1/chat:
+    post:
+      tags: [Internal]
+      summary: LLM chat endpoint
+      description: Optional chat endpoint backed by oak-segment-agentic (if enabled).
+      operationId: chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Chat response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /api/mock/advance-epoch:
+    post:
+      tags: [Mock]
+      summary: Advance mock epoch
+      description: Advance mock epoch by N epochs (MOCK mode only).
+      operationId: mockAdvanceEpoch
+      parameters:
+        - name: epochs
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: Epoch advanced
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Not in MOCK mode or invalid input
+
+  /api/mock/set-epoch-offset:
+    post:
+      tags: [Mock]
+      summary: Set mock epoch offset
+      description: Set mock epoch offset (MOCK mode only).
+      operationId: mockSetEpochOffset
+      parameters:
+        - name: offset
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Offset updated
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Not in MOCK mode or invalid input
+
+  /api/mock/epoch-status:
+    get:
+      tags: [Mock]
+      summary: Mock epoch status
+      description: Get mock epoch status (MOCK mode).
+      operationId: mockEpochStatus
+      responses:
+        '200':
+          description: Mock epoch status
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
 
   # ============================================================================
   # METRICS
@@ -807,86 +1251,172 @@ components:
           description: Content signature
       additionalProperties: true
 
-    WriteProposal:
+    WriteProposalForm:
       type: object
-      required: [wallet, organization, path, content, paymentTier, txHash, signature, timestamp]
+      required: [walletAddress, signature, message, ethereumTxHash]
       properties:
-        wallet:
+        walletAddress:
           type: string
           pattern: ^0x[a-fA-F0-9]{40}$
           description: Author wallet address
+        wallet:
+          type: string
+          description: Backward-compatible wallet field (use walletAddress)
         organization:
           type: string
           description: Organization/brand scope
-        path:
+        message:
           type: string
-          description: Content path (relative to wallet namespace)
-        content:
-          $ref: '#/components/schemas/ContentNode'
+          description: Content to write (JSON string or text)
+        contentType:
+          type: string
+          description: Content type (default "page")
+        ethereumTxHash:
+          type: string
+          pattern: ^0x[a-fA-F0-9]+$
+          description: Payment transaction hash
         paymentTier:
           type: string
-          enum: [priority, express, standard]
-        txHash:
-          type: string
-          pattern: ^0x[a-fA-F0-9]{64}$
-          description: Payment transaction hash
+          enum: [standard, express, priority]
+          description: Payment tier (default standard)
         signature:
           type: string
           description: Wallet signature of the proposal
-        timestamp:
-          type: integer
-          format: int64
+        intentToken:
+          type: string
+          description: Upload intent token (if using intent flow)
+        ipfsCid:
+          type: string
+          description: IPFS CID for client-side upload
+        clientId:
+          type: string
+          description: Client identifier (optional, header preferred)
 
-    DeleteProposal:
+    WriteProposalMultipart:
+      allOf:
+        - $ref: '#/components/schemas/WriteProposalForm'
+        - type: object
+          properties:
+            file:
+              type: string
+              format: binary
+              description: Binary payload (preferred over base64)
+            mimeType:
+              type: string
+              description: Optional MIME type override
+
+    DeleteProposalForm:
       type: object
-      required: [wallet, path, signature, timestamp]
+      required: [walletAddress, signature, contentPath, ethereumTxHash]
       properties:
-        wallet:
+        walletAddress:
           type: string
           pattern: ^0x[a-fA-F0-9]{40}$
-        path:
+        wallet:
           type: string
-          description: Full path to delete
+          description: Backward-compatible wallet field (use walletAddress)
+        contentPath:
+          type: string
+          description: Full path to delete (must be under wallet shard)
+        ethereumTxHash:
+          type: string
+          pattern: ^0x[a-fA-F0-9]+$
+          description: Payment transaction hash
         signature:
           type: string
-        timestamp:
-          type: integer
-          format: int64
+        clientId:
+          type: string
+          description: Client identifier (optional, header preferred)
 
-    ProposalResponse:
+    WriteProposalResponse:
       type: object
       properties:
         proposalId:
           type: string
-        status:
+        type:
           type: string
-          enum: [pending, committed, rejected]
-        path:
+          enum: [WRITE]
+        state:
+          type: string
+          enum: [PENDING, COMMITTED, REJECTED]
+        message:
+          type: string
+        ethereumTxHash:
+          type: string
+        timeoutTimestamp:
+          type: integer
+          format: int64
+        wallet:
+          type: string
+        storagePath:
           type: string
           description: Full path where content was written
-        commitIndex:
-          type: integer
-        error:
+        contentType:
           type: string
+      additionalProperties: true
+
+    DeleteProposalResponse:
+      type: object
+      properties:
+        proposalId:
+          type: string
+        type:
+          type: string
+          enum: [DELETE]
+        state:
+          type: string
+          enum: [PENDING, COMMITTED, REJECTED]
+        message:
+          type: string
+        ethereumTxHash:
+          type: string
+        tier:
+          type: string
+          enum: [STANDARD, EXPRESS, PRIORITY]
+        timeoutTimestamp:
+          type: integer
+          format: int64
+        wallet:
+          type: string
+        contentPath:
+          type: string
+        gcDebtIncurred:
+          type: string
+        totalDebt:
+          type: string
+        pendingDebt:
+          type: string
+        writesBlocked:
+          type: boolean
+      additionalProperties: true
 
     ProposalStatus:
       type: object
       properties:
         proposalId:
           type: string
-        status:
+        state:
           type: string
-          enum: [pending, committed, rejected]
-        submittedAt:
+          enum: [PENDING, VERIFIED, COMMITTED, REJECTED, UNKNOWN]
+        ethereumTxHash:
+          type: string
+        timeoutTimestamp:
           type: integer
           format: int64
-        committedAt:
+        confirmedBlock:
+          type: integer
+        rejectionReason:
+          type: string
+        durabilityState:
+          type: string
+        durabilityTimestamp:
           type: integer
           format: int64
-        commitIndex:
-          type: integer
-        error:
+        durabilityError:
           type: string
+        durableHead:
+          type: string
+      additionalProperties: true
 
     PaginatedContent:
       type: object
@@ -1081,6 +1611,30 @@ components:
               type: integer
             commitIndex:
               type: integer
+
+    ClusterHealth:
+      type: object
+      properties:
+        status:
+          type: string
+        unhealthyReason:
+          type: string
+        reachableCount:
+          type: integer
+        totalMembers:
+          type: integer
+        quorumSize:
+          type: integer
+        hasQuorum:
+          type: boolean
+        lastHeartbeatTime:
+          type: integer
+          format: int64
+        heartbeatAgeMs:
+          type: integer
+          format: int64
+        leaderUrl:
+          type: string
 
   securitySchemes:
     bearerAuth:

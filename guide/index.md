@@ -60,7 +60,7 @@ You should see:
 
 ```bash
 # Leader status
-curl http://localhost:8090/v1/status
+curl http://localhost:8090/v1/consensus/status
 
 # Expected response:
 {
@@ -76,20 +76,18 @@ curl http://localhost:8090/v1/status
 ```bash
 # In mock mode (no real Ethereum payment required)
 curl -X POST http://localhost:8090/v1/propose-write \
-  -H "Content-Type: application/json" \
-  -d '{
-    "path": "/oak-chain/content/test/hello",
-    "content": "Hello, Oak Chain!",
-    "wallet": "0x1234567890abcdef1234567890abcdef12345678",
-    "signature": "mock-signature",
-    "paymentTier": "standard"
-  }'
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "walletAddress=0x1234567890abcdef1234567890abcdef12345678" \
+  -d "message=Hello, Oak Chain!" \
+  -d "paymentTier=standard" \
+  -d "ethereumTxHash=0xabc123..." \
+  -d "signature=0xmock"
 ```
 
 ### Read It Back
 
 ```bash
-curl http://localhost:8090/api/content/oak-chain/content/test/hello
+curl "http://localhost:8090/api/explore?path=/oak-chain/content/test/hello"
 ```
 
 ## What Just Happened?
