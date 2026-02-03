@@ -329,10 +329,40 @@ paths:
                 $ref: '#/components/schemas/WriteProposalResponse'
         '400':
           description: Invalid proposal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '402':
           description: Payment required or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WriteBlockedResponse'
         '403':
+          description: Not authorized to write to this shard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
           description: Signature verification failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Cluster unavailable or unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/propose-delete:
     post:
@@ -355,8 +385,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeleteProposalResponse'
+        '400':
+          description: Invalid proposal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '403':
           description: Not authorized to delete this path
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Cluster unavailable or unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/proposals/{proposalId}/status:
     get:
@@ -379,6 +431,28 @@ paths:
                 $ref: '#/components/schemas/ProposalStatus'
         '404':
           description: Proposal not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Invalid proposal ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Proposal queue not available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/proposals/pending/count:
     get:
@@ -396,6 +470,146 @@ paths:
                 properties:
                   pendingCount:
                     type: integer
+        '503':
+          description: Proposal queue not available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/proposals/queue/stats:
+    get:
+      tags: [Write]
+      summary: Get proposal queue statistics
+      description: Returns detailed queue metrics for pending, verified, rejected, and batching stages.
+      operationId: getProposalQueueStats
+      responses:
+        '200':
+          description: Queue statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProposalQueueStats'
+        '503':
+          description: Proposal queue not available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/register-client:
+    post:
+      tags: [Write]
+      summary: Register Sling author client
+      description: Register or update a client by wallet address (wallet is the primary identifier).
+      operationId: registerClient
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterClientRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RegisterClientRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RegisterClientRequest'
+      parameters:
+        - name: clientId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: clientUrl
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: walletAddress
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: ^0x[a-fA-F0-9]{40}$
+      responses:
+        '200':
+          description: Client registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterClientResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Client already registered with different wallet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags: [Write]
+      summary: Register Sling author client (PUT)
+      operationId: registerClientPut
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterClientRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RegisterClientRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RegisterClientRequest'
+      responses:
+        '200':
+          description: Client registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterClientResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Client already registered with different wallet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   # ============================================================================
   # BINARY UPLOAD (IPFS)
@@ -405,53 +619,68 @@ paths:
       tags: [Binary]
       summary: Declare binary upload intent
       description: |
-        Declare intent to upload a binary. Returns a session ID for tracking.
+        Declare intent to upload a binary. Returns an intent token for tracking.
         The actual binary should be uploaded to IPFS separately.
       operationId: declareUploadIntent
       requestBody:
         required: true
         content:
-          application/json:
+          application/x-www-form-urlencoded:
             schema:
-              type: object
-              required: [wallet, cid, size, mimeType]
-              properties:
-                wallet:
-                  type: string
-                  description: Owner wallet address
-                cid:
-                  type: string
-                  description: IPFS CID of the binary
-                size:
-                  type: integer
-                  description: File size in bytes
-                mimeType:
-                  type: string
-                  description: MIME type
-                filename:
-                  type: string
-                  description: Original filename
+              $ref: '#/components/schemas/BinaryDeclareIntentForm'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BinaryDeclareIntentForm'
+      parameters:
+        - name: walletAddress
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: ^0x[a-fA-F0-9]{40}$
+        - name: filesize
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: mimeType
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: contentHash
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: Intent declared
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  sessionId:
-                    type: string
-                  expiresAt:
-                    type: integer
-                    format: int64
+                $ref: '#/components/schemas/BinaryDeclareIntentResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
-  /v1/binary/check-intent/{sessionId}:
+  /v1/binary/check-intent/{intentToken}:
     get:
       tags: [Binary]
       summary: Check upload intent status
       operationId: checkUploadIntent
       parameters:
-        - name: sessionId
+        - name: intentToken
           in: path
           required: true
           schema:
@@ -463,6 +692,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UploadStatus'
+        '404':
+          description: Intent token not found or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/binary/complete-upload:
     post:
@@ -475,21 +716,53 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          application/x-www-form-urlencoded:
             schema:
-              type: object
-              required: [sessionId, signature]
-              properties:
-                sessionId:
-                  type: string
-                signature:
-                  type: string
-                  description: Wallet signature confirming upload
+              $ref: '#/components/schemas/BinaryCompleteUploadForm'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BinaryCompleteUploadForm'
+      parameters:
+        - name: intentToken
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: cid
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: walletAddress
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: Upload completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BinaryCompleteUploadResponse'
         '400':
-          description: CID not available on IPFS
+          description: Missing or invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Intent token not found or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   # ============================================================================
   # CID MAPPING
@@ -853,7 +1126,7 @@ paths:
     get:
       tags: [Cluster]
       summary: Get blockchain configuration
-      description: Get the current blockchain mode and contract configuration.
+      description: Get the current blockchain mode, contract configuration, and client capability hints.
       operationId: getBlockchainConfig
       responses:
         '200':
@@ -870,6 +1143,23 @@ paths:
                     type: string
                   network:
                     type: string
+                  chainId:
+                    type: integer
+                  rpcUrl:
+                    type: string
+                  requiresMetaMask:
+                    type: boolean
+                  useTestnet:
+                    type: boolean
+                  displayName:
+                    type: string
+                  badgeColor:
+                    type: string
+                  validatorUrl:
+                    type: string
+                  tiers:
+                    type: object
+                    additionalProperties: true
 
   # ============================================================================
   # GC (GARBAGE COLLECTION)
@@ -1294,6 +1584,115 @@ components:
           format: int64
           description: Epoch millis when the error was generated.
       required: [success, error, code, status, timestamp]
+    WriteBlockedResponse:
+      type: object
+      description: Payment required response when writes are blocked due to GC debt.
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+        code:
+          type: string
+          example: write_blocked_gc_debt
+        status:
+          type: integer
+          example: 402
+        timestamp:
+          type: integer
+          format: int64
+        wallet:
+          type: string
+        totalDebt:
+          type: string
+        executedDebt:
+          type: string
+        pendingDebt:
+          type: string
+        debtLimit:
+          type: string
+        amountOverLimit:
+          type: string
+        paymentUrl:
+          type: string
+        statusUrl:
+          type: string
+      required:
+        - success
+        - error
+        - code
+        - status
+        - timestamp
+    BinaryDeclareIntentForm:
+      type: object
+      required: [walletAddress, filesize, mimeType]
+      properties:
+        walletAddress:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{40}$
+        filesize:
+          type: integer
+          format: int64
+          description: File size in bytes
+        mimeType:
+          type: string
+        contentHash:
+          type: string
+          description: Optional content hash for deduplication
+    BinaryDeclareIntentResponse:
+      type: object
+      properties:
+        intentToken:
+          type: string
+        expirySeconds:
+          type: integer
+          format: int64
+        message:
+          type: string
+      required: [intentToken, expirySeconds, message]
+    BinaryCompleteUploadForm:
+      type: object
+      required: [intentToken, cid, walletAddress]
+      properties:
+        intentToken:
+          type: string
+        cid:
+          type: string
+        walletAddress:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{40}$
+    BinaryCompleteUploadResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        cid:
+          type: string
+      required: [status, cid]
+    RegisterClientRequest:
+      type: object
+      required: [walletAddress]
+      properties:
+        clientId:
+          type: string
+        clientUrl:
+          type: string
+        walletAddress:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{40}$
+    RegisterClientResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        clientId:
+          type: string
+        walletAddress:
+          type: string
+        message:
+          type: string
+      required: [success, clientId, walletAddress, message]
     ContentNode:
       type: object
       properties:
@@ -1319,7 +1718,7 @@ components:
 
     WriteProposalForm:
       type: object
-      required: [walletAddress, signature, message, ethereumTxHash]
+      required: [walletAddress, signature, ethereumTxHash]
       properties:
         walletAddress:
           type: string
@@ -1333,7 +1732,7 @@ components:
           description: Organization/brand scope
         message:
           type: string
-          description: Content to write (JSON string or text)
+          description: Content to write (JSON string or text). Canonical JSON fields: title, body, tags, meta, payload.
         contentType:
           type: string
           description: Content type (default "page")
@@ -1353,7 +1752,13 @@ components:
           description: Upload intent token (if using intent flow)
         ipfsCid:
           type: string
-          description: IPFS CID for client-side upload
+          description: IPFS CID for client-side upload (default mode)
+        binaryData:
+          type: string
+          description: Legacy base64-encoded binary payload (validator-hosted; requires paymentTier=priority)
+        mimeType:
+          type: string
+          description: MIME type for legacy base64 binary payload (validator-hosted)
         clientId:
           type: string
           description: Client identifier (optional, header preferred)
@@ -1366,7 +1771,7 @@ components:
             file:
               type: string
               format: binary
-              description: Binary payload (preferred over base64)
+              description: Binary payload (validator-hosted; requires paymentTier=priority)
             mimeType:
               type: string
               description: Optional MIME type override
@@ -1397,6 +1802,8 @@ components:
     WriteProposalResponse:
       type: object
       properties:
+        success:
+          type: boolean
         proposalId:
           type: string
         type:
@@ -1414,11 +1821,19 @@ components:
           format: int64
         wallet:
           type: string
+        contentId:
+          type: string
         storagePath:
           type: string
           description: Full path where content was written
+        newHead:
+          type: string
         contentType:
           type: string
+        mode:
+          type: string
+          description: Immediate vs queued path
+          enum: [immediate, queued]
       additionalProperties: true
 
     DeleteProposalResponse:
@@ -1484,6 +1899,30 @@ components:
           type: string
       additionalProperties: true
 
+    ProposalQueueStats:
+      type: object
+      description: Detailed proposal queue statistics (counts, epochs, tiers, backpressure).
+      properties:
+        mempoolSize:
+          type: integer
+          description: Count of proposals waiting in the mempool (unverified queue).
+        mempoolPendingCount:
+          type: integer
+          description: Pending proposals in the mempool (alias of pendingCount).
+        unverifiedQueueSize:
+          type: integer
+          description: Count of proposals in the unverified queue.
+        verifiedCount:
+          type: integer
+          description: Count of proposals verified and awaiting finality.
+        batchQueueSize:
+          type: integer
+          description: Count of batches ready for Aeron replication.
+        totalProposals:
+          type: integer
+          description: Total proposals tracked in memory.
+      additionalProperties: true
+
     PaginatedContent:
       type: object
       properties:
@@ -1519,16 +1958,17 @@ components:
     UploadStatus:
       type: object
       properties:
-        sessionId:
-          type: string
         status:
           type: string
-          enum: [pending, uploading, completed, expired, failed]
-        cid:
-          type: string
-        expiresAt:
+          enum: [PENDING, READY_FOR_UPLOAD, COMPLETED, EXPIRED]
+        epochNumber:
           type: integer
           format: int64
+        uploadDeadline:
+          type: integer
+          format: int64
+        cid:
+          type: string
 
     SSEEvent:
       type: object
