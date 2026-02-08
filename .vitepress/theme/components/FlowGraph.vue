@@ -71,7 +71,7 @@ const width = computed(() => {
   switch (props.flow) {
     case 'architecture': return 800
     case 'consensus': return 700
-    case 'proposal-flow': return 1050
+    case 'proposal-flow': return 1250
     case 'gc-overview': return 900
     case 'gc-compaction': return 950
     case 'gc-generations': return 900
@@ -686,6 +686,18 @@ async function playAnimation() {
       [{ from: 'validator2', to: 'validator3', color: '#8C8DFC' }],
       [{ from: 'validator3', to: 'ipfs', color: '#65c2cb' }],
       [{ from: 'validator2', to: 'eds', color: '#627EEA' }],
+    ],
+    'proposal-flow': [
+      [{ from: 'author', to: 'wallet', color: '#8C8DFC' }, { from: 'author', to: 'payment', color: '#f0b429' }],
+      [{ from: 'wallet', to: 'ingress', color: '#627EEA' }, { from: 'payment', to: 'ingress', color: '#65c2cb' }],
+      [{ from: 'ingress', to: 'unverified', color: '#627EEA' }],
+      [{ from: 'unverified', to: 'verifier', color: '#8C8DFC' }],
+      [{ from: 'verifier', to: 'epoch', color: '#627EEA' }],
+      [{ from: 'epoch', to: 'finalizer', color: '#8C8DFC' }],
+      [{ from: 'finalizer', to: 'backpressure', color: '#f0b429' }],
+      [{ from: 'backpressure', to: 'aeron', color: '#65c2cb' }],
+      [{ from: 'aeron', to: 'commit', color: '#627EEA' }],
+      [{ from: 'commit', to: 'ingress', color: '#4ade80' }],
     ],
     'gc-overview': [
       [{ from: 'epoch', to: 'leader', color: '#8C8DFC' }, { from: 'epoch', to: 'gc_proposal', color: '#627EEA' }],

@@ -10,7 +10,7 @@ Writes and deletes enter through the same ingress, then move through verificatio
 
 ## End-to-End Pipeline
 
-<FlowGraph flow="proposal-flow" :height="500" />
+<FlowGraph flow="proposal-flow" :height="620" />
 
 ## Stage-by-Stage
 
