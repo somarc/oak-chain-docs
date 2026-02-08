@@ -132,6 +132,40 @@ Oak Chain can store flexible JSON structures, but consumption quality depends on
 
 If structure drifts, query/index behavior degrades and traversal limits can be hit. Keep namespace style guides stable.
 
+### Pre-v1 Direction: Structure Governance
+
+Before v1, treat structure as a contract, not a suggestion.
+
+Proposed direction:
+
+1. **Namespace schema profile**
+- Each wallet/organization publishes an allowed content model profile.
+- Profile defines required fields, allowed node types, and nested object rules.
+
+2. **Depth-first JCR modeling (not flat blobs)**
+- Prefer meaningful child nodes for domain structure (`metadata`, `body`, `assets`, `relations`).
+- Avoid flat, unbounded key sprawl at one node level.
+- Keep repeated structures in predictable child-node collections.
+
+3. **Write-time validation modes**
+- `observe`: collect violations only.
+- `warn`: accept writes, return structured warnings.
+- `enforce`: reject non-conforming writes.
+
+4. **Deterministic path conventions**
+- Stable conventions for content roots and node naming.
+- Limit free-form path drift that breaks consumers and read models.
+
+5. **Compatibility budget**
+- Version schema profiles explicitly.
+- Allow forward-compatible additions; gate breaking shape changes.
+
+6. **Consumer contract tests**
+- Add API contract tests that assert shape invariants on `/api/explore` and `/v1/wallets/content` responses.
+- Fail CI when schema drift breaks consumers.
+
+The goal is simple: canonical state remains flexible enough for evolution, but constrained enough that upstream read models and agents can reason reliably.
+
 See:
 - [API Reference](/guide/api)
 - [Content Paths](/guide/paths)
