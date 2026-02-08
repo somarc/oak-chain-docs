@@ -81,14 +81,14 @@ Segment graphs are **extremely dense**. A single reachable record in a segment k
 - But cleanup may only reclaim **50-80%** of it
 - Multiple GC cycles are needed for full cleanup
 
-### Compaction Modes
+### Compaction Behavior
 
-| Mode | Description | Speed | Thoroughness |
+| Behavior | Description | Speed | Thoroughness |
 |------|-------------|-------|--------------|
-| **Tail** | Compact recent revisions only | Fast | Partial |
-| **Full** | Compact all revisions | Slow | Complete |
+| **Incremental cycles** | Compact current reachable graph and reclaim unreachable generations | Fast | Progressive |
+| **Deep reclamation** | Multiple cycles to converge after heavy churn/write-delete storms | Slower | Higher reclaim |
 
-Tail compaction is the default for online GC. Full compaction is used for offline GC or when tail compaction isn't sufficient.
+In Oak Chain, compaction is consensus-driven and applied deterministically across validators. Recovery after heavy churn is achieved through repeated consensus GC cycles, not standalone local "offline GC".
 
 ---
 
@@ -145,7 +145,7 @@ The letter suffix indicates the generation. During cleanup, entire generations o
 
 ### Consensus GC (Only Mode)
 
-In Oak Chain, **there is no "offline" GC**. All GC must go through consensus:
+In Oak Chain, **there is no standalone local/offline GC mode for validators**. All GC is coordinated through consensus:
 
 - ✅ Leader creates signed GC proposal
 - ✅ Proposal replicated via Aeron Raft
@@ -184,21 +184,25 @@ This creates a **sustainable economic model** where:
 
 ---
 
-## Monitoring GC
+## Monitoring GC (API-First)
 
-### JMX MBean
+Oak Chain validators are operated through HTTP APIs and logs. Do not rely on AEM/Felix/JMX consoles.
 
-The `SegmentRevisionGarbageCollection` MBean exposes:
+### Primary GC/Fragmentation APIs
 
-| Metric | Description |
-|--------|-------------|
-| `LastCompaction` | Timestamp of last successful compaction |
-| `LastCleanup` | Timestamp of last cleanup |
-| `LastRepositorySize` | Size after last cleanup |
-| `LastReclaimedSize` | Space freed in last cleanup |
-| `Status` | Current GC phase (idle/estimation/compaction/cleanup) |
+- `GET /v1/gc/status`
+- `GET /v1/gc/estimate?wallet=0x...`
+- `GET /v1/gc/account/{wallet}`
+- `POST /v1/propose-gc`
+- `POST /v1/gc/execute`
+- `POST /v1/gc/trigger`
+- `GET /v1/fragmentation/metrics`
+- `GET /v1/fragmentation/metrics/{wallet}`
+- `GET /v1/fragmentation/top`
+- `GET /v1/compaction/proposals`
+- `GET /v1/proposals/queue/stats` (to confirm finalization/drain state before and after GC)
 
-### Log Messages
+### Representative Log Messages
 
 ```
 TarMK GC #2: started
@@ -217,10 +221,10 @@ TarMK GC #2: cleanup completed in 16.23 min. Post cleanup size is 10.4 GB and sp
 
 ### For Oak Chain Validators
 
-1. **Schedule online GC** during low-traffic periods
-2. **Monitor disk space** and GC metrics via JMX
-3. **Run offline GC** quarterly or after major content changes
-4. **Size disks** for 2x expected content (for GC headroom)
+1. **Run consensus GC only** (no local one-off compaction path).
+2. **Confirm queue settled before GC** (`verifiedCount=0`, `batchQueueSize=0`).
+3. **Monitor via HTTP endpoints + logs**, not JMX/Felix.
+4. **Size disks** for churn headroom; delete-heavy workloads reclaim over cycles, not instantly.
 
 ### Tuning Parameters
 
@@ -237,7 +241,7 @@ TarMK GC #2: cleanup completed in 16.23 min. Post cleanup size is 10.4 GB and sp
 |-------|-------|----------|
 | GC never completes | High write load | Schedule during quiet periods |
 | Disk keeps growing | GC not running | Check scheduler, run manually |
-| "Segment not found" | GC too aggressive | Increase retained generations (not recommended) |
+| "Segment not found" | Divergent state or transport/storage issue | Validate cluster consistency and segment transfer paths |
 | Slow compaction | Large store | Use tail compaction, add RAM |
 
 ---

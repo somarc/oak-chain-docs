@@ -32,6 +32,7 @@ export default withMermaid(
         { text: 'Bull Case', link: '/bull-case' },
         { text: 'How It Works', link: '/how-it-works' },
         { text: 'Architecture', link: '/architecture' },
+        { text: 'Composition', link: '/project-composition' },
         { text: 'Guide', link: '/guide/' },
         { text: 'Primary Signals', link: '/guide/primary-signals' },
         { text: 'Operators', link: '/operators/' },
@@ -53,6 +54,7 @@ export default withMermaid(
             items: [
               { text: 'How It Works', link: '/how-it-works' },
               { text: 'Architecture', link: '/architecture' },
+              { text: 'Project Composition', link: '/project-composition' },
               { text: 'Quick Start', link: '/guide/' },
             ]
           },
@@ -63,6 +65,7 @@ export default withMermaid(
               { text: 'Primary Signals', link: '/guide/primary-signals' },
               { text: 'Economic Tiers', link: '/guide/economics' },
               { text: 'Content Paths', link: '/guide/paths' },
+              { text: 'Content Consumption', link: '/guide/content-consumption' },
               { text: 'Binary Storage', link: '/guide/binaries' },
               { text: 'Real-Time Streaming', link: '/guide/streaming' },
               { text: 'Segment Store GC', link: '/segment-gc' },
