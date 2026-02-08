@@ -5,6 +5,16 @@ next: /bull-case
 
 # The Thesis
 
+<div class="narration-card">
+  <div class="narration-header">
+    <h3 class="narration-title">AI Narration</h3>
+    <span class="narration-badge">AI-generated voice</span>
+  </div>
+  <div class="narration-player">
+    <audio controls preload="none" src="/oak-chain-docs/audio/thesis.wav"></audio>
+  </div>
+</div>
+
 Oak Chain is built on two axioms. If you accept them, everything else follows.
 
 ---
@@ -117,6 +127,30 @@ Ethereum is becoming the settlement layer for digital ownership.
 Oak already stores the content that matters.
 
 These systems will meet. The only question is: on whose infrastructure?
+
+---
+
+## Ethos: Content Velocity + Immutable Persistence
+
+**Immutable velocity** is the simplest way to say it.
+
+EDS is the delivery layer. Its superpower is **velocity of content** at the edge. It does not solve content provenance.
+
+Oak is the persistence layer. Its superpower is **immutable content history** via TarMK's append-only DAG.
+
+Oak Chain is the bridge that makes both true at once:
+
+- **Fast, responsive content at the edge** (EDS)
+- **Backed by immutable, consensus-verified persistence** (Oak)
+- **Economically final writes** (Ethereum)
+
+This is why it can sound unfamiliar at first. Most people think in terms of "websites." We are thinking in terms of a **distributed content fabric**:
+
+- Enterprise content is not just pages. It's **terabytes of siloed data** trapped inside Oak.
+- We expose that content through an **OpenAPI / AEM connector**, so it can flow across a distributed network.
+- We solve Oak's hard problems (DAG fan-out, delete/compaction economics) at the consensus layer.
+
+**The innovation is the bridge**, not the editor. We don't replace Oak or AEM. We make their persistence **global, verifiable, and economically sustained**.
 
 ---
 

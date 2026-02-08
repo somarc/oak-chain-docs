@@ -253,5 +253,11 @@ See [Economic Tiers](/guide/economics) for full breakdown.
 
 - [Architecture](/architecture) - How the system works
 - [Consensus Model](/guide/consensus) - Aeron Raft details
+- [Primary Signals](/guide/primary-signals) - Queue, backpressure, durability, and drain-state interpretation
 - [Economic Tiers](/guide/economics) - Payment and finality
-- [API Reference](/guide/api) - Build applications on Oak Chain
+- [API Reference](/guide/api) - Full public API surface (including Consensus & Proposals endpoints)
+
+## Operator Reports
+
+- [Validator Load Test Report (2026-02-04)](/operators/validator-load-test-2026-02-04)
+- [Validator Load Test Report (2026-02-07): Overnight Finalization Gap](/operators/validator-load-test-2026-02-07-overnight-finalization-gap)

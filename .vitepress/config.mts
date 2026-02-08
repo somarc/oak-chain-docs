@@ -33,6 +33,7 @@ export default withMermaid(
         { text: 'How It Works', link: '/how-it-works' },
         { text: 'Architecture', link: '/architecture' },
         { text: 'Guide', link: '/guide/' },
+        { text: 'Primary Signals', link: '/guide/primary-signals' },
         { text: 'Operators', link: '/operators/' },
         { text: 'FAQ', link: '/faq' },
       ],
@@ -59,6 +60,7 @@ export default withMermaid(
             text: 'Core Concepts',
             items: [
               { text: 'Consensus Model', link: '/guide/consensus' },
+              { text: 'Primary Signals', link: '/guide/primary-signals' },
               { text: 'Economic Tiers', link: '/guide/economics' },
               { text: 'Content Paths', link: '/guide/paths' },
               { text: 'Binary Storage', link: '/guide/binaries' },

@@ -56,6 +56,7 @@ Additional fields are included per endpoint.
 - `POST /v1/propose-delete`
 - `GET /v1/proposals/{proposalId}/status`
 - `GET /v1/proposals/pending/count`
+- `GET /v1/proposals/queue/stats`
 
 ### Binary
 - `POST /v1/binary/declare-intent`
@@ -84,6 +85,80 @@ Additional fields are included per endpoint.
 - `GET /v1/aeron/leadership-history`
 - `GET /v1/aeron/replication-lag`
 - `POST /v1/follower/head-update` (internal)
+
+---
+
+## Consensus & Proposals (Primary Operational Surface)
+
+These endpoints are the core surface used by operators, dashboards, and automation.
+
+### Proposal Queue and Finalization
+
+- `GET /v1/proposals/queue/stats`
+  - Canonical queue/finality state for one validator.
+  - Includes counters and rates used by Primary Signals:
+    - `totalProposals`
+    - `totalVerifiedCount`
+    - `totalFinalizedCount`
+    - `verifiedCount`
+    - `processedCount`
+    - `batchQueueSize`
+    - `backpressurePendingCount`
+    - `backpressurePendingRawCount`
+    - `persistencePendingChanges`
+    - `persistenceFlushAvgMs`
+    - `persistenceFlushLastMs`
+    - `verifierQueueWaitAvgMs`
+    - `verifierQueueWaitMaxMs`
+    - `currentEpoch`
+    - `finalizedEpoch`
+    - `epochsUntilFinality`
+    - `pendingEpochStats`
+
+- `GET /v1/proposals/pending/count`
+  - Lightweight pending count for quick health probes.
+
+- `GET /v1/proposals/{proposalId}/status`
+  - Lifecycle status for a single proposal id.
+
+### Consensus and Cluster State
+
+- `GET /v1/consensus/status`
+  - Current role/term and consensus status view.
+
+- `GET /v1/head`
+  - Head information and progress snapshot.
+
+- `GET /v1/peers`
+  - Known peer and reachability state.
+
+- `GET /v1/aeron/cluster-state`
+- `GET /v1/aeron/raft-metrics`
+- `GET /v1/aeron/node-status`
+- `GET /v1/aeron/leadership-history`
+- `GET /v1/aeron/replication-lag`
+  - Aeron/Raft internals for leadership, lag, and replica health.
+
+### Write/Delete Proposal Submission
+
+- `POST /v1/propose-write`
+- `POST /v1/propose-delete`
+  - Submission endpoints for content lifecycle proposals.
+  - Require wallet signature + payment tx hash.
+
+### Recommended Operator Query Set
+
+```bash
+# Primary queue/finality health
+curl -s http://127.0.0.1:8090/v1/proposals/queue/stats | jq .
+
+# Consensus + replication health
+curl -s http://127.0.0.1:8090/v1/consensus/status | jq .
+curl -s http://127.0.0.1:8090/v1/aeron/replication-lag | jq .
+curl -s http://127.0.0.1:8090/v1/aeron/cluster-state | jq .
+```
+
+For signal interpretation guidance, see [Oak-Chain Primary Signals](/guide/primary-signals).
 
 ### GC & Fragmentation
 - `GET /v1/gc/estimate?wallet=0x...`
