@@ -10,7 +10,7 @@ Writes and deletes enter through the same ingress, then move through verificatio
 
 ## End-to-End Pipeline
 
-<FlowGraph flow="proposal-flow" :height="620" />
+<FlowGraph flow="proposal-flow" :height="500" />
 
 ## Stage-by-Stage
 
@@ -23,9 +23,7 @@ Writes and deletes enter through the same ingress, then move through verificatio
 ### 2. Payment Pathway
 
 - Request includes economic tier (`STANDARD`, `EXPRESS`, `PRIORITY`).
-- Payment proof path:
-  - `mock`: simulated verification.
-  - `sepolia/mainnet`: tx/event verification via chain integration.
+- Payment proof path uses chain-backed tx/event verification in deployed networks.
 - Payment result determines whether proposal continues or is rejected.
 
 ### 3. Unverified Queue -> Verifier
@@ -97,7 +95,7 @@ Backpressure and batch sizing must be tuned with epoch cadence and workload shap
 Before load tests:
 
 1. Confirm queue starts drained (`pending=0`, `batchQueueSize=0`, `backpressureActive=false`).
-2. Confirm epoch settings (`currentEpoch`, mock epoch duration if mock mode).
+2. Confirm epoch settings (`currentEpoch`, finalized lag target, epoch cadence).
 3. Confirm queue tuning logs at startup (`QUEUE_TUNING_SOURCE`).
 
 During load:

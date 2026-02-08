@@ -71,7 +71,7 @@ const width = computed(() => {
   switch (props.flow) {
     case 'architecture': return 800
     case 'consensus': return 700
-    case 'proposal-flow': return 1250
+    case 'proposal-flow': return 1050
     case 'gc-overview': return 900
     case 'gc-compaction': return 950
     case 'gc-generations': return 900

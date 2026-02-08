@@ -151,22 +151,6 @@ Prices are set to:
 - Discourage spam
 - Remain accessible for legitimate use
 
-## Mock Mode
-
-For development, use `OAK_BLOCKCHAIN_MODE=mock`:
-
-```bash
-# No real payment required
-curl -X POST http://localhost:8090/v1/propose-write \
-  -d '{
-    "path": "/oak-chain/test/content/hello",
-    "content": "Hello!",
-    "paymentTier": "standard",
-    "wallet": "0x1234...",
-    "signature": "mock"
-  }'
-```
-
 ## Next Steps
 
 - [Consensus Model](/guide/consensus) - How Aeron Raft works

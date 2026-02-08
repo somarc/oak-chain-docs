@@ -74,14 +74,14 @@ curl http://localhost:8090/v1/consensus/status
 ### Write Some Content
 
 ```bash
-# In mock mode (no real Ethereum payment required)
+# Example write proposal
 curl -X POST http://localhost:8090/v1/propose-write \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "walletAddress=0x1234567890abcdef1234567890abcdef12345678" \
   -d "message=Hello, Oak Chain!" \
   -d "paymentTier=standard" \
   -d "ethereumTxHash=0xabc123..." \
-  -d "signature=0xmock"
+  -d "signature=0x..."
 ```
 
 ### Read It Back
@@ -93,7 +93,7 @@ curl "http://localhost:8090/api/explore?path=/oak-chain/content/test/hello"
 ## What Just Happened?
 
 1. Your write proposal went to the **leader** (port 8090)
-2. Leader validated the (mock) signature
+2. Leader validated the signature
 3. Leader proposed to **Aeron cluster**
 4. **Followers** (8092, 8094) replicated via Raft
 5. Content persisted to **Oak segment store**
@@ -103,11 +103,8 @@ curl "http://localhost:8090/api/explore?path=/oak-chain/content/test/hello"
 
 | Mode | Purpose | When to Use |
 |------|---------|-------------|
-| **MOCK** | Local testing, no blockchain | Understanding mechanics, development |
 | **SEPOLIA** | Smart contract validation | Before mainnet, verify payment flows |
-| **MAINNET** | Production | We'll do it live 🔥 |
-
-> **Reality**: External validators go straight to mainnet. MOCK is for understanding. SEPOLIA is for smart contract validation. Mainnet is where the action is.
+| **MAINNET** | Production | External validators and live traffic |
 
 ## Next Steps
 

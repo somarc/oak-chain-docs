@@ -52,8 +52,6 @@ tags:
     description: Garbage collection operations
   - name: Segments
     description: Segment store inspection endpoints
-  - name: Mock
-    description: Mock-mode only endpoints (local development)
   - name: Internal
     description: Internal or UI-only endpoints
 
@@ -1138,7 +1136,7 @@ paths:
                 properties:
                   mode:
                     type: string
-                    enum: [MOCK, SEPOLIA, MAINNET]
+                    enum: [SEPOLIA, MAINNET]
                   contractAddress:
                     type: string
                   network:
@@ -1389,8 +1387,11 @@ paths:
   /v1/gc/trigger:
     post:
       tags: [GC]
-      summary: Trigger GC (manual)
-      description: Manual GC trigger (testing).
+      summary: Trigger debt conversion cycle (manual)
+      description: |
+        Testing endpoint for the GC account model.
+        Converts pending GC debt to executed debt and applies write-blocking checks.
+        This endpoint does not scan/approve GC proposals.
       operationId: triggerGC
       responses:
         '200':
@@ -1417,68 +1418,6 @@ paths:
       responses:
         '200':
           description: Chat response
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-
-  /api/mock/advance-epoch:
-    post:
-      tags: [Mock]
-      summary: Advance mock epoch
-      description: Advance mock epoch by N epochs (MOCK mode only).
-      operationId: mockAdvanceEpoch
-      parameters:
-        - name: epochs
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 1
-      responses:
-        '200':
-          description: Epoch advanced
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-        '400':
-          description: Not in MOCK mode or invalid input
-
-  /api/mock/set-epoch-offset:
-    post:
-      tags: [Mock]
-      summary: Set mock epoch offset
-      description: Set mock epoch offset (MOCK mode only).
-      operationId: mockSetEpochOffset
-      parameters:
-        - name: offset
-          in: query
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Offset updated
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-        '400':
-          description: Not in MOCK mode or invalid input
-
-  /api/mock/epoch-status:
-    get:
-      tags: [Mock]
-      summary: Mock epoch status
-      description: Get mock epoch status (MOCK mode).
-      operationId: mockEpochStatus
-      responses:
-        '200':
-          description: Mock epoch status
           content:
             application/json:
               schema:

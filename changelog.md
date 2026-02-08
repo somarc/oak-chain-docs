@@ -43,7 +43,7 @@ All notable changes to Oak Chain.
 #### Operations
 - Docker Compose configurations
 - 3-validator local cluster setup
-- Mock mode for development
+- Local development mode for testing
 - Sepolia testnet support
 
 ### Security

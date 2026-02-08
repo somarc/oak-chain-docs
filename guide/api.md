@@ -175,14 +175,11 @@ For signal interpretation guidance, see [Oak-Chain Primary Signals](/guide/prima
 - `POST /v1/gc/execute`
 - `POST /v1/gc/trigger`
 
+`/v1/gc/trigger` is for the GC account model (pending-debt → executed-debt conversion and write-block checks). It is not a GC proposal approval/execution endpoint.
+
 ### Segments (Advanced)
 - `GET /api/segments/recent`
 - `GET /api/segments/tars`
-
-### Mock Mode (Local Dev)
-- `POST /api/mock/advance-epoch?epochs=N`
-- `POST /api/mock/set-epoch-offset?offset=N`
-- `GET /api/mock/epoch-status`
 
 ### Internal / UI
 - `GET /api-browser`
@@ -461,7 +458,7 @@ console.log('Proposal:', result.data?.proposalId);
 ### cURL
 
 ```bash
-# Write content (mock mode)
+# Write content
 curl -X POST http://localhost:8090/v1/propose-write \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "walletAddress=0x742d35Cc6634c0532925a3b844bc9e7595f0beb" \

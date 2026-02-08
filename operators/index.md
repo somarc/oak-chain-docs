@@ -60,7 +60,7 @@ java -jar oak-segment-consensus/target/oak-segment-consensus.jar \
 |----------|----------|-------------|
 | `AERON_CLUSTER_MEMBER_ID` | Yes | Unique node ID (0, 1, 2, ...) |
 | `AERON_CLUSTER_MEMBERS` | Yes | Cluster member addresses |
-| `OAK_BLOCKCHAIN_MODE` | Yes | `mock`, `sepolia`, or `mainnet` |
+| `OAK_BLOCKCHAIN_MODE` | Yes | `sepolia` or `mainnet` |
 | `INFURA_API_KEY` | For Sepolia/Mainnet | Ethereum RPC access |
 | `VALIDATOR_WALLET` | For Sepolia/Mainnet | Payment receiving wallet |
 | `HTTP_PORT` | No | API port (default: 8090) |
@@ -95,14 +95,6 @@ AERON_CLUSTER_MEMBER_ID=2
 
 ## Modes
 
-### Mock Mode
-
-For **local development and testing**. No blockchain, no payments. Use this to understand the mechanics before going live.
-
-```bash
-OAK_BLOCKCHAIN_MODE=mock
-```
-
 ### Sepolia Mode
 
 For **smart contract validation** before mainnet. Real transactions on Sepolia testnet. Use this to verify payment flows work correctly.
@@ -122,7 +114,7 @@ INFURA_API_KEY=your-infura-key
 VALIDATOR_WALLET=0x...
 ```
 
-> **Reality check**: External validators joining the network go straight to mainnet. Mock is for understanding the system. Sepolia is for validating smart contracts. Mainnet is where the action is.
+> **Reality check**: External validators joining the network go straight to mainnet. Sepolia is for validating smart contract/payment flows before production.
 
 ## Ports
 

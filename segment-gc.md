@@ -45,13 +45,18 @@ Proposal is replicated to all validators:
 - Requires majority acknowledgment
 - All validators receive identical proposal
 
-### Step 4: Deterministic Compaction
+### Step 4: Deterministic GC Execution
 
-**Critical**: All validators must apply the same GC:
+**Critical**: All validators must apply the same GC decision:
 
 - Same input → Same output
-- Each node compacts locally
+- Each node applies the agreed GC operation locally
 - Results must be identical (hash verification)
+
+::: info Current Implementation Note (as of February 8, 2026)
+The current consensus execution path in `GCProposalManager` invokes `FileStore.cleanup()` directly.  
+This is deterministic and consensus-safe, but it is **not the full `fullGC()` pipeline** (estimation + compaction + cleanup).
+:::
 
 ### Step 5: Consensus Commit
 
@@ -67,7 +72,7 @@ GC is committed to the Raft log:
 
 <FlowGraph flow="gc-compaction" :height="480" />
 
-### What Gets Compacted?
+### What Gets Compacted? (Target Full GC Behavior)
 
 1. **Journal Head** → The current repository state
 2. **Checkpoints** → Async indexing save points (compacted first, with deduplication)
@@ -89,6 +94,17 @@ Segment graphs are **extremely dense**. A single reachable record in a segment k
 | **Deep reclamation** | Multiple cycles to converge after heavy churn/write-delete storms | Slower | Higher reclaim |
 
 In Oak Chain, compaction is consensus-driven and applied deterministically across validators. Recovery after heavy churn is achieved through repeated consensus GC cycles, not standalone local "offline GC".
+
+### Cleanup-Only vs Full GC
+
+Current behavior:
+- Consensus flow can execute `cleanup()` successfully and deterministically.
+- `cleanup()` reclaims segments/files eligible by generation/reclaimer rules.
+- If no eligible old generations/files exist, cleanup runs but may reclaim `0 B`.
+
+Target behavior:
+- Execute full compaction + cleanup (`fullGC()` or `compactFull()` then `cleanup()`) in the consensus path.
+- This should improve reclaim after write/delete churn when data is still in current generations.
 
 ---
 
@@ -182,6 +198,18 @@ This creates a **sustainable economic model** where:
 - Delete operations aren't "free" (they incur GC debt)
 - Validators are compensated for storage and GC overhead
 
+### Periodic Debt Conversion Job
+
+`PeriodicGCJob` is a scheduler for the **GC account/debt model**. It is not a GC proposal sweeper.
+
+- Runs once per **epoch interval**
+- Epoch cadence follows the active chain/finality profile.
+- Converts account `pendingDebt` → `executedDebt`
+- Enforces `writesBlocked` when executed debt exceeds limit
+- Logs blocked entities and debt conversion activity
+
+Proposal lifecycle (`/v1/propose-gc`, `/v1/gc/vote`, `/v1/gc/execute`) is handled separately by `GCProposalManager`.
+
 ---
 
 ## Monitoring GC (API-First)
@@ -214,6 +242,15 @@ TarMK GC #2: compaction succeeded in 6.580 min, after 2 cycles
 TarMK GC #2: cleanup started
 TarMK GC #2: cleanup completed in 16.23 min. Post cleanup size is 10.4 GB and space reclaimed 84.5 GB.
 ```
+
+### Operational Nuance (Observed in E2E on February 8, 2026)
+
+- GC proposal/voting/execution can succeed while reclaim is `0 B`.
+- Example evidence:
+  - `TarMK GC #0: cleanup started using reclaimer (full generation older than 0.0, with 2 retained generations)`
+  - `cleanup marking files for deletion: none`
+  - `cleanup completed ... space reclaimed 0 B`
+- This means **revision cleanup ran**, but no TAR files were eligible for deletion in that cycle.
 
 ---
 

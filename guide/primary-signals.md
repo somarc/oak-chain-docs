@@ -95,7 +95,7 @@ curl -s http://127.0.0.1:8787/ops/v1/overview | jq '.data | {
   leader, queue, durability, replication
 }'
 
-# Leader queue stats (mock mode)
+# Leader queue stats
 curl -s http://127.0.0.1:8090/v1/proposals/queue/stats | jq '{
   totalProposals,totalVerifiedCount,totalFinalizedCount,
   verifiedCount,processedCount,batchQueueSize,

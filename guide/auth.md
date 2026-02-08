@@ -205,29 +205,6 @@ You can only write to paths under your wallet:
 ❌ /oak-chain/ab/cd/ef/0xOTHER_WALLET/...
 ```
 
-## Mock Mode
-
-For development without real signatures:
-
-```bash
-OAK_BLOCKCHAIN_MODE=mock
-```
-
-```javascript
-// Mock mode accepts any signature
-const response = await fetch('http://localhost:8090/v1/propose-write', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-  body: new URLSearchParams({
-    walletAddress: '0x742d35Cc6634c0532925a3b844bc9e7595f0beb',
-    message: JSON.stringify({ title: 'Test' }),
-    paymentTier: 'standard',
-    ethereumTxHash: '0xabc123...',
-    signature: '0xmock', // Accepted in mock mode
-  }),
-});
-```
-
 ## Security Best Practices
 
 1. **Never expose private keys** - Use MetaMask or hardware wallets
