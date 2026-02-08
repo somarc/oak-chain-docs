@@ -1,6 +1,6 @@
 ---
 prev: /guide/
-next: /guide/economics
+next: /guide/proposal-flow
 ---
 
 # Consensus Model

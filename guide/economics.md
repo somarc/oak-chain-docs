@@ -1,5 +1,5 @@
 ---
-prev: /guide/consensus
+prev: /guide/proposal-flow
 next: /guide/paths
 ---
 

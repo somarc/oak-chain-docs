@@ -62,6 +62,7 @@ export default withMermaid(
             text: 'Core Concepts',
             items: [
               { text: 'Consensus Model', link: '/guide/consensus' },
+              { text: 'Proposal Flow', link: '/guide/proposal-flow' },
               { text: 'Primary Signals', link: '/guide/primary-signals' },
               { text: 'Economic Tiers', link: '/guide/economics' },
               { text: 'Content Paths', link: '/guide/paths' },

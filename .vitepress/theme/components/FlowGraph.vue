@@ -25,7 +25,7 @@ interface Edge {
 }
 
 const props = defineProps<{
-  flow: 'write' | 'payment' | 'ipfs' | 'consensus' | 'architecture' | 'gc-overview' | 'gc-compaction' | 'gc-generations' | 'gc-cleanup' | 'gc-modes' | 'aem-integration' | 'binary-flow' | 'validator-auth' | 'two-models' | 'json-to-jcr'
+  flow: 'write' | 'payment' | 'ipfs' | 'consensus' | 'architecture' | 'proposal-flow' | 'gc-overview' | 'gc-compaction' | 'gc-generations' | 'gc-cleanup' | 'gc-modes' | 'aem-integration' | 'binary-flow' | 'validator-auth' | 'two-models' | 'json-to-jcr'
   height?: number
   interactive?: boolean
 }>()
@@ -71,6 +71,7 @@ const width = computed(() => {
   switch (props.flow) {
     case 'architecture': return 800
     case 'consensus': return 700
+    case 'proposal-flow': return 1050
     case 'gc-overview': return 900
     case 'gc-compaction': return 950
     case 'gc-generations': return 900
@@ -112,6 +113,9 @@ function initFlow() {
       break
     case 'architecture':
       initArchitectureFlow()
+      break
+    case 'proposal-flow':
+      initProposalFlow()
       break
     case 'gc-overview':
       initGCOverviewFlow()
@@ -284,6 +288,36 @@ function initArchitectureFlow() {
   addEdge('validator2', 'validator3', 'CONTROL', { label: 'replicate' })
   addEdge('validator3', 'ipfs', 'ASYNC', { label: 'store CID' })
   addEdge('validator2', 'eds', 'DATA', { label: 'serve' })
+}
+
+function initProposalFlow() {
+  nodes.value = []
+  edges.value = []
+
+  addNode('author', 'AUTHOR', 70, 220, { label: 'Author / Client', description: 'Submits write or delete proposal' })
+  addNode('wallet', 'WALLET', 210, 120, { label: 'Wallet + Signature', description: 'Signs proposal payload' })
+  addNode('payment', 'CONTRACT', 210, 320, { label: 'Payment Path', description: 'Tier + tx hash (or mock) checked before acceptance' })
+  addNode('ingress', 'VALIDATOR', 380, 220, { label: 'Leader Ingress', description: 'Validates auth, schema, and routes request' })
+  addNode('unverified', 'SEGMENT', 540, 90, { label: 'Unverified Queue', description: 'Raw accepted proposals awaiting verifier pass' })
+  addNode('verifier', 'CONSENSUS', 540, 220, { label: 'Verifier Agents', description: 'Proof/auth/payment checks + queue bookkeeping' })
+  addNode('epoch', 'ETHEREUM', 540, 350, { label: 'Epoch Buckets', description: 'Standard/Express batched by epoch; Priority fast path' })
+  addNode('finalizer', 'CONSENSUS', 710, 220, { label: 'Epoch Finalizer', description: 'Converts ready epoch buckets into message batches' })
+  addNode('backpressure', 'VALIDATOR', 860, 120, { label: 'Backpressure Gate', description: 'Caps in-flight sends and re-queues on timeout' })
+  addNode('aeron', 'CONSENSUS', 860, 320, { label: 'Aeron + Raft Log', description: 'Replicates batches to all validators' })
+  addNode('commit', 'TRANSACTION', 980, 220, { label: 'Deterministic Apply', description: 'Commit to Oak store + proposal persistence' })
+
+  addEdge('author', 'wallet', 'CONTROL', { label: 'sign' })
+  addEdge('author', 'payment', 'PAYMENT', { label: 'tier + tx' })
+  addEdge('wallet', 'ingress', 'DATA', { label: 'proposal' })
+  addEdge('payment', 'ingress', 'CONTROL', { label: 'verify route' })
+  addEdge('ingress', 'unverified', 'DATA', { label: 'enqueue' })
+  addEdge('unverified', 'verifier', 'CONTROL', { label: 'dequeue' })
+  addEdge('verifier', 'epoch', 'DATA', { label: 'classify by epoch+tier' })
+  addEdge('epoch', 'finalizer', 'CONTROL', { label: 'ready to finalize' })
+  addEdge('finalizer', 'backpressure', 'CONTROL', { label: 'batch send request' })
+  addEdge('backpressure', 'aeron', 'ASYNC', { label: 'offer / retry' })
+  addEdge('aeron', 'commit', 'DATA', { label: 'quorum commit' })
+  addEdge('commit', 'ingress', 'ASYNC', { label: 'counters + status' })
 }
 
 // ============================================================================
