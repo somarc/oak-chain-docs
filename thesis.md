@@ -5,16 +5,6 @@ next: /bull-case
 
 # The Thesis
 
-<div class="narration-card">
-  <div class="narration-header">
-    <h3 class="narration-title">AI Narration</h3>
-    <span class="narration-badge">AI-generated voice</span>
-  </div>
-  <div class="narration-player">
-    <audio controls preload="none" src="/oak-chain-docs/audio/thesis.wav"></audio>
-  </div>
-</div>
-
 Oak Chain is built on two axioms. If you accept them, everything else follows.
 
 ---
