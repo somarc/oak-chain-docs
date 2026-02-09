@@ -188,13 +188,15 @@ Every accepted write is signed, economically authorized, replicated, and durable
 
 ---
 
-<div class="hero-image-block">
-  <img src="/ethereum-ethos.jpeg" alt="Like gravity. Like oxygen. Some things should just work. For everyone. Forever." />
-</div>
-
-<div class="logo-block">
-  <img src="/oak-chain-logo.jpeg" alt="Oak Chain" />
-  <p>Jackrabbit Oak meets Ethereum-native economics</p>
+<div class="bottom-gallery">
+  <figure class="gallery-card">
+    <img src="/ethereum-ethos.jpeg" alt="Like gravity. Like oxygen. Some things should just work. For everyone. Forever." />
+    <figcaption>Ethereum as core infrastructure.</figcaption>
+  </figure>
+  <figure class="gallery-card">
+    <img src="/oak-chain-logo.jpeg" alt="Oak Chain" />
+    <figcaption>Oak Chain: Jackrabbit Oak meets Ethereum-native economics.</figcaption>
+  </figure>
 </div>
 
 <style>
@@ -385,29 +387,34 @@ Every accepted write is signed, economically authorized, replicated, and durable
   font-weight: 600;
 }
 
-.hero-image-block,
-.logo-block {
-  display: grid;
-  justify-content: center;
-  justify-items: center;
+.bottom-gallery {
   margin-top: 3rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
 }
 
-.hero-image-block img {
-  max-width: 520px;
-  border-radius: 10px;
-  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.35);
-}
-
-.logo-block img {
-  max-width: 400px;
+.gallery-card {
+  margin: 0;
+  border: 1px solid rgba(127, 133, 244, 0.28);
   border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(98, 126, 234, 0.3);
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(14, 19, 36, 0.92), rgba(57, 70, 125, 0.26));
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
 }
 
-.logo-block p {
-  color: #8f95be;
-  margin-top: 1rem;
-  font-style: italic;
+.gallery-card img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  display: block;
+}
+
+.gallery-card figcaption {
+  margin: 0;
+  padding: 0.7rem 0.85rem 0.8rem;
+  color: #a9b0dd;
+  font-size: 0.88rem;
+  border-top: 1px solid rgba(127, 133, 244, 0.18);
 }
 </style>
