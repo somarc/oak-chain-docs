@@ -12,7 +12,8 @@ export default withMermaid(
     ignoreDeadLinks: true,
     
     head: [
-      ['link', { rel: 'icon', type: 'image/jpeg', href: '/oak-chain-logo.jpeg' }],
+      ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
+      ['link', { rel: 'alternate icon', type: 'image/jpeg', href: '/oak-chain-logo.jpeg' }],
       ['link', { rel: 'apple-touch-icon', href: '/oak-chain-logo.jpeg' }],
       ['meta', { name: 'theme-color', content: '#1a1a2e' }],
       ['meta', { property: 'og:type', content: 'website' }],
