@@ -54,23 +54,23 @@ features:
   <span class="signal-chip">Oak-compatible runtime</span>
 </div>
 
-## Two Operating Assumptions
+## Two Axioms
 
 <div class="axiom-grid">
 
 <div class="axiom">
 
-### Assumption 1: Ethereum Is Durable Settlement Infrastructure
+### Axiom 1: Ethereum Is Durable Settlement Infrastructure
 
 When BlackRock, Visa, and JPMorgan route meaningful value through Ethereum rails, they are treating it as production infrastructure.
 
-**Oak Chain assumes this settlement layer is strategically relevant for content systems.**
+**For Oak Chain, this is not a hypothesis. The base asset is ETH.**
 
 </div>
 
 <div class="axiom">
 
-### Assumption 2: Oak Already Runs Critical Content Workloads
+### Axiom 2: Oak Already Runs Critical Content Workloads
 
 Oak already underpins critical digital systems across enterprise, public sector, and commerce.
 
