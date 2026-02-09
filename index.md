@@ -85,7 +85,7 @@ That includes global commerce catalogs, marketing sites, customer portals, regul
 </div>
 
 <div class="center-link">
-  <a href="/thesis">Read the full thesis →</a>
+  <a href="thesis">Read the full thesis →</a>
 </div>
 
 ---
@@ -143,7 +143,7 @@ Oak Chain combines Ethereum's payment/finality model with Oak's content model.
 <FlowGraph flow="architecture" :height="340" />
 
 <div class="center-link compact">
-  <a href="/how-it-works">See all interactive flows →</a>
+  <a href="how-it-works">See all interactive flows →</a>
 </div>
 
 ---
@@ -170,44 +170,44 @@ Every accepted write is signed, economically authorized, replicated, and durable
     <div class="route-tag">For Builders</div>
     <h3>Build on Oak Chain</h3>
     <p>Start with auth, paths, streaming, and API surfaces.</p>
-    <a class="route-btn" href="/guide/">Developer Guide →</a>
+    <a class="route-btn" href="guide/">Developer Guide →</a>
   </div>
   <div class="route-card">
     <div class="route-tag">For Operators</div>
     <h3>Operate a Validator</h3>
     <p>Run nodes, monitor queue/finality signals, and validate economics.</p>
-    <a class="route-btn" href="/operators/">Operator Docs →</a>
+    <a class="route-btn" href="operators/">Operator Docs →</a>
   </div>
 </div>
 
 ## Quick Links
 
 <div class="quicklink-grid">
-  <a class="quicklink-card" href="/thesis">
+  <a class="quicklink-card" href="thesis">
     <span class="quicklink-kicker">Strategic</span>
     <h4>The Thesis</h4>
     <p>Why Oak Chain exists and why now.</p>
     <span class="quicklink-cta">Read Thesis →</span>
   </a>
-  <a class="quicklink-card" href="/how-it-works">
+  <a class="quicklink-card" href="how-it-works">
     <span class="quicklink-kicker">System</span>
     <h4>How It Works</h4>
     <p>Interactive flows for write, queue, finality, and durability.</p>
     <span class="quicklink-cta">Explore Flows →</span>
   </a>
-  <a class="quicklink-card" href="/architecture">
+  <a class="quicklink-card" href="architecture">
     <span class="quicklink-kicker">Design</span>
     <h4>Architecture</h4>
     <p>The five-layer model from API to storage and consensus.</p>
     <span class="quicklink-cta">View Architecture →</span>
   </a>
-  <a class="quicklink-card" href="/guide/">
+  <a class="quicklink-card" href="guide/">
     <span class="quicklink-kicker">Build</span>
     <h4>Developer Guide</h4>
     <p>Auth, API surfaces, paths, binaries, and integration patterns.</p>
     <span class="quicklink-cta">Open Guide →</span>
   </a>
-  <a class="quicklink-card" href="/operators/">
+  <a class="quicklink-card" href="operators/">
     <span class="quicklink-kicker">Operate</span>
     <h4>Run a Validator</h4>
     <p>Join the network, monitor live signals, and validate economics.</p>
