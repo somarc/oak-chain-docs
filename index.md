@@ -62,9 +62,11 @@ features:
 
 ### Axiom 1: Ethereum Is Durable Settlement Infrastructure
 
-When BlackRock, Visa, and JPMorgan route meaningful value through Ethereum rails, they are treating it as production infrastructure.
+Ethereum is no longer a speculative side system. It is an active settlement layer for stablecoins, tokenized assets, and institutional transaction flows.
 
-**For Oak Chain, this is not a hypothesis. The base asset is ETH.**
+Major financial and payment operators now use Ethereum-adjacent rails in production, while validators and stakers secure the network with globally distributed economic weight. The result is a settlement substrate that keeps operating under real-world load, with transparent state and predictable execution rules.
+
+**For Oak Chain, this is an architectural constant: the base asset is ETH.**
 
 </div>
 
@@ -72,9 +74,9 @@ When BlackRock, Visa, and JPMorgan route meaningful value through Ethereum rails
 
 ### Axiom 2: Oak Already Runs Critical Content Workloads
 
-Oak is the repository core behind Adobe Experience Manager (AEM), which runs content, assets, and experience delivery for major enterprises worldwide.
+Oak is the repository core behind Adobe Experience Manager (AEM), the platform many enterprises use to run content, assets, and digital experience delivery at scale.
 
-That includes global commerce catalogs, marketing sites, customer portals, regulated content workflows, and high-traffic public experiences. In practice, a large share of enterprise-grade web and content operations already depend on Oak's data model and operational behavior.
+That includes global commerce catalogs, marketing sites, customer portals, regulated content workflows, and high-traffic public properties. A large share of enterprise web and content operations already depends on Oak's data model and operational behavior.
 
 **Oak Chain does not replace Oak. It extends Oak with signed writes and economic policy.**
 
