@@ -94,12 +94,28 @@ That includes global commerce catalogs, marketing sites, customer portals, regul
 
 Oak Chain combines Ethereum's payment/finality model with Oak's content model.
 
-| What You Know | What's New |
-|---------------|------------|
-| Same JCR API | Wallet = namespace |
-| Same Sling patterns | ETH payments = authorization |
-| Same TAR segments | Raft consensus = replication |
-| Same content model | Validators = decentralized storage |
+<div class="bridge-frame">
+  <div class="bridge-head">
+    <div>What stays familiar</div>
+    <div>What is introduced</div>
+  </div>
+  <div class="bridge-row">
+    <div class="bridge-old">JCR API</div>
+    <div class="bridge-new">Wallet-scoped namespace ownership</div>
+  </div>
+  <div class="bridge-row">
+    <div class="bridge-old">Sling authoring patterns</div>
+    <div class="bridge-new">ETH-backed authorization path</div>
+  </div>
+  <div class="bridge-row">
+    <div class="bridge-old">Oak TAR segment model</div>
+    <div class="bridge-new">Raft validator replication</div>
+  </div>
+  <div class="bridge-row">
+    <div class="bridge-old">Content and asset semantics</div>
+    <div class="bridge-new">CID-linked binary durability</div>
+  </div>
+</div>
 
 ---
 
@@ -263,6 +279,54 @@ Every accepted write is signed, economically authorized, replicated, and durable
   margin: 0;
   font-size: 0.92rem;
   color: #b2b7dd;
+}
+
+.bridge-frame {
+  border: 1px solid rgba(128, 134, 238, 0.26);
+  border-radius: 12px;
+  background: linear-gradient(150deg, rgba(14, 19, 39, 0.9), rgba(54, 65, 118, 0.22));
+  overflow: hidden;
+  margin: 1.2rem 0 0.8rem;
+}
+
+.bridge-head,
+.bridge-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.bridge-head > div {
+  padding: 0.85rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #d7dcff;
+  background: rgba(98, 126, 234, 0.12);
+  border-bottom: 1px solid rgba(128, 134, 238, 0.2);
+}
+
+.bridge-head > div:first-child,
+.bridge-row > div:first-child {
+  border-right: 1px solid rgba(128, 134, 238, 0.2);
+}
+
+.bridge-row > div {
+  padding: 0.9rem 1rem;
+}
+
+.bridge-row + .bridge-row > div {
+  border-top: 1px solid rgba(128, 134, 238, 0.15);
+}
+
+.bridge-old {
+  color: #d3d8ff;
+  background: rgba(26, 35, 72, 0.45);
+}
+
+.bridge-new {
+  color: #edf0ff;
+  background: linear-gradient(145deg, rgba(76, 92, 176, 0.24), rgba(33, 41, 80, 0.46));
 }
 
 .path-grid {
