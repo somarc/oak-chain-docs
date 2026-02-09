@@ -72,7 +72,9 @@ When BlackRock, Visa, and JPMorgan route meaningful value through Ethereum rails
 
 ### Axiom 2: Oak Already Runs Critical Content Workloads
 
-Oak already underpins critical digital systems across enterprise, public sector, and commerce.
+Oak is the repository core behind Adobe Experience Manager (AEM), which runs content, assets, and experience delivery for major enterprises worldwide.
+
+That includes global commerce catalogs, marketing sites, customer portals, regulated content workflows, and high-traffic public experiences. In practice, a large share of enterprise-grade web and content operations already depend on Oak's data model and operational behavior.
 
 **Oak Chain does not replace Oak. It extends Oak with signed writes and economic policy.**
 
