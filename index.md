@@ -166,25 +166,54 @@ Every accepted write is signed, economically authorized, replicated, and durable
 ## Choose Your Route
 
 <div class="route-grid">
-  <a class="route-card" href="/guide/">
+  <div class="route-card">
+    <div class="route-tag">For Builders</div>
     <h3>Build on Oak Chain</h3>
     <p>Start with auth, paths, streaming, and API surfaces.</p>
-    <span>Developer Guide →</span>
-  </a>
-  <a class="route-card" href="/operators/">
+    <a class="route-btn" href="/guide/">Developer Guide →</a>
+  </div>
+  <div class="route-card">
+    <div class="route-tag">For Operators</div>
     <h3>Operate a Validator</h3>
     <p>Run nodes, monitor queue/finality signals, and validate economics.</p>
-    <span>Operator Docs →</span>
-  </a>
+    <a class="route-btn" href="/operators/">Operator Docs →</a>
+  </div>
 </div>
 
 ## Quick Links
 
-- [**The Thesis**](/thesis) - Why this exists
-- [**How It Works**](/how-it-works) - Technical flows
-- [**Architecture**](/architecture) - The five layers
-- [**Developer Guide**](/guide/) - Build on Oak Chain
-- [**Run a Validator**](/operators/) - Join the network and earn
+<div class="quicklink-grid">
+  <a class="quicklink-card" href="/thesis">
+    <span class="quicklink-kicker">Strategic</span>
+    <h4>The Thesis</h4>
+    <p>Why Oak Chain exists and why now.</p>
+    <span class="quicklink-cta">Read Thesis →</span>
+  </a>
+  <a class="quicklink-card" href="/how-it-works">
+    <span class="quicklink-kicker">System</span>
+    <h4>How It Works</h4>
+    <p>Interactive flows for write, queue, finality, and durability.</p>
+    <span class="quicklink-cta">Explore Flows →</span>
+  </a>
+  <a class="quicklink-card" href="/architecture">
+    <span class="quicklink-kicker">Design</span>
+    <h4>Architecture</h4>
+    <p>The five-layer model from API to storage and consensus.</p>
+    <span class="quicklink-cta">View Architecture →</span>
+  </a>
+  <a class="quicklink-card" href="/guide/">
+    <span class="quicklink-kicker">Build</span>
+    <h4>Developer Guide</h4>
+    <p>Auth, API surfaces, paths, binaries, and integration patterns.</p>
+    <span class="quicklink-cta">Open Guide →</span>
+  </a>
+  <a class="quicklink-card" href="/operators/">
+    <span class="quicklink-kicker">Operate</span>
+    <h4>Run a Validator</h4>
+    <p>Join the network, monitor live signals, and validate economics.</p>
+    <span class="quicklink-cta">Start Operating →</span>
+  </a>
+</div>
 
 ---
 
@@ -358,18 +387,30 @@ Every accepted write is signed, economically authorized, replicated, and durable
 }
 
 .route-card {
-  display: block;
-  text-decoration: none;
   border: 1px solid rgba(132, 137, 251, 0.3);
   border-radius: 12px;
-  padding: 1rem;
+  padding: 1rem 1rem 1.1rem;
   background: linear-gradient(145deg, rgba(15, 19, 36, 0.9), rgba(60, 72, 128, 0.2));
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .route-card:hover {
   transform: translateY(-2px);
   border-color: rgba(171, 177, 255, 0.6);
+  box-shadow: 0 8px 24px rgba(20, 24, 44, 0.5);
+}
+
+.route-tag {
+  display: inline-block;
+  margin-bottom: 0.55rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #b7bff4;
+  background: rgba(109, 122, 222, 0.2);
 }
 
 .route-card h3 {
@@ -382,9 +423,71 @@ Every accepted write is signed, economically authorized, replicated, and durable
   color: #adb4df;
 }
 
-.route-card span {
+.route-btn {
+  display: inline-block;
+  text-decoration: none;
+  border: 1px solid rgba(141, 149, 255, 0.45);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  background: rgba(77, 93, 180, 0.2);
   color: var(--oak-accent);
   font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.route-btn:hover {
+  border-color: rgba(192, 198, 255, 0.85);
+  background: rgba(98, 126, 234, 0.32);
+}
+
+.quicklink-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.9rem;
+  margin: 1rem 0 1.6rem;
+}
+
+.quicklink-card {
+  display: block;
+  text-decoration: none;
+  border: 1px solid rgba(129, 136, 247, 0.28);
+  border-radius: 12px;
+  padding: 0.9rem 0.95rem;
+  background: linear-gradient(145deg, rgba(13, 18, 35, 0.95), rgba(56, 68, 122, 0.2));
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.quicklink-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(178, 184, 255, 0.7);
+  box-shadow: 0 8px 24px rgba(20, 24, 44, 0.5);
+}
+
+.quicklink-kicker {
+  display: inline-block;
+  color: #a5ace0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.45rem;
+}
+
+.quicklink-card h4 {
+  margin: 0 0 0.35rem;
+  color: #eef1ff;
+}
+
+.quicklink-card p {
+  margin: 0 0 0.75rem;
+  color: #b0b7df;
+  font-size: 0.9rem;
+}
+
+.quicklink-cta {
+  color: var(--oak-accent);
+  font-weight: 600;
+  font-size: 0.88rem;
 }
 
 .bottom-gallery {
@@ -405,8 +508,9 @@ Every accepted write is signed, economically authorized, replicated, and durable
 
 .gallery-card img {
   width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
+  height: 280px;
+  object-fit: contain;
+  background: rgba(10, 12, 24, 0.85);
   display: block;
 }
 
