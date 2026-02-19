@@ -33,6 +33,7 @@ export default withMermaid(
         { text: 'Bull Case', link: '/bull-case' },
         { text: 'How It Works', link: '/how-it-works' },
         { text: 'Architecture', link: '/architecture' },
+        { text: 'System Map', link: '/architecture-system-map' },
         { text: 'Composition', link: '/project-composition' },
         { text: 'Guide', link: '/guide/' },
         { text: 'Primary Signals', link: '/guide/primary-signals' },
@@ -55,6 +56,7 @@ export default withMermaid(
             items: [
               { text: 'How It Works', link: '/how-it-works' },
               { text: 'Architecture', link: '/architecture' },
+              { text: 'System Map', link: '/architecture-system-map' },
               { text: 'Project Composition', link: '/project-composition' },
               { text: 'Quick Start', link: '/guide/' },
             ]

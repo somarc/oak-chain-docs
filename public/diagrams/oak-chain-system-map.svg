@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260" height="760" viewBox="0 0 1260 760">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#334155" />
+    </marker>
+    <style>
+      .title { font: 700 32px sans-serif; fill: #e2e8f0; }
+      .label { font: 600 15px sans-serif; fill: #0f172a; }
+      .sublabel { font: 500 13px sans-serif; fill: #1f2937; }
+      .box { stroke-width: 2; rx: 10; ry: 10; }
+      .line { stroke: #334155; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1260" height="760" fill="#0f0f23" />
+  <text x="60" y="58" class="title">Oak Chain End-to-End System Map</text>
+
+  <rect class="box" x="60" y="110" width="240" height="90" fill="#a5d8ff" stroke="#1971c2"/>
+  <text x="180" y="148" text-anchor="middle" class="label">EDS Operations Dashboard</text>
+  <text x="180" y="170" text-anchor="middle" class="sublabel">(oak-chain-dashboard-eds)</text>
+
+  <rect class="box" x="340" y="110" width="270" height="90" fill="#a5d8ff" stroke="#1971c2"/>
+  <text x="475" y="148" text-anchor="middle" class="label">EDS Oak Chain Supply Chain</text>
+  <text x="475" y="170" text-anchor="middle" class="sublabel">(oak-content-supply-chain-web)</text>
+
+  <rect class="box" x="650" y="110" width="220" height="90" fill="#d0bfff" stroke="#7048e8"/>
+  <text x="760" y="148" text-anchor="middle" class="label">Oak Chain SDK</text>
+  <text x="760" y="170" text-anchor="middle" class="sublabel">(oak-chain-sdk)</text>
+
+  <rect class="box" x="910" y="110" width="250" height="90" fill="#d0bfff" stroke="#7048e8"/>
+  <text x="1035" y="148" text-anchor="middle" class="label">Oak Chain Connector</text>
+  <text x="1035" y="170" text-anchor="middle" class="sublabel">(oak-chain-connector)</text>
+
+  <rect class="box" x="430" y="270" width="360" height="100" fill="#ffa8a8" stroke="#c92a2a" stroke-width="3"/>
+  <text x="610" y="313" text-anchor="middle" class="label">Oak Chain API Surface</text>
+  <text x="610" y="336" text-anchor="middle" class="sublabel">queue / consensus / gc / ops endpoints</text>
+
+  <rect class="box" x="430" y="420" width="320" height="90" fill="#d0bfff" stroke="#7048e8"/>
+  <text x="590" y="458" text-anchor="middle" class="label">oak-segment-consensus</text>
+  <text x="590" y="480" text-anchor="middle" class="sublabel">segment + proposal state machine</text>
+
+  <rect class="box" x="790" y="420" width="300" height="90" fill="#ffec99" stroke="#f08c00"/>
+  <text x="940" y="458" text-anchor="middle" class="label">Aeron Cluster / Raft</text>
+  <text x="940" y="480" text-anchor="middle" class="sublabel">leader election + replication</text>
+
+  <rect class="box" x="430" y="560" width="360" height="100" fill="#b2f2bb" stroke="#2f9e44"/>
+  <text x="610" y="603" text-anchor="middle" class="label">Validator Cluster</text>
+  <text x="610" y="626" text-anchor="middle" class="sublabel">oak-chain-infra + node runtimes</text>
+
+  <rect class="box" x="840" y="560" width="320" height="100" fill="#ffc9c9" stroke="#e03131"/>
+  <text x="1000" y="603" text-anchor="middle" class="label">oak-chain-smart-contracts</text>
+  <text x="1000" y="626" text-anchor="middle" class="sublabel">Ethereum payment verification</text>
+
+  <rect class="box" x="60" y="560" width="300" height="100" fill="#ffec99" stroke="#f08c00"/>
+  <text x="210" y="603" text-anchor="middle" class="label">IPFS Binary Layer</text>
+  <text x="210" y="626" text-anchor="middle" class="sublabel">validators reference CIDs</text>
+
+  <path class="line" d="M180 200 L180 235 L610 235 L610 270"/>
+  <path class="line" d="M475 200 L475 270"/>
+  <path class="line" d="M760 200 L760 270"/>
+  <path class="line" d="M1035 200 L1035 235 L760 235 L760 270"/>
+  <path class="line" d="M610 370 L610 420"/>
+  <path class="line" d="M750 465 L790 465"/>
+  <path class="line" d="M940 510 L940 540 L610 540 L610 560"/>
+  <path class="line" d="M790 610 L840 610"/>
+  <path class="line" d="M430 610 L360 610"/>
+</svg>
