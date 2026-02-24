@@ -7,6 +7,20 @@ next: /guide/paths
 
 Oak Chain uses Ethereum payments for economic security. Every write is backed by real value.
 
+## Why This Matters
+
+Economic policy controls throughput and trust tradeoffs. Without clear tier use, teams overpay or under-protect critical writes.
+
+## What You'll Prove
+
+- You understand the latency-cost behavior of PRIORITY, EXPRESS, and STANDARD tiers.
+- You can map content operations to the correct tier with predictable outcomes.
+- You can explain how epoch timing affects write finality.
+
+## Next Action
+
+Pick one real workload, assign a tier, and execute a sample write using the flow and examples below.
+
 ## Three Tiers
 
 | Tier | Latency | Price | Use Case |

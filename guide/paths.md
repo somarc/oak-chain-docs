@@ -7,6 +7,20 @@ next: /guide/binaries
 
 Oak Chain uses wallet-based namespacing with deterministic sharding.
 
+## Why This Matters
+
+Path design is a core contract for routing, ownership boundaries, and query behavior across the network.
+
+## What You'll Prove
+
+- You can derive deterministic shard paths from wallet identity.
+- You can separate organization scopes under one wallet namespace.
+- You can structure content for predictable indexing and retrieval.
+
+## Next Action
+
+Map one real wallet and organization structure to the path template below before implementing write flows.
+
 ## Path Structure
 
 ```

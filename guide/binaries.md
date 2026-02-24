@@ -7,6 +7,20 @@ next: /guide/streaming
 
 Oak Chain stores large binaries in IPFS, with CID references in Oak. Validators store **CIDs only** (46 bytes), not the binaries themselves.
 
+## Why This Matters
+
+Binary handling drives cost, latency, and trust. Mixing binary blobs into consensus storage creates unnecessary load and weak operational clarity.
+
+## What You'll Prove
+
+- You can keep consensus state lean by storing CID references in Oak.
+- You can host binaries independently while preserving verifiable integrity.
+- You can serve media through edge infrastructure without losing provenance.
+
+## Next Action
+
+Follow the upload and retrieval flow below to publish one binary and verify its CID-backed integrity end-to-end.
+
 ## The Truth → Provenance → Edge Flow
 
 This is the beautiful insight: Oak Chain is the **source of truth** (CIDs), while binaries flow through author storage to edge CDNs.

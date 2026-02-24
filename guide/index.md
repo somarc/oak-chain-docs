@@ -5,7 +5,23 @@ next: /guide/consensus
 
 # Developer Guide
 
-Run a local Oak Chain cluster to understand the system before building on it.
+If you need to trust who wrote content and why it was accepted, start by running Oak Chain locally and verifying one signed write.
+
+Most teams miss this because they start from architecture diagrams. Start from observable behavior first.
+
+## Why This Matters
+
+This guide is the shortest path from concept to evidence. It helps you validate trust and durability behavior before system-level adoption decisions.
+
+## What You'll Prove
+
+- You can run a validator cluster locally.
+- You can submit and verify a signed write.
+- You can observe consensus and storage outcomes directly.
+
+## Next Action
+
+Complete the 10-minute first win below, then continue into `Consensus Model` as your primary deep dive.
 
 ## Who This Is For
 
@@ -13,6 +29,17 @@ Run a local Oak Chain cluster to understand the system before building on it.
 - **Existing AEM clients** exploring content provenance
 - **Validator operators** testing locally before mainnet
 - **Anyone** wanting to understand how Oak Chain works
+
+## Your First Win (10 Minutes)
+
+Do this before deeper reading:
+
+1. Start a 3-validator local cluster
+2. Confirm one node is `LEADER` and two are `FOLLOWER`
+3. Submit one write proposal
+4. Read it back from the API
+
+If these four checks pass, you have proven the core trust path locally.
 
 ## Prerequisites
 
@@ -108,7 +135,4 @@ curl "http://localhost:8090/api/explore?path=/oak-chain/content/test/hello"
 
 ## Next Steps
 
-- [Consensus Model](/guide/consensus) - How Aeron Raft works
-- [Economic Tiers](/guide/economics) - Payment and finality
-- [AEM Integration](/guide/aem-integration) - For existing AEM clients
-- [Run a Validator](/operators/) - Join the network and earn
+Primary next step: [Consensus Model](/guide/consensus) to understand exactly how replication and finality are enforced.

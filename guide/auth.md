@@ -7,6 +7,20 @@ next: /guide/testnet
 
 Oak Chain uses Ethereum wallets for identity and authorization.
 
+## Why This Matters
+
+Wallet signatures are the trust boundary. Without a correct signing flow, writes cannot be attributed or accepted safely.
+
+## What You'll Prove
+
+- You can connect wallets across browser and mobile flows.
+- You can produce signatures that validators can verify.
+- You can attach auth artifacts to valid write proposals.
+
+## Next Action
+
+Set up wallet connection first, then wire signing, then test one `POST /v1/propose-write` request with a real signature.
+
 ## Overview
 
 ```mermaid

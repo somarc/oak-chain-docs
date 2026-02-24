@@ -9,6 +9,20 @@ How consumers read Oak Chain content in practice.
 
 This project is API-first. Consumers should read via validator APIs (and optional streaming), not by relying on AEM/Felix runtime consoles.
 
+## Why This Matters
+
+Consumer reliability depends on picking the correct read mode for each workload instead of treating all reads as the same.
+
+## What You'll Prove
+
+- You can select the right API surface for point reads, listings, streaming, and binaries.
+- You can reduce read complexity by using wallet-scoped and event-driven patterns.
+- You can design consumers that remain stable under changing write volume.
+
+## Next Action
+
+Choose one consumption mode below that matches your use case, then build and test that path before adding others.
+
 ## Consumption Modes
 
 ### 1) Point Reads by Path

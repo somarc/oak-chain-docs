@@ -13,7 +13,7 @@ Join the Oak Chain network and earn from content storage economics.
 - **Infrastructure operators** with experience running distributed systems
 - **Organizations** wanting to host their own content provenance layer
 
-> **Deployment Strategy**: Most operators will deploy directly to mainnet after local testing. Sepolia is for validating smart contract logic before mainnet—not a staging environment for validators.
+> **Deployment strategy**: local cluster validation -> Sepolia payment-flow validation -> mainnet deployment.
 
 ## Requirements
 
@@ -106,7 +106,7 @@ INFURA_API_KEY=your-infura-key
 
 ### Mainnet Mode
 
-**Production**. Real ETH payments. Real economics. We'll do it live. 🔥
+**Production**. Real ETH payments. Real economics.
 
 ```bash
 OAK_BLOCKCHAIN_MODE=mainnet
@@ -114,7 +114,7 @@ INFURA_API_KEY=your-infura-key
 VALIDATOR_WALLET=0x...
 ```
 
-> **Reality check**: External validators joining the network go straight to mainnet. Sepolia is for validating smart contract/payment flows before production.
+> **Reality check**: Use Sepolia to validate payment and contract behavior before mainnet cutover.
 
 ## Ports
 

@@ -7,6 +7,20 @@ next: /segment-gc
 
 Oak Chain provides Server-Sent Events (SSE) for real-time content discovery.
 
+## Why This Matters
+
+Polling adds delay and cost. Streaming lets consumers react to new writes and deletes as they happen.
+
+## What You'll Prove
+
+- You can subscribe to live event feeds and decode event payloads.
+- You can filter streams for wallet-specific consumption.
+- You can wire event-driven updates into cache and read-model workflows.
+
+## Next Action
+
+Open one SSE stream now and confirm you can receive and parse at least one live content event.
+
 ## SSE Feed
 
 Subscribe to the live event stream:

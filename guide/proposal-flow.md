@@ -8,6 +8,20 @@ next: /guide/economics
 Oak Chain proposal handling is a staged pipeline, not a single queue.  
 Writes and deletes enter through the same ingress, then move through verification, epoch routing, finalization, Raft replication, and deterministic commit.
 
+## Why This Matters
+
+When write throughput increases, knowing the exact stage boundaries is the fastest way to isolate failures and tune performance.
+
+## What You'll Prove
+
+- You can trace a proposal from ingress to deterministic commit.
+- You can identify where backpressure activates and why.
+- You can map queue metrics to concrete pipeline stages.
+
+## Next Action
+
+Walk the end-to-end pipeline once, then inspect `GET /v1/proposals/queue/stats` while submitting test traffic.
+
 ## End-to-End Pipeline
 
 <FlowGraph flow="proposal-flow" :height="500" />

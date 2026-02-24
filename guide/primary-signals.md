@@ -3,9 +3,23 @@ prev: /guide/consensus
 next: /guide/economics
 ---
 
-# Oak-Chain Primary Signals
+# Oak Chain Primary Signals
 
 This page defines the primary operational signals for Oak Chain and how to interpret them under real load.
+
+## Why This Matters
+
+Without shared signal definitions, teams misread queue pressure and diagnose the wrong bottleneck during incidents.
+
+## What You'll Prove
+
+- You can interpret queue, verifier, durability, and replication signals as one pipeline.
+- You can label system state consistently across dashboards and runbooks.
+- You can detect settle vs constrained behavior using trend-based metrics.
+
+## Next Action
+
+Use this page while viewing live `queue/stats` output, then tag the system state (`IDLE`, `FILLING`, `DRAINING`, or `CONSTRAINED`) from real data.
 
 ## Why This Exists
 

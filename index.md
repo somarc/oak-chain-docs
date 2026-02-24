@@ -4,21 +4,18 @@ next: /thesis
 
 hero:
   name: "Oak Chain"
-  text: "Ethereum Finality, Oak Familiarity"
-  tagline: Keep JCR and Sling. Add cryptographic attribution, economic authorization, and validator-backed durability.
+  text: "Keep Oak. Add Proof."
+  tagline: Your team already knows JCR and Sling. Oak Chain adds signed writes, economic authorization, and validator-backed durability.
   image:
     src: /oak-chain.svg
     alt: Oak Chain
   actions:
     - theme: brand
-      text: The Thesis
-      link: /thesis
+      text: Run the 10-Minute Proof
+      link: /guide/
     - theme: alt
-      text: How It Works
+      text: See How Writes Become Final
       link: /how-it-works
-    - theme: alt
-      text: Run a Validator
-      link: /operators/
 
 features:
   - icon: 🧱
@@ -53,6 +50,23 @@ features:
   <span class="signal-chip">Raft replicated durability</span>
   <span class="signal-chip">Oak-compatible runtime</span>
 </div>
+
+<div class="attention-first attention-reveal">
+  <p class="attention-kicker">For teams running AEM or Oak in production</p>
+  <h2 class="attention-hook">Your current stack can publish content, but it cannot natively prove who authorized each critical write.</h2>
+  <p class="attention-body">Oak Chain keeps your Oak mental model and adds signed intent, ETH-backed policy, and validator consensus as a verifiable trust path.</p>
+  <div class="attention-actions">
+    <a class="attention-cta" href="/guide/">Run the 10-minute proof</a>
+    <a class="attention-cta-secondary" href="/thesis">Read the strategic thesis</a>
+  </div>
+</div>
+
+## Start With One Proof
+
+If your immediate question is "can this work with our Oak workflows?", run one local validator cluster and validate one signed write end-to-end.
+
+- **Micro-win**: Follow [Developer Guide](/guide/) until you see leader/follower state and one replicated write.
+- **Why this first**: You can validate trust and durability behavior before debating migration strategy.
 
 ## Two Axioms
 
@@ -233,6 +247,11 @@ Every accepted write is signed, economically authorized, replicated, and durable
   --oak-accent: #8C8DFC;
   --oak-surface: rgba(98, 126, 234, 0.08);
   --oak-border: rgba(140, 141, 252, 0.25);
+  --attention-primary: #627EEA;
+  --attention-primary-strong: #4d67d8;
+  --attention-text: #eef1ff;
+  --attention-muted: #b7bedf;
+  --attention-focus: 0 0 0 3px rgba(98, 126, 234, 0.35);
 }
 
 .signal-strip {
@@ -250,6 +269,77 @@ Every accepted write is signed, economically authorized, replicated, and durable
   border-radius: 999px;
   font-size: 0.82rem;
   letter-spacing: 0.02em;
+}
+
+.attention-first {
+  border: 1px solid rgba(141, 149, 255, 0.32);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(16, 22, 44, 0.95), rgba(77, 94, 180, 0.22));
+  padding: 1rem 1rem 1.1rem;
+  margin: 1rem 0 1.7rem;
+}
+
+.attention-kicker {
+  margin: 0 0 0.5rem;
+  color: #cad0ff;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 0.74rem;
+}
+
+.attention-hook {
+  margin: 0;
+  max-width: 30ch;
+  color: var(--attention-text);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.attention-body {
+  margin: 0.7rem 0 0;
+  max-width: 66ch;
+  color: var(--attention-muted);
+}
+
+.attention-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+
+.attention-cta,
+.attention-cta-secondary {
+  display: inline-grid;
+  place-items: center;
+  min-height: 44px;
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: 700;
+  padding: 0.55rem 0.8rem;
+}
+
+.attention-cta {
+  background: var(--attention-primary);
+  border: 1px solid var(--attention-primary);
+  color: #fff;
+}
+
+.attention-cta:hover {
+  background: var(--attention-primary-strong);
+  border-color: var(--attention-primary-strong);
+}
+
+.attention-cta-secondary {
+  color: #d6dcff;
+  border: 1px solid rgba(148, 156, 255, 0.45);
+  background: rgba(85, 99, 180, 0.2);
+}
+
+.attention-cta-secondary:hover {
+  border-color: rgba(190, 196, 255, 0.8);
+  background: rgba(100, 116, 206, 0.28);
 }
 
 .axiom-grid {
@@ -428,11 +518,12 @@ Every accepted write is signed, economically authorized, replicated, and durable
   text-decoration: none;
   border: 1px solid rgba(141, 149, 255, 0.45);
   border-radius: 8px;
-  padding: 0.4rem 0.6rem;
+  padding: 0.55rem 0.8rem;
   background: rgba(77, 93, 180, 0.2);
   color: var(--oak-accent);
   font-weight: 600;
   font-size: 0.88rem;
+  min-height: 44px;
 }
 
 .route-btn:hover {
@@ -461,6 +552,15 @@ Every accepted write is signed, economically authorized, replicated, and durable
   transform: translateY(-2px);
   border-color: rgba(178, 184, 255, 0.7);
   box-shadow: 0 8px 24px rgba(20, 24, 44, 0.5);
+}
+
+a:focus-visible,
+.route-btn:focus-visible,
+.quicklink-card:focus-visible,
+.attention-cta:focus-visible,
+.attention-cta-secondary:focus-visible {
+  outline: none;
+  box-shadow: var(--attention-focus);
 }
 
 .quicklink-kicker {
@@ -520,5 +620,20 @@ Every accepted write is signed, economically authorized, replicated, and durable
   color: #a9b0dd;
   font-size: 0.88rem;
   border-top: 1px solid rgba(127, 133, 244, 0.18);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .attention-reveal,
+  .route-card,
+  .quicklink-card {
+    transition: transform 180ms ease, opacity 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-card,
+  .quicklink-card {
+    transition: none;
+  }
 }
 </style>

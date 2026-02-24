@@ -129,4 +129,4 @@ curl -s http://127.0.0.1:8090/v1/aeron/replication-lag | jq .
 curl -s http://127.0.0.1:8090/v1/gc/status | jq .
 ```
 
-For signal interpretation, see [Oak-Chain Primary Signals](/guide/primary-signals).
+For signal interpretation, see [Oak Chain Primary Signals](/guide/primary-signals).

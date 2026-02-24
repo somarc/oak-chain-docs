@@ -7,6 +7,20 @@ next: /operators/
 
 Run Oak Chain on Ethereum Sepolia testnet for realistic testing without real ETH.
 
+## Why This Matters
+
+Testnet validation is where you prove payment, signature, and validator interactions before exposing mainnet risk.
+
+## What You'll Prove
+
+- You can configure validator and wallet flows against Sepolia.
+- You can execute and verify a test payment transaction.
+- You can complete a full paid write path in a realistic network mode.
+
+## Next Action
+
+Get Sepolia ETH first, configure environment variables, and run one payment plus write proposal cycle.
+
 ## Sepolia Testnet
 
 | Property | Value |

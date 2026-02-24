@@ -8,6 +8,20 @@ Integrate with Oak Chain's decentralized content repository. This guide covers a
 
 > **Important Distinction**: Oak ≠ AEM. Oak is the open-source content repository. AEM is Adobe's product built on Oak. This project builds on Oak directly—AEM integration depends on Adobe's acceptance of custom Oak bundles.
 
+## Why This Matters
+
+Integration choices determine whether you can adopt Oak Chain without replatforming existing authoring and delivery workflows.
+
+## What You'll Prove
+
+- You can pick the right integration path for your current stack.
+- You can keep JCR-centric authoring while adding validator-backed trust signals.
+- You can separate structured content truth from binary delivery concerns.
+
+## Next Action
+
+Read the integration path table below, then choose either Connector (AEM-first) or SDK (app-first) before moving to implementation.
+
 ## Overview
 
 Oak Chain exposes content via multiple integration paths:

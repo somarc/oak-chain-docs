@@ -9,6 +9,20 @@ Authoritative, full mapping of the Oak Chain validator HTTP API.
 
 **Source of truth:** `public/openapi.yaml`. The API browser UI at `/api-browser` is generated from live validator state and should match this page.
 
+## Why This Matters
+
+If API contracts are unclear, integration fails at the exact moment you move from demo to production traffic.
+
+## What You'll Prove
+
+- You know which endpoints are read, write, binary, and operational surfaces.
+- You can map your app flow to required auth and payment fields.
+- You can verify queue, replication, and durability signals during rollout.
+
+## Next Action
+
+Start with `Base URL`, then review `Authentication`, and run one full write-read cycle from the endpoint sections.
+
 ## Base URL
 
 ```
@@ -158,7 +172,7 @@ curl -s http://127.0.0.1:8090/v1/aeron/replication-lag | jq .
 curl -s http://127.0.0.1:8090/v1/aeron/cluster-state | jq .
 ```
 
-For signal interpretation guidance, see [Oak-Chain Primary Signals](/guide/primary-signals).
+For signal interpretation guidance, see [Oak Chain Primary Signals](/guide/primary-signals).
 
 ### GC & Fragmentation
 - `GET /v1/gc/estimate?wallet=0x...`

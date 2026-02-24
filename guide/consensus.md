@@ -7,6 +7,20 @@ next: /guide/proposal-flow
 
 Oak Chain uses **Aeron Cluster** for Raft-based distributed consensus.
 
+## Why This Matters
+
+Consensus is the difference between a single-node demo and a system that can survive failures without corrupting shared state.
+
+## What You'll Prove
+
+- You understand leader, follower, and candidate behavior during normal operations and failover.
+- You can trace how a write moves from proposal to quorum commit.
+- You can reason about failover timing and operational impact.
+
+## Next Action
+
+Read the role and write-path diagrams first, then run a local cluster and observe leader behavior using the status endpoints.
+
 ## Why Aeron?
 
 | Requirement | Aeron Solution |
