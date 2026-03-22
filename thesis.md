@@ -248,6 +248,10 @@ Oak Chain exists for that gap.
 
 ## Design Philosophy
 
+> "The best way to get a good idea is to get a lot of ideas and throw the bad ones away."
+>
+> — Rick Rubin
+
 Oak Chain follows a minimalist philosophy: **add the minimum necessary layer**.
 
 We did not invent a new content model.
@@ -277,6 +281,13 @@ We reasoned up from those fundamentals, not by analogy.
 We did not ask "what is like AEM?"
 We asked "what trust boundary is missing?"
 The answer was simple: settlement on Ethereum, content on Oak, consensus in between.
+
+<div style="display: flex; flex-direction: column; align-items: center; margin: 2rem 0;">
+  <img src="/rickrubin.jpeg" alt="Rick Rubin" style="max-width: 360px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);" />
+  <p style="color: #666; margin-top: 0.75rem; font-style: italic; text-align: center;">
+    Sometimes the best engineering is knowing what <em>not</em> to build.
+  </p>
+</div>
 
 ---
 
