@@ -23,11 +23,13 @@ Pick one real workload, assign a tier, and execute a sample write using the flow
 
 ## Three Tiers
 
-| Tier | Latency | Price | Use Case |
-|------|---------|-------|----------|
-| **PRIORITY** | ~30s | 0.00001 ETH | Breaking news, urgent updates |
-| **EXPRESS** | ~6.4min | 0.000002 ETH | Standard publishing |
-| **STANDARD** | ~12.8min | 0.000001 ETH | Batch operations, archives |
+Current prices below reflect the v1 contract constants in `ValidatorPaymentV3_2`.
+
+| Tier | Latency | ETH Price | USDC Price | Use Case |
+|------|---------|-----------|------------|----------|
+| **PRIORITY** | ~30s | 0.01 ETH | 32.50 USDC | Breaking news, urgent updates |
+| **EXPRESS** | ~6.4min | 0.002 ETH | 6.50 USDC | Standard publishing |
+| **STANDARD** | ~12.8min | 0.001 ETH | 3.25 USDC | Batch operations, archives |
 
 ## How It Works
 
@@ -39,8 +41,8 @@ sequenceDiagram
     participant V as Validator
     participant Oak as Oak Store
     
-    A->>SC: pay(amount, tier)
-    SC->>ETH: Record in epoch N
+    A->>SC: payForProposal(proposalId, tier)
+    SC->>ETH: Emit ProposalPaid
     A->>V: propose-write + txHash
     V->>ETH: Verify payment
     V->>Oak: Commit write
@@ -78,6 +80,7 @@ curl -X POST http://localhost:8090/v1/propose-write \
 - **Bypasses** epoch batching
 - **Immediate** payment verification
 - **Highest** cost
+- **Current price**: 0.01 ETH or 32.50 USDC
 - **Use for**: Time-sensitive content
 
 ### EXPRESS (~6.4 minutes)
@@ -96,6 +99,7 @@ curl -X POST http://localhost:8090/v1/propose-write \
 - **Waits** for current epoch to finalize
 - **Batched** with other EXPRESS writes
 - **Balanced** cost/latency
+- **Current price**: 0.002 ETH or 6.50 USDC
 - **Use for**: Normal publishing
 
 ### STANDARD (~12.8 minutes)
@@ -114,32 +118,27 @@ curl -X POST http://localhost:8090/v1/propose-write \
 - **Waits** for 2 epochs (full finality)
 - **Maximum** batching efficiency
 - **Lowest** cost
+- **Current price**: 0.001 ETH or 3.25 USDC
 - **Use for**: Bulk imports, archives
 
 ## Smart Contract
 
-### ValidatorPaymentV3_1
+### ValidatorPaymentV3_2
 
 ```solidity
-// Sepolia: 0x...
-// Mainnet: TBD
+enum Tier { Standard, Express, Priority }
 
-function pay(
-    address validator,
-    uint8 tier,
-    bytes32 contentHash
-) external payable {
-    require(msg.value >= tierPrice[tier], "Insufficient payment");
-    
-    emit PaymentReceived(
-        msg.sender,
-        validator,
-        tier,
-        msg.value,
-        contentHash,
-        block.timestamp
-    );
-}
+function payForProposal(bytes32 proposalId, Tier tier) external payable;
+
+event ProposalPaid(
+    bytes32 indexed proposalId,
+    address indexed payer,
+    uint256 amount,
+    Tier tier,
+    PaymentToken indexed paymentToken,
+    address preferredValidator,
+    uint256 timestamp
+);
 ```
 
 ### Payment Verification
@@ -147,9 +146,9 @@ function pay(
 Validators verify payments by:
 
 1. Querying Beacon Chain for epoch data
-2. Checking `PaymentReceived` events in that epoch
-3. Matching `txHash` to event
-4. Verifying amount ≥ tier minimum
+2. Checking `ProposalPaid` events for the configured contract address
+3. Matching `txHash` to the observed payment event
+4. Verifying the payment is valid for the requested tier
 
 ## Pricing Rationale
 
@@ -164,6 +163,8 @@ Prices are set to:
 - Cover validator operating costs
 - Discourage spam
 - Remain accessible for legitimate use
+
+Changing those prices requires a contract redeploy.
 
 ## Next Steps
 

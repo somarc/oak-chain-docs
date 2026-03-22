@@ -168,13 +168,13 @@ Payments provide:
 
 ### How much does it cost?
 
-| Tier | Price | Monthly (1000 writes) |
-|------|-------|----------------------|
-| PRIORITY | 0.00001 ETH | ~0.01 ETH (~$25) |
-| EXPRESS | 0.000002 ETH | ~0.002 ETH (~$5) |
-| STANDARD | 0.000001 ETH | ~0.001 ETH (~$2.50) |
+Current v1 prices come from the `ValidatorPaymentV3_2` contract.
 
-*Prices at ~$2500/ETH*
+| Tier | ETH Price | USDC Price |
+|------|-----------|------------|
+| PRIORITY | 0.01 ETH | 32.50 USDC |
+| EXPRESS | 0.002 ETH | 6.50 USDC |
+| STANDARD | 0.001 ETH | 3.25 USDC |
 
 ### Can I use testnet for free?
 
@@ -303,7 +303,7 @@ Migration tooling is planned for future releases. See [AEM Integration Guide](/g
 
 **Latency** (write confirmation):
 - PRIORITY: ~30 seconds (1 Ethereum epoch)
-- EXPRESS: ~6.4 minutes (2 epochs)
+- EXPRESS: ~6.4 minutes (1 Ethereum epoch)
 - STANDARD: ~12.8 minutes (2 epochs)
 
 **Note**: Oak Chain uses Aeron Raft, which can handle 100,000+ messages/sec at the messaging layer. Actual throughput depends on Oak segment store operations and Ethereum verification.
@@ -523,7 +523,7 @@ Yes. Organizations can use multiple wallets for:
 ### Are there rate limits on writes?
 
 **No hard rate limits**, but practical constraints:
-- **Ethereum finality**: ~2 epochs per write (6.4 min for EXPRESS tier)
+- **Ethereum finality**: EXPRESS targets ~1 epoch and STANDARD targets ~2 epochs
 - **Raft consensus**: ~100-1000 writes/sec per cluster (depends on payload)
 - **Gas costs**: High-frequency writes become expensive
 

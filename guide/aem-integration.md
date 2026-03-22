@@ -258,7 +258,7 @@ curl -u admin:admin http://localhost:4502/oak-chain.json
 
 ```json
 {
-  "endpoint": "https://validators.oak-chain.io",
+  "endpoint": "http://localhost:8090",
   "timeout": 30000,
   "cacheSize": 268435456,
   "retryCount": 3,
@@ -310,7 +310,7 @@ InputStream binary = ipfsClient.cat(cid);
 
 ## Platform-Specific Notes
 
-> **⚠️ Important**: Platform-specific deployment procedures are not yet documented. The connector has been tested on local AEM instances via Package Manager installation. For AMS, AEMaaCS, or other deployment scenarios, refer to the [Oak Chain Connector README](https://github.com/oakchain/oak-chain-connector) and consult with your AEM administrator or Adobe Support.
+> **⚠️ Important**: Platform-specific deployment procedures are not yet documented. The connector has been tested on local AEM instances via Package Manager installation. For AMS, AEMaaCS, or other deployment scenarios, refer to the [Oak Chain Connector README](https://github.com/somarc/oak-chain-connector) and consult with your AEM administrator or Adobe Support.
 
 **Currently Verified**:
 - ✅ Local AEM 6.5.x installation via Package Manager
@@ -321,7 +321,7 @@ InputStream binary = ipfsClient.cat(cid);
 - ⚠️ AEM as a Cloud Service (AEMaaCS) deployment
 - ⚠️ Apache Sling standalone deployment
 
-For the most current installation instructions, see the [Oak Chain Connector repository](https://github.com/oakchain/oak-chain-connector).
+For the most current installation instructions, see the [Oak Chain Connector repository](https://github.com/somarc/oak-chain-connector).
 
 ---
 

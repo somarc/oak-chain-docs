@@ -305,11 +305,11 @@ This enables horizontal read scaling without consensus overhead. See the [AEM In
 
 ### Three Tiers
 
-| Tier | Latency | Price | Use Case |
-|------|---------|-------|----------|
-| **PRIORITY** | ~30s | 0.00001 ETH | Breaking news, urgent updates |
-| **EXPRESS** | ~6.4min | 0.000002 ETH | Standard publishing |
-| **STANDARD** | ~12.8min | 0.000001 ETH | Batch operations, archives |
+| Tier | Latency | ETH Price | USDC Price | Use Case |
+|------|---------|-----------|------------|----------|
+| **PRIORITY** | ~30s | 0.01 ETH | 32.50 USDC | Breaking news, urgent updates |
+| **EXPRESS** | ~6.4min | 0.002 ETH | 6.50 USDC | Standard publishing |
+| **STANDARD** | ~12.8min | 0.001 ETH | 3.25 USDC | Batch operations, archives |
 
 ### Payment Flow
 

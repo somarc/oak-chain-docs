@@ -36,17 +36,20 @@ When an author creates or modifies content in Sling, the change is **signed with
 
 ## Payment Flow
 
-Users pay for content writes via **MetaMask**. The payment goes to a smart contract on Ethereum (Sepolia testnet), which emits an event. Validators monitor these events and **authorize writes** for the paying wallet address.
+Users pay for content writes via a wallet such as **MetaMask**.
+The payment goes to the `ValidatorPaymentV3_2` contract on Ethereum.
+That contract emits a `ProposalPaid` event.
+Validators monitor those events and authorize writes for the paying wallet address.
 
 <FlowGraph flow="payment" :height="380" />
 
 ### Payment Tiers
 
-| Tier | Confirmation Time | Use Case |
-|------|-------------------|----------|
-| **Priority** | ~30 seconds | Breaking news, urgent updates |
-| **Express** | ~6.4 minutes | Standard publishing |
-| **Standard** | ~12.8 minutes | Batch operations, archives |
+| Tier | Confirmation Time | Current V1 Price | Use Case |
+|------|-------------------|------------------|----------|
+| **Priority** | ~30 seconds | 0.01 ETH or 32.50 USDC | Breaking news, urgent updates |
+| **Express** | ~6.4 minutes | 0.002 ETH or 6.50 USDC | Standard publishing |
+| **Standard** | ~12.8 minutes | 0.001 ETH or 3.25 USDC | Batch operations, archives |
 
 ---
 

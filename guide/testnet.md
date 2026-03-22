@@ -33,40 +33,31 @@ Get Sepolia ETH first, configure environment variables, and run one payment plus
 
 ## Smart Contract
 
-### ValidatorPaymentV3_1
+### ValidatorPaymentV3_2
 
-| Network | Address |
-|---------|---------|
-| Sepolia | `0x...` (TBD - deployment pending) |
-| Mainnet | TBD |
+The current local Sepolia config in `blockchain-aem-infra` uses:
 
-### Contract ABI
+| Network | Address | Source of Truth |
+|---------|---------|-----------------|
+| Sepolia | `0x7fcEc350268F5482D04eb4B229A0679374906732` | `scripts/local-development/config/sepolia.env` |
+| Mainnet | Not published in this docs repo | `scripts/local-development/config/mainnet.env` |
 
-```json
-[
-  {
-    "name": "pay",
-    "type": "function",
-    "inputs": [
-      {"name": "validator", "type": "address"},
-      {"name": "tier", "type": "uint8"},
-      {"name": "contentHash", "type": "bytes32"}
-    ],
-    "outputs": []
-  },
-  {
-    "name": "PaymentReceived",
-    "type": "event",
-    "inputs": [
-      {"name": "payer", "type": "address", "indexed": true},
-      {"name": "validator", "type": "address", "indexed": true},
-      {"name": "tier", "type": "uint8"},
-      {"name": "amount", "type": "uint256"},
-      {"name": "contentHash", "type": "bytes32"},
-      {"name": "timestamp", "type": "uint256"}
-    ]
-  }
-]
+### Contract Surface
+
+```solidity
+enum Tier { Standard, Express, Priority }
+
+function payForProposal(bytes32 proposalId, Tier tier) external payable;
+
+event ProposalPaid(
+    bytes32 indexed proposalId,
+    address indexed payer,
+    uint256 amount,
+    Tier tier,
+    PaymentToken indexed paymentToken,
+    address preferredValidator,
+    uint256 timestamp
+);
 ```
 
 ## Get Test ETH
@@ -93,11 +84,11 @@ Get Sepolia ETH first, configure environment variables, and run one payment plus
 ### Environment Variables
 
 ```bash
-# Required for Sepolia mode
-export OAK_BLOCKCHAIN_MODE=sepolia
+# Required before running the Sepolia workflow
 export INFURA_API_KEY=your-infura-project-id
-export VALIDATOR_WALLET=0xYourValidatorWallet
 ```
+
+`dev-sepolia.sh` loads `OAK_BLOCKCHAIN_MODE=sepolia` and the current `OAK_BLOCKCHAIN_CONTRACT_ADDRESS` from the infra repo config.
 
 ### Get Infura API Key
 
@@ -106,17 +97,17 @@ export VALIDATOR_WALLET=0xYourValidatorWallet
 3. Create new project
 4. Copy Project ID (this is your API key)
 
-### Docker Compose
+### Run the Sepolia Workflow
 
-```yaml
-services:
-  validator-0:
-    image: ghcr.io/somarc/oak-chain-validator:latest
-    environment:
-      - OAK_BLOCKCHAIN_MODE=sepolia
-      - INFURA_API_KEY=${INFURA_API_KEY}
-      - VALIDATOR_WALLET=${VALIDATOR_WALLET}
-      - AERON_CLUSTER_MEMBER_ID=0
+```bash
+mkdir oak-chain-workspace
+cd oak-chain-workspace
+
+git clone https://github.com/mhess_adobe/blockchain-aem-infra.git
+git clone https://github.com/somarc/jackrabbit-oak.git
+
+cd blockchain-aem-infra/shared/workflows
+./dev-sepolia.sh
 ```
 
 ## Make a Test Payment
@@ -129,17 +120,21 @@ import { ethers } from 'ethers';
 const provider = new ethers.BrowserProvider(window.ethereum);
 const signer = await provider.getSigner();
 
-const contractAddress = '0x...'; // Sepolia contract
-const abi = [/* see above */];
+const contractAddress = '0x7fcEc350268F5482D04eb4B229A0679374906732';
+const abi = [
+  'function payForProposal(bytes32 proposalId, uint8 tier) payable',
+];
 
 const contract = new ethers.Contract(contractAddress, abi, signer);
+const proposalId = ethers.keccak256(
+  ethers.toUtf8Bytes(`proposal:${Date.now()}`)
+);
 
 // Pay for EXPRESS tier
-const tx = await contract.pay(
-  '0xValidatorWallet',  // Validator receiving payment
-  1,                     // Tier: 0=PRIORITY, 1=EXPRESS, 2=STANDARD
-  ethers.keccak256(ethers.toUtf8Bytes('my-content-hash')),
-  { value: ethers.parseEther('0.000002') }  // EXPRESS price
+const tx = await contract.payForProposal(
+  proposalId,
+  1, // Tier enum: 0=Standard, 1=Express, 2=Priority
+  { value: ethers.parseEther('0.002') }
 );
 
 console.log('Payment tx:', tx.hash);
@@ -147,19 +142,7 @@ await tx.wait();
 console.log('Payment confirmed!');
 ```
 
-### Using MetaMask Directly
-
-```javascript
-// Simple ETH transfer (for testing without contract)
-const tx = await window.ethereum.request({
-  method: 'eth_sendTransaction',
-  params: [{
-    from: wallet,
-    to: '0xValidatorWallet',
-    value: '0x' + (2000000000000n).toString(16), // 0.000002 ETH in wei
-  }],
-});
-```
+Oak validators expect a contract payment transaction hash, not a plain ETH transfer.
 
 ## Verify Payment
 
@@ -184,11 +167,11 @@ View transactions on [sepolia.etherscan.io](https://sepolia.etherscan.io)
 
 ## Tier Prices (Sepolia)
 
-| Tier | Price (ETH) | Price (Wei) |
-|------|-------------|-------------|
-| PRIORITY | 0.00001 | 10000000000000 |
-| EXPRESS | 0.000002 | 2000000000000 |
-| STANDARD | 0.000001 | 1000000000000 |
+| Tier | Price (ETH) | Price (Wei) | Price (USDC) |
+|------|-------------|-------------|--------------|
+| PRIORITY | 0.01 | 10000000000000000 | 32.50 |
+| EXPRESS | 0.002 | 2000000000000000 | 6.50 |
+| STANDARD | 0.001 | 1000000000000000 | 3.25 |
 
 ## Complete Test Flow
 
@@ -201,18 +184,18 @@ async function testSepoliaWrite() {
   const wallet = accounts[0];
   
   // 2. Make payment
-  const paymentTx = await window.ethereum.request({
-    method: 'eth_sendTransaction',
-    params: [{
-      from: wallet,
-      to: '0xValidatorWallet',
-      value: '0x' + (2000000000000n).toString(16),
-    }],
-  });
+  const proposalId = ethers.keccak256(
+    ethers.toUtf8Bytes(`proposal:${Date.now()}`)
+  );
+  const paymentTx = await contract.payForProposal(
+    proposalId,
+    1,
+    { value: ethers.parseEther('0.002') }
+  );
   
   // 3. Wait for confirmation
-  console.log('Payment tx:', paymentTx);
-  // Wait ~15 seconds for block confirmation
+  console.log('Payment tx:', paymentTx.hash);
+  await paymentTx.wait();
   
   // 4. Sign content
   const content = { title: 'Sepolia Test!' };
@@ -231,7 +214,7 @@ async function testSepoliaWrite() {
       walletAddress: wallet,
       message,
       paymentTier: 'express',
-      ethereumTxHash: paymentTx,
+      ethereumTxHash: paymentTx.hash,
       signature,
     }),
   });
@@ -247,6 +230,7 @@ async function testSepoliaWrite() {
 - Wait for transaction confirmation (1-2 blocks)
 - Verify transaction on Etherscan
 - Check validator is in Sepolia mode
+- Check the validator is using the same contract address configured in `scripts/local-development/config/sepolia.env`
 
 ### "Insufficient funds"
 
