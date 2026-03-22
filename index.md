@@ -76,9 +76,11 @@ If your immediate question is "can this work with our Oak workflows?", run one l
 
 ### Axiom 1: Ethereum Is Durable Settlement Infrastructure
 
-Ethereum is no longer a speculative side system. It is an active settlement layer for stablecoins, tokenized assets, and institutional transaction flows.
+Ethereum is no longer a speculative side system.
+It is an active settlement layer for stablecoins, tokenized assets, and institutional transaction flows.
 
-Major financial and payment operators now use Ethereum-adjacent rails in production, while validators and stakers secure the network with globally distributed economic weight. The result is a settlement substrate that keeps operating under real-world load, with transparent state and predictable execution rules.
+Major financial and payment operators now use Ethereum-adjacent rails in production, while validators and stakers secure the network with globally distributed economic weight.
+The result is a settlement substrate that keeps operating under real-world load, with transparent state and predictable execution rules.
 
 **For Oak Chain, this is an architectural constant: the base asset is ETH.**
 
@@ -90,9 +92,10 @@ Major financial and payment operators now use Ethereum-adjacent rails in product
 
 Oak is the repository core behind Adobe Experience Manager (AEM), the platform many enterprises use to run content, assets, and digital experience delivery at scale.
 
-That includes global commerce catalogs, marketing sites, customer portals, regulated content workflows, and high-traffic public properties. A large share of enterprise web and content operations already depends on Oak's data model and operational behavior.
+Oak is not universal, but it is deeply embedded where content workflows are expensive to replace.
+That includes global commerce catalogs, marketing sites, customer portals, regulated content workflows, and high-traffic public properties.
 
-**Oak Chain does not replace Oak. It extends Oak with signed writes and economic policy.**
+**Oak Chain does not replace Oak. It extends Oak's write path with signed writes, payment proofs, and validator consensus.**
 
 </div>
 

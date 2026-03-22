@@ -11,39 +11,41 @@ Frequently asked questions about Oak Chain.
 
 ### Why does this exist?
 
-Oak Chain is built on two axioms:
+Oak Chain is built on two operating assumptions:
 
-1. **Ethereum is physics.** BlackRock, Visa, and JPMorgan have made irreversible commitments to Ethereum. This isn't adoption; it's re-architecture.
+1. **Ethereum is durable settlement infrastructure.** BlackRock, Visa, and J.P. Morgan make it clear that onchain settlement and tokenized asset flows are now production concerns, not side experiments.
 
-2. **Oak is entrenched.** Jackrabbit Oak already stores the majority of the planet's high-stakes digital experiences. Fortune 500 commerce, healthcare, government.
+2. **Oak is entrenched in enterprise content operations.** Oak underpins AEM and sits inside large content, asset, and publishing estates that are expensive to replatform.
 
-We're building the bridge for when these two systems meet.
+We're building the bridge for teams that want stronger proof, attribution, and economic authorization without throwing away the Oak model they already run.
 
 → [Read the full thesis](/thesis)
 
 ### Why now?
 
-Because the institutions have moved.
+Because finance has modernized faster than content infrastructure.
 
-When BlackRock launches BUIDL on Ethereum, when Visa settles USDC directly, when JPMorgan routes Onyx through Ethereum rails: these aren't experiments. They're irreversible commitments.
+Ethereum-style settlement moved into production while most enterprise content systems still rely on centralized trust boundaries.
 
-The question isn't "will content need blockchain?" The question is "which content infrastructure will be ready?"
+Oak Chain targets that gap.
 
 ### What if Ethereum fails?
 
-Then this project fails too.
+Then a core premise of the project fails too.
 
-We've made an explicit bet. Oak Chain treats Ethereum's dominance as physics, not opinion. But we're betting alongside BlackRock, Visa, and JPMorgan. If Ethereum fails, we have bigger problems than a content repository.
+This is a concentrated architectural bet, not a hedge.
+Oak Chain assumes Ethereum remains the leading programmable settlement layer.
 
-This is honest infrastructure building: we've chosen our foundation, and we're building on it.
+If that assumption breaks, Oak Chain needs a different foundation.
 
 ### What if no one uses this?
 
-Oak Chain is infrastructure for a convergence we believe is inevitable: enterprise content (Oak) meets blockchain ownership (Ethereum).
+Then we were wrong on timing, wedge, or both.
 
-If we're wrong about the timing, we're early. The infrastructure will be ready when the demand arrives.
+That risk is real.
+The counterargument is that the underlying problem is coherent: some content workflows do need stronger proof, attribution, and durable authorization than today's default CMS stack provides.
 
-If we're wrong about the convergence itself, we've built a very good distributed Oak cluster anyway. The technology works regardless of adoption.
+If the market still rejects it, the system remains a serious distributed Oak implementation, but the strategic thesis would need to be reconsidered.
 
 ---
 
