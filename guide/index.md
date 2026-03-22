@@ -43,40 +43,40 @@ If these four checks pass, you have proven the core trust path locally.
 
 ## Prerequisites
 
-- Docker & Docker Compose
+- Java 11+
+- Maven 3.8+
+- `jq`
 - 8GB RAM minimum
 - Ports 8090, 8092, 8094 available
+- A sibling workspace containing `blockchain-aem-infra` and `jackrabbit-oak`
 
 ## Start the Cluster
 
 ```bash
-# Clone the repositories
+# Create a sibling workspace for the infra and Oak repos
+mkdir oak-chain-workspace
+cd oak-chain-workspace
+
+# Clone the repositories the workflow expects
 git clone https://github.com/mhess_adobe/blockchain-aem-infra.git
 git clone https://github.com/somarc/jackrabbit-oak.git
 
-# Build the validator JAR first
-cd jackrabbit-oak
-mvn clean install -pl oak-segment-consensus -am -DskipTests
+# Build, start, and smoke-test the local mock environment
+cd blockchain-aem-infra/shared/workflows
+./dev-mock.sh
 
-# Copy JAR to infra directory
-cp oak-segment-consensus/target/oak-segment-consensus.jar \
-   ../blockchain-aem-infra/docker-compose/
-
-# Start 3-validator cluster
-cd ../blockchain-aem-infra/docker-compose
-docker-compose -f testing/3-validators-aeron.yml up -d
-
-# Check status
-docker-compose -f testing/3-validators-aeron.yml ps
+# For faster iteration after the first build
+./dev-mock.sh --no-build
 ```
 
-> **Note**: Pre-built Docker images coming soon. For now, build from source.
+`dev-mock.sh` is the current public local workflow.
+It builds `jackrabbit-oak`, starts three validators plus Sling via `local-dev.sh`, and runs a smoke check.
 
 ## Verify It's Working
 
 ### Check Validator Dashboard
 
-Open http://localhost:8090 in your browser.
+Open `http://localhost:8090` in your browser.
 
 You should see:
 - Cluster status: **LEADER** or **FOLLOWER**
@@ -130,6 +130,7 @@ curl "http://localhost:8090/api/explore?path=/oak-chain/content/test/hello"
 
 | Mode | Purpose | When to Use |
 |------|---------|-------------|
+| **MOCK** | Fast local validation without Sepolia payments | First proof, docs walkthrough, local debugging |
 | **SEPOLIA** | Smart contract validation | Before mainnet, verify payment flows |
 | **MAINNET** | Production | External validators and live traffic |
 

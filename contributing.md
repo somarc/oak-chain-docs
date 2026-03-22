@@ -66,14 +66,16 @@ npm run build
 
 ```bash
 # Clone the infrastructure repo
-git clone https://github.com/somarc/blockchain-aem-infra.git
+git clone https://github.com/mhess_adobe/blockchain-aem-infra.git
+git clone https://github.com/somarc/jackrabbit-oak.git
 cd blockchain-aem-infra
 
-# Start local cluster
-docker-compose -f docker-compose/testing/3-validators-aeron.yml up -d
+# Start the current local workflow
+cd shared/workflows
+./dev-mock.sh
 
 # View logs
-docker-compose -f docker-compose/testing/3-validators-aeron.yml logs -f
+tail -f ~/oak-chain/logs/mock/validator-0.log
 ```
 
 ## Code Style

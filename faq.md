@@ -423,7 +423,10 @@ await fetch('http://validator:8090/v1/propose-write', {
 
 ### Is there a JavaScript SDK?
 
-Coming soon! For now, use the REST API directly. See [API Reference](/guide/api).
+Yes.
+The current SDK lives in [`somarc/oak-chain-sdk`](https://github.com/somarc/oak-chain-sdk).
+It wraps the validator REST API, signing flow, SSE client, and IPFS helpers.
+See [API Reference](/guide/api) for the underlying HTTP contract.
 
 ### Can I run my own cluster?
 
@@ -433,7 +436,10 @@ Yes! Oak Chain is open source. You can:
 - Fork and customize for your use case
 
 ```bash
-docker-compose -f testing/3-validators-aeron.yml up -d
+git clone https://github.com/mhess_adobe/blockchain-aem-infra.git
+git clone https://github.com/somarc/jackrabbit-oak.git
+cd blockchain-aem-infra/shared/workflows
+./dev-mock.sh
 ```
 
 See [Operators Guide](/operators/) for production setup.
@@ -550,7 +556,6 @@ Yes. Organizations can use multiple wallets for:
 
 ### What's coming next?
 
-- [ ] JavaScript SDK
 - [ ] GraphQL API
 - [ ] Content versioning
 - [ ] Access control lists

@@ -104,13 +104,10 @@ public void onSessionMessage(ClientSession session,
 
 ### Cluster Members
 
-```yaml
-# docker-compose.yml
-services:
-  validator-0:
-    environment:
-      - AERON_CLUSTER_MEMBER_ID=0
-      - AERON_CLUSTER_MEMBERS=0,localhost:20000,localhost:20001,localhost:20002|1,localhost:20010,localhost:20011,localhost:20012|2,localhost:20020,localhost:20021,localhost:20022
+```bash
+# validator-0
+export AERON_CLUSTER_MEMBER_ID=0
+export AERON_CLUSTER_MEMBERS=0,localhost:20000,localhost:20001,localhost:20002|1,localhost:20010,localhost:20011,localhost:20012|2,localhost:20020,localhost:20021,localhost:20022
 ```
 
 ### Timeouts

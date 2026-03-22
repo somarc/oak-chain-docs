@@ -26,9 +26,8 @@ Start with `Base URL`, then review `Authentication`, and run one full write-read
 ## Base URL
 
 ```
-http://localhost:8090             # Local development
-https://validators.oak-chain.io   # Production (future)
-https://sepolia.validators.oak-chain.io  # Testnet (future)
+http://localhost:8090           # Local development
+https://<your-validator-host>   # Your deployed validator
 ```
 
 ## Authentication

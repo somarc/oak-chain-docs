@@ -15,6 +15,9 @@ Join the Oak Chain network and earn from content storage economics.
 
 > **Deployment strategy**: local cluster validation -> Sepolia payment-flow validation -> mainnet deployment.
 
+Examples below assume the current local process workflow from `blockchain-aem-infra`.
+If you run validators under Kubernetes or another service manager, translate the stop/start/log commands to that runtime.
+
 ## Requirements
 
 ### Hardware
@@ -50,7 +53,8 @@ java -jar oak-segment-consensus/target/oak-segment-consensus.jar \
   --store /var/oak-chain/validator-0
 ```
 
-> **Coming Soon**: Pre-built Docker images at `ghcr.io/somarc/oak-chain-validator`. For now, build from source or use the [local development scripts](https://github.com/mhess_adobe/blockchain-aem-infra/tree/main/scripts/local-development).
+Current public local automation lives in the [infrastructure repo](https://github.com/mhess_adobe/blockchain-aem-infra/tree/main/shared/workflows).
+Use [`shared/workflows/dev-mock.sh`](https://github.com/mhess_adobe/blockchain-aem-infra/tree/main/shared/workflows) or [`scripts/local-development/local-dev.sh`](https://github.com/mhess_adobe/blockchain-aem-infra/tree/main/scripts/local-development) instead of archived Docker Compose flows.
 
 ## Configuration
 
@@ -143,14 +147,15 @@ Confirm these ports are open between all cluster members.
 ### Backup
 
 ```bash
-# Stop validator first
-docker stop oak-validator
+# Stop locally managed validators first
+cd /path/to/blockchain-aem-infra/scripts/local-development
+./local-dev.sh stop validators
 
 # Backup segment store
 tar -czf backup-$(date +%Y%m%d).tar.gz /var/oak-chain/segmentstore
 
 # Restart
-docker start oak-validator
+./local-dev.sh start validators
 ```
 
 ## Monitoring
@@ -202,8 +207,8 @@ blockchain-aem-infra/grafana/
 ### Validator Won't Start
 
 ```bash
-# Check logs
-docker logs oak-validator
+# Check the validator log file
+tail -f ~/oak-chain/logs/mock/validator-0.log
 
 # Common issues:
 # - Port already in use

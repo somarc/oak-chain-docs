@@ -28,7 +28,7 @@ Oak Chain exposes content via multiple integration paths:
 
 | Integration Path | Availability | Use Case |
 |------------------|--------------|----------|
-| **REST/GraphQL API** | ✅ Available | Any client (web, mobile, headless) |
+| **REST API** | ✅ Available | Any client (web, mobile, headless) |
 | **SSE Streaming** | ✅ Available | Real-time content updates, EDS delivery |
 | **Oak Chain Connector** | ✅ Available | AEM integration (composite mount via `oak-chain-connector`) |
 | **Oak Chain SDK** | ✅ Available | JavaScript/TypeScript applications (React, Next.js, Node.js) |
@@ -37,7 +37,7 @@ Oak Chain exposes content via multiple integration paths:
 
 ### AEM Integration via Connector
 
-AEM customers integrate via **[Oak Chain Connector](https://github.com/oakchain/oak-chain-connector)** - an AEM-compatible add-on that uses Oak's public SPI layer. The connector:
+AEM customers integrate via **[Oak Chain Connector](https://github.com/somarc/oak-chain-connector)** - an AEM-compatible add-on that uses Oak's public SPI layer. The connector:
 
 - Uses **only public Oak APIs** (no fork required)
 - Follows **Adobe AEM Project Archetype** structure
@@ -45,7 +45,7 @@ AEM customers integrate via **[Oak Chain Connector](https://github.com/oakchain/
 - Provides **composite mount** for read-only oak-chain content
 - Includes **wallet services** for write proposals
 
-**For non-AEM applications**, use the **[Oak Chain SDK](https://github.com/oakchain/sdk)** - a JavaScript/TypeScript library for any application.
+**For non-AEM applications**, use the **[Oak Chain SDK](https://github.com/somarc/oak-chain-sdk)** - a JavaScript/TypeScript library for any application.
 
 ---
 
@@ -118,7 +118,7 @@ This guide focuses on **API-based integration** — the path that works today fo
 
 | Requirement | Version | Notes |
 |-------------|---------|-------|
-| Oak | 1.50+ | Check `oak-core` bundle version |
+| Oak | 1.22+ on AEM 6.5, 1.40+ on AEMaaCS | Check `oak-core` bundle version |
 | Java | 11+ | JDK, not JRE |
 | AEM | 6.5 SP15+ or AEMaaCS | Earlier versions require assessment |
 | Network | HTTPS outbound | Firewall rules for validator endpoints |
@@ -164,7 +164,7 @@ Deploy **Oak Chain Connector** to your AEM instance. The connector is an AEM pac
 **Quick Install**:
 ```bash
 # Clone connector repository
-git clone https://github.com/oakchain/oak-chain-connector.git
+git clone https://github.com/somarc/oak-chain-connector.git
 cd oak-chain-connector
 
 # Build connector package
@@ -174,7 +174,7 @@ mvn clean install
 mvn clean install -PautoInstallPackage
 ```
 
-See [Oak Chain Connector README](https://github.com/oakchain/oak-chain-connector) for complete installation instructions.
+See [Oak Chain Connector README](https://github.com/somarc/oak-chain-connector) for complete installation instructions.
 
 ### Phase 2: OSGi Configuration
 
@@ -202,16 +202,12 @@ Configure the connector via OSGi configuration. The connector uses standard AEM 
 
 **Environment Variables**:
 ```bash
-export OAK_CHAIN_VALIDATOR_URL="https://validators.oak-chain.io"
+export OAK_CHAIN_VALIDATOR_URL="http://localhost:8090"
 export OAK_CHAIN_KEYSTORE_PATH="/path/to/wallet.properties"
 ```
 
-**Environment-specific endpoints**:
-| Environment | Endpoint |
-|-------------|----------|
-| Development | `http://localhost:8090` |
-| Staging | `https://staging.validators.oak-chain.io` |
-| Production | `https://validators.oak-chain.io` |
+Point `OAK_CHAIN_VALIDATOR_URL` at a validator you operate or can reach on your network.
+This doc does not assume a shared public hosted validator endpoint.
 
 ### Phase 3: Validation
 
@@ -251,7 +247,7 @@ curl -u admin:admin http://localhost:4502/oak-chain.json
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `OAK_CHAIN_ENDPOINT` | Validator cluster URL | `https://validators.oak-chain.io` |
+| `OAK_CHAIN_ENDPOINT` | Validator cluster URL | `http://localhost:8090` |
 | `OAK_CHAIN_TIMEOUT` | HTTP timeout (ms) | `30000` |
 | `OAK_CHAIN_CACHE_SIZE` | Segment cache size (MB) | `256` |
 | `OAK_CHAIN_RETRY_COUNT` | Retry attempts | `3` |

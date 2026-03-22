@@ -13,8 +13,7 @@ If you only read one architecture artifact, use this one. It shows how request e
 
 ## Excalidraw Source
 
-- Editable source (v2): [`/diagrams/oak-chain-system-map-v2.excalidraw`](/diagrams/oak-chain-system-map-v2.excalidraw)
-- Previous source (v1): [`/diagrams/oak-chain-system-map.excalidraw`](/diagrams/oak-chain-system-map.excalidraw)
+- Editable source (v2): `public/diagrams/oak-chain-system-map-v2.excalidraw`
 
 ## Why This Map Matters
 
@@ -99,5 +98,6 @@ Primary docs:
 
 - Current map: `v2`
 - Source of truth file: `/public/diagrams/oak-chain-system-map-v2.excalidraw`
+- No `v1` Excalidraw source is published in this repo.
 - Last reviewed scope: experience, consensus, settlement/addressing, observability, runtime/control-plane
 - Update trigger: any new runtime module or dependency that changes write, settlement, or read paths
