@@ -58,12 +58,36 @@ Use [`shared/workflows/dev-mock.sh`](https://github.com/mhess_adobe/blockchain-a
 
 ## Configuration
 
+### 3x2 Validation Rig
+
+For local `3x2` or other multi-cluster proofs, keep cluster identity, HTTP ports,
+Aeron ports, runtime roots, and MediaDriver directories separate. This is a
+local validation rig, not production density guidance.
+
+| Knob | Example | Purpose |
+|------|---------|---------|
+| `OAK_CLUSTER_NAME` | `oak-local-a` | Distinguish one cluster from another |
+| `CLUSTER_RUNTIME_ROOT` | `~/oak-chain/3x2/cluster-a` | Keep validator state isolated per cluster |
+| `OAK_VALIDATOR_HTTP_BASE_PORT` | `8090` | Base HTTP port for the cluster |
+| `OAK_VALIDATOR_HTTP_PORT_STEP` | `2` | Keep node ports spaced cleanly (`8090/8092/8094`) |
+| `AERON_CLUSTER_BASE_PORT` | `9000` or `9400` | Keep Aeron transport ports from colliding across clusters |
+| `AERON_DIR_BASE` | `~/oak-chain/3x2/cluster-a/aeron-media` | Isolate MediaDriver storage per cluster |
+
+Cross-cluster mounts are lazy, read-only views outside Aeron. The local Aeron
+cluster owns the writable repository for its shard.
+
 ### Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `AERON_CLUSTER_MEMBER_ID` | Yes | Unique node ID (0, 1, 2, ...) |
 | `AERON_CLUSTER_MEMBERS` | Yes | Cluster member addresses |
+| `OAK_CLUSTER_NAME` | No | Logical cluster name for proof harnesses and operator logs |
+| `CLUSTER_RUNTIME_ROOT` | No | Filesystem root for validator stores, logs, and cluster state |
+| `OAK_VALIDATOR_HTTP_BASE_PORT` | No | HTTP base port for a cluster-local validator set |
+| `OAK_VALIDATOR_HTTP_PORT_STEP` | No | HTTP port stride between validators in the same cluster |
+| `AERON_CLUSTER_BASE_PORT` | No | Aeron transport base port for the local cluster |
+| `AERON_DIR_BASE` | No | MediaDriver directory base used to isolate cluster-local Aeron state |
 | `OAK_BLOCKCHAIN_MODE` | Yes | `sepolia` or `mainnet` |
 | `INFURA_API_KEY` | For Sepolia/Mainnet | Ethereum RPC access |
 | `VALIDATOR_WALLET` | For Sepolia/Mainnet | Payment receiving wallet |
@@ -129,7 +153,9 @@ VALIDATOR_WALLET=0x...
 | 20001 | TCP | Aeron member |
 | 20002 | TCP | Aeron log |
 
-Confirm these ports are open between all cluster members.
+Confirm these ports are open within each cluster. For multi-cluster proofs,
+repeat the same pattern with separated base ports and runtime roots so the
+clusters do not share writable Aeron state.
 
 ## Storage
 
