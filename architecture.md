@@ -134,6 +134,8 @@ Everything else is a separate plane.
 └─────────────────────────────────────────────────────────────┘
 ```
 
+The compact framing lives here. The fuller visual companion is [Write Flow + Content Fabric](/write-flow-and-content-fabric).
+
 <div class="layer-section">
 
 ## Plane 1: Intra-Cluster Consensus

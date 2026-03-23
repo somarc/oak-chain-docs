@@ -25,6 +25,10 @@ and commits it to the local Oak segment store.
 
 <FlowGraph flow="write" :height="420" />
 
+::: tip See the full plate
+For the richer sequence boundary and the companion clusters-of-clusters model, open [Write Flow + Content Fabric](/write-flow-and-content-fabric).
+:::
+
 ### The Steps
 
 1. **Author creates content** via AEM Connector or Oak Chain SDK
@@ -233,6 +237,8 @@ Authors write to their authoritative cluster. All clusters can read all content.
   HTTP segment transfer.
 - **Discovery**: cluster announcements and route hints are a separate control
   plane, not part of consensus.
+
+For the wider three-plane visual, open [Write Flow + Content Fabric](/write-flow-and-content-fabric).
 
 ### Scaling
 

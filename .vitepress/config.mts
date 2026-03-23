@@ -57,6 +57,7 @@ export default withMermaid(
               { text: 'How It Works', link: '/how-it-works' },
               { text: 'Architecture', link: '/architecture' },
               { text: 'System Map', link: '/architecture-system-map' },
+              { text: 'Write Flow + Fabric', link: '/write-flow-and-content-fabric' },
               { text: 'Project Composition', link: '/project-composition' },
               { text: 'Quick Start', link: '/guide/' },
             ]

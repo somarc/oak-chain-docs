@@ -11,6 +11,9 @@ If you only read one architecture artifact, use this one. It shows how request e
 
 ![Oak Chain system map v2 showing experience surface, consensus truth plane, settlement and addressing plane, and runtime control-plane components](/diagrams/oak-chain-system-map-v2.svg)
 
+Related companion visual:
+- [Write Flow + Content Fabric](/write-flow-and-content-fabric)
+
 ## Excalidraw Source
 
 - Editable source (v2): `public/diagrams/oak-chain-system-map-v2.excalidraw`
