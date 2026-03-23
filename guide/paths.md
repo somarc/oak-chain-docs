@@ -5,7 +5,8 @@ next: /guide/binaries
 
 # Content Paths
 
-Oak Chain uses wallet-based namespacing with deterministic sharding.
+Oak Chain uses wallet-based namespacing with deterministic ownership and
+routing.
 
 ## Why This Matters
 
@@ -13,7 +14,7 @@ Path design is a core contract for routing, ownership boundaries, and query beha
 
 ## What You'll Prove
 
-- You can derive deterministic shard paths from wallet identity.
+- You can derive deterministic wallet-root paths from wallet identity.
 - You can separate organization scopes under one wallet namespace.
 - You can structure content for predictable indexing and retrieval.
 
@@ -69,9 +70,12 @@ Only 0x742d35Cc... can write to:
 The `{L1}/{L2}/{L3}` prefix enables:
 
 - **256³ = 16.7M shards**
-- **Deterministic routing**: `hash(wallet) → shard`
+- **Deterministic routing** by wallet-derived path prefix
 - **Fault isolation**: Issues contained to shard
 - **Parallel processing**: Shards processed independently
+
+Clusters own explicit ranges of those prefixes. The owning cluster is the only
+cluster allowed to write that namespace; remote clusters may mount it read-only.
 
 ### 3. Organization Scope
 
@@ -157,6 +161,15 @@ Content can reference other organizations (read-only):
 Each wallet/brand namespace should maintain **consistent content structure** for indexing and querying to work efficiently. See [API Reference - Content Structure](/guide/api#content-structure--style-guides) for details on namespace-level style guides.
 
 **Key point**: Oak Chain doesn't enforce content structure at the consensus layer, but **brand maintainers should enforce consistency** within their namespace for queries to work.
+
+## Operational Model
+
+- **Intra-cluster consensus**: the authoritative cluster owns writes for the
+  namespace and replicates them via local Aeron/Raft.
+- **Cross-cluster reads**: other clusters can expose the namespace through lazy
+  read-only mounts.
+- **Discovery**: cluster announcements or registries belong to a separate
+  control plane and should not be confused with consensus.
 
 ## Next Steps
 

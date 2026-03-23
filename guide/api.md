@@ -300,7 +300,7 @@ Oak Chain stores content flexibly—you can write any JSON structure. However, *
 When you send `message` in `POST /v1/propose-write`, the validator parses it as JSON and **materializes it into JCR nodes/properties** under the generated content path:
 
 ```
-/oak-chain/{shard1}/{shard2}/{shard3}/0x{wallet}/{organization}/content/{contentType}-{timestamp}
+/oak-chain/{L1}/{L2}/{L3}/0x{wallet}/{organization}/content/{contentType}-{timestamp}
 ```
 
 **Mapping rules** (practical behavior):

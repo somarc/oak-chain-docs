@@ -17,7 +17,11 @@ The complete system: Authors create content (via AEM Connector or SDK), MetaMask
 
 ## Content Write Flow
 
-When an author creates or modifies content in Sling, the change is **signed with their wallet**, submitted as a proposal to the Raft leader, **replicated across validators**, and committed to the Oak segment store. Every write is cryptographically signed and consensus-verified.
+When an author creates or modifies content in Sling, the network first resolves
+which cluster owns that wallet namespace. If the request reaches the wrong
+cluster, it is redirected before queueing. The authoritative cluster then
+accepts the **signed proposal**, replicates it across its own Aeron validators,
+and commits it to the local Oak segment store.
 
 <FlowGraph flow="write" :height="420" />
 
@@ -25,12 +29,13 @@ When an author creates or modifies content in Sling, the change is **signed with
 
 1. **Author creates content** via AEM Connector or Oak Chain SDK
 2. **Wallet signs** the content change with secp256k1 key
-3. **Write proposal** is created with signature
-4. **Raft leader** receives and validates the proposal
-5. **Log replication** sends entry to all followers
-6. **Followers acknowledge** receipt
-7. **Commit** happens when majority confirms
-8. **Oak Store** persists content to TAR segments
+3. **Authority check** resolves the owning cluster for that wallet namespace
+4. **Foreign cluster redirects** if the request hit a non-owning cluster
+5. **Raft leader** in the authoritative cluster receives and validates the proposal
+6. **Log replication** sends entry to local followers
+7. **Followers acknowledge** receipt
+8. **Commit** happens when the local majority confirms
+9. **Oak Store** persists content to TAR segments
 
 ---
 
@@ -150,15 +155,17 @@ We reasoned up from these atoms. The result: a system that's fundamentally diffe
 
 ## Cluster Topology
 
-The network scales horizontally through multiple clusters, each sovereign over a shard of wallet addresses.
+The network scales horizontally through multiple clusters. Each cluster is a
+sovereign Aeron-backed fiefdom over a portion of the wallet namespace: one
+local writable repository, plus lazy read-only views of remote clusters.
 
 ```mermaid
 graph LR
     subgraph ClusterA["Cluster A"]
         direction TB
         LA[Leader + Followers]
-        SA["✏️ /oak-chain/00-3F/*<br/>READ-WRITE"]
-        MA["👁️ /oak-chain/40-FF/*<br/>READ-ONLY"]
+        SA["✏️ owned wallet prefixes<br/>READ-WRITE"]
+        MA["👁️ remote wallet prefixes<br/>READ-ONLY"]
         LA --> SA
         LA -.-> MA
     end
@@ -166,8 +173,8 @@ graph LR
     subgraph ClusterB["Cluster B"]
         direction TB
         LB[Leader + Followers]
-        SB["✏️ /oak-chain/40-7F/*<br/>READ-WRITE"]
-        MB["👁️ /oak-chain/00-3F,80-FF/*<br/>READ-ONLY"]
+        SB["✏️ owned wallet prefixes<br/>READ-WRITE"]
+        MB["👁️ remote wallet prefixes<br/>READ-ONLY"]
         LB --> SB
         LB -.-> MB
     end
@@ -180,8 +187,8 @@ graph LR
     subgraph ClusterN["Cluster N"]
         direction TB
         LN[Leader + Followers]
-        SN["✏️ /oak-chain/C0-FF/*<br/>READ-WRITE"]
-        MN["👁️ /oak-chain/00-BF/*<br/>READ-ONLY"]
+        SN["✏️ owned wallet prefixes<br/>READ-WRITE"]
+        MN["👁️ remote wallet prefixes<br/>READ-ONLY"]
         LN --> SN
         LN -.-> MN
     end
@@ -205,17 +212,27 @@ graph LR
     style LD fill:#1a1a2e,color:#888
 ```
 
-**Each cluster is sovereign over its shard, but mounts all others read-only.**
+**Each cluster is sovereign over its own shard, but mounts remote shards
+read-only. Consensus stays local.**
 
 | | Cluster A | Cluster B |
 |---|-----------|-----------|
 | **Writes** | `/oak-chain/00-7F/*` | `/oak-chain/80-FF/*` |
 | **Reads** | Everything | Everything |
 
-- **Wallet 0x74...** → hash maps to shard `74` → **Cluster A** is authoritative
-- **Wallet 0xAB...** → hash maps to shard `AB` → **Cluster B** is authoritative
+- **Wallet 0x74...** → prefix `74/...` falls in Cluster A's owned range → **Cluster A** is authoritative
+- **Wallet 0xAB...** → prefix `ab/...` falls in Cluster B's owned range → **Cluster B** is authoritative
 
 Authors write to their authoritative cluster. All clusters can read all content.
+
+### Three Operational Planes
+
+- **Intra-cluster consensus**: Aeron/Raft governs the local writable
+  repository only.
+- **Cross-cluster reads**: remote content is mounted lazily and read-only over
+  HTTP segment transfer.
+- **Discovery**: cluster announcements and route hints are a separate control
+  plane, not part of consensus.
 
 ### Scaling
 
@@ -241,7 +258,7 @@ The architecture scales horizontally by adding clusters:
 
 **Key insight**: Write throughput scales linearly (each cluster handles its shard independently). Read latency stays constant (local mount). Sync overhead grows with cluster count but is optimized via:
 - Lazy segment fetching (pull on demand)
-- Gossip-based journal propagation
+- Announcement/gossip-based discovery and mount refresh
 - Hierarchical sync topology
 
 ---

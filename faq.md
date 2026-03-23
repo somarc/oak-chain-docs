@@ -117,12 +117,15 @@ See [Binary Storage Guide](/guide/binaries) for IPFS setup.
 
 ### How does wallet-based sharding work?
 
-Content is automatically assigned to clusters based on your wallet address hash:
+Content is assigned to an authoritative cluster based on the wallet-derived
+namespace prefix:
 
-```java
-int shard = hash(walletAddress) & 0xFFF;  // 12-bit = 4096 shards
-Cluster cluster = shardToCluster(shard);
+```text
+/oak-chain/{L1}/{L2}/{L3}/0x{wallet}/...
 ```
+
+Clusters own explicit ranges of that wallet namespace. A write must go to the
+cluster that owns the wallet prefix; other clusters redirect before queueing.
 
 **You cannot choose** which cluster stores your content—assignment is deterministic and automatic. This ensures:
 - **Fair distribution** across clusters
@@ -133,9 +136,14 @@ Cluster cluster = shardToCluster(shard);
 ```
 /oak-chain/{L1}/{L2}/{L3}/0x{wallet}/...
 ```
-The `{L1}/{L2}/{L3}` prefix (first 6 hex chars) determines shard assignment.
+The `{L1}/{L2}/{L3}` prefix (first 6 hex chars) is the canonical wallet path
+root used for ownership and routing.
 
-All clusters can **read** all content via composite mounts, but only your assigned cluster can **write** to your namespace.
+Operationally:
+
+- your authoritative cluster is the only place your namespace is writable
+- other clusters can still **read** your content through lazy read-only mounts
+- discovery of remote clusters is a separate control plane, not consensus
 
 See [Content Paths](/guide/paths) for details.
 
@@ -454,7 +462,7 @@ Yes. Organizations can use multiple wallets for:
 - **Security**: Limit exposure if one wallet is compromised
 
 **Management**:
-- Each wallet has its own namespace (`/oak-chain/{shard}/0x{wallet}/...`)
+- Each wallet has its own namespace (`/oak-chain/{L1}/{L2}/{L3}/0x{wallet}/...`)
 - Content is isolated per wallet
 - No built-in cross-wallet management UI (use your own tooling)
 

@@ -108,41 +108,65 @@ Both models converge at the same validator cluster and Ethereum layer—the diff
 
 ---
 
-## The Five Layers
+## The Three Operational Planes
+
+Oak Chain works best when you think of it as many sovereign validator
+clusters, not one giant consensus mesh.
+
+Operationally, each validator cluster behaves like an AEM/Oak fiefdom:
+
+- one local Aeron consensus boundary
+- one authoritative writable repository
+- one wallet-ownership domain
+
+Everything else is a separate plane.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Layer 5: Visual Abstraction (Future)                       │
-│  Pretty names → wallet addresses                            │
+│  Plane 3: Discovery (Future Control Plane)                  │
+│  Cluster announcements, registry, route hints               │
 ├─────────────────────────────────────────────────────────────┤
-│  Layer 4: Payment                                           │
-│  One wallet per cluster, ETH payments                       │
+│  Plane 2: Cross-Cluster Reads                               │
+│  Lazy read-only mounts, HTTP segment transfer               │
 ├─────────────────────────────────────────────────────────────┤
-│  Layer 3: Cross-Cluster Reads                               │
-│  Composite mounts, HTTP segment transfer                    │
-├─────────────────────────────────────────────────────────────┤
-│  Layer 2: Cluster Authority                                 │
-│  Deterministic sharding by wallet hash                      │
-├─────────────────────────────────────────────────────────────┤
-│  Layer 1: Content Ownership                                 │
-│  Wallet address = namespace                                 │
+│  Plane 1: Intra-Cluster Consensus                           │
+│  Aeron cluster, local writes, authoritative repository      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 <div class="layer-section">
 
-## Layer 1: Content Ownership
+## Plane 1: Intra-Cluster Consensus
 
-**Wallet address IS the namespace.**
+**Aeron consensus is local to one authoritative cluster.**
+
+Consensus never spans multiple clusters. A write must land on the cluster that
+owns the wallet namespace. Inside that cluster:
+
+- validators elect a leader
+- the leader verifies the write and payment
+- Aeron replicates the command to followers
+- the local authoritative repository commits the change
+
+Foreign-shard writes are redirected before they enter the wrong cluster's local
+queue.
+
+</div>
+
+<div class="layer-section">
+
+## Content Ownership
+
+**Wallet address is the namespace root.**
 
 ```
-/oak-chain/{L1}/{L2}/{L3}/0x{wallet}/{organization}/content/...
+/oak-chain/{L1}/{L2}/{L3}/0x{wallet}/...
 ```
 
 - `{L1}/{L2}/{L3}` - First 6 hex chars of wallet (e.g., `74/2d/35`)
 - `0x{wallet}` - Full Ethereum wallet address (owner)
-- `{organization}` - Optional organization/brand scope
-- `content/` - Standard AEM content root within each scope
+- `{organization}` - Optional organization/brand scope below the wallet root
+- `content/` - Standard AEM content root when used
 
 **Example:**
 ```
@@ -158,53 +182,48 @@ Only the wallet owner can write to their namespace. Self-sovereign, no central a
 
 <div class="layer-section">
 
-## Layer 2: Cluster Authority
+## Plane 2: Cross-Cluster Reads
 
-**Deterministic sharding by wallet hash.**
+**Remote clusters are mounted lazily and read-only.**
 
-```java
-int shard = hash(walletAddress) & 0xFFF;  // 12-bit = 4096 shards
-Cluster cluster = shardToCluster(shard);
-```
+Every cluster can mount other clusters over HTTP segment transfer to build a
+broader read view. Those remote mounts are:
 
-Each cluster is authoritative (read-write) for its shard range. Sharding is by **wallet**, not by organization name.
+- read-only
+- outside Aeron
+- allowed to fail without making the local authoritative shard unwritable
 
-</div>
-
-<div class="layer-section">
-
-## Layer 3: Cross-Cluster Reads
-
-**Composite mounts for global content graph.**
-
-Every cluster READ-ONLY mounts all other clusters via HTTP segment transfer. This enables:
-- Global content discovery
-- Cross-organization references
-- Local write authority with global reads
+This is how the network gets a global content graph without turning all
+clusters into one consensus system.
 
 </div>
 
 <div class="layer-section">
 
-## Layer 4: Payment
+## Plane 3: Discovery (Future)
 
-**One wallet per cluster.**
+**Discovery is a separate control plane, not consensus.**
+
+Discovery answers questions like:
+
+- which clusters exist?
+- which wallet prefixes do they own?
+- where are their read endpoints?
+
+It can later use signed announcements or gossip-style propagation, but it must
+never become a hidden write or consensus path.
+
+</div>
+
+<div class="layer-section">
+
+## Supporting Concerns
+
+**Payment, economics, and visual naming are separate from the three planes.**
 
 - Cluster = economic unit
 - Internal node distribution is off-chain
 - Payment verification via Ethereum smart contract
-
-</div>
-
-<div class="layer-section">
-
-## Layer 5: Visual Abstraction (Future)
-
-**Pretty names for wallet addresses.**
-
-- "Adobe" → `0xADOBE_CORP...`
-- Cosmetic only, doesn't affect storage
-- Deferred feature
 
 </div>
 
@@ -213,6 +232,9 @@ Every cluster READ-ONLY mounts all other clusters via HTTP segment transfer. Thi
 ## Consensus Model
 
 Oak Chain uses **Aeron Cluster** for Raft-based consensus.
+
+That consensus scope is strictly local to one validator cluster. Cross-cluster
+reads happen outside Aeron through lazy read-only mounts.
 
 ```mermaid
 stateDiagram-v2
