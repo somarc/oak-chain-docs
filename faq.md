@@ -178,7 +178,7 @@ Payments provide:
 
 ### How much does it cost?
 
-Current v1 prices come from the `ValidatorPaymentV3_2` contract. These are contract price classes, not fixed runtime latency tiers.
+Current v1 prices come from the `ValidatorPaymentV3_2` contract. These classes set payment amount, but they are not a public latency SLA.
 
 | Tier | ETH Price | USDC Price |
 |------|-----------|------------|
@@ -208,12 +208,11 @@ Validators verify payment before accepting writes.
 
 ### How fast is it?
 
-Oak Chain now uses adaptive-capacity release after verification.
+Oak releases verified proposals through an adaptive packing buffer before Aeron consensus.
 
-- Verified proposals release according to queue health and packing state
-- `STANDARD` and `EXPRESS` no longer imply fixed runtime delays
-- `PRIORITY` only changes release behavior when direct release is explicitly enabled
+- release timing depends on verification status, queue pressure, and Aeron health
 - Ethereum confirmation windows still matter for payment verification
+- payment class affects price, not a guaranteed wait time
 
 ### What's the maximum content size?
 
@@ -313,7 +312,7 @@ Migration tooling is planned for future releases. See [AEM Integration Guide](/g
 **Release timing**:
 - Adaptive-capacity scheduler decides when verified work is released
 - Ethereum confirmation windows still influence payment verification
-- `PRIORITY` may release faster only if direct release is enabled in runtime config
+- payment class should not be read as a latency guarantee
 
 **Note**: Oak Chain uses Aeron Raft, which can handle 100,000+ messages/sec at the messaging layer. Actual throughput depends on Oak segment store operations and Ethereum verification.
 
@@ -538,7 +537,7 @@ Yes. Organizations can use multiple wallets for:
 
 **Best practices**:
 - **Batch writes** when possible (multiple nodes in one proposal)
-- **Use the cheapest contract class that satisfies your economic needs**
+- **Choose the payment class that fits your economics and workflow**
 - **Distribute across clusters** via sharding for higher throughput
 
 **Note**: Spam prevention comes from **economic cost** (ETH payments), not rate limits.

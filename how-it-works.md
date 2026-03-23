@@ -52,15 +52,15 @@ Validators monitor those events and authorize writes for the paying wallet addre
 
 <FlowGraph flow="payment" :height="380" />
 
-### Contract Price Classes
+### Payment Classes
 
-The payment contract still exposes three price classes, but validator release is now adaptive-capacity rather than fixed per-tier delay.
+The payment contract exposes three classes. Those classes determine price, while release into consensus is handled by Oak's adaptive packing buffer.
 
-| Class | Current V1 Price | Runtime Meaning |
-|------|------------------|-----------------|
-| **Priority** | 0.01 ETH or 32.50 USDC | Compatibility class; direct release may be enabled after verification |
-| **Express** | 0.002 ETH or 6.50 USDC | Compatibility class; adaptive release has no fixed delay |
-| **Standard** | 0.001 ETH or 3.25 USDC | Compatibility class; adaptive release has no fixed delay |
+| Class | Current V1 Price | Typical Fit |
+|------|------------------|-------------|
+| **Priority** | 0.01 ETH or 32.50 USDC | Premium or policy-sensitive flows |
+| **Express** | 0.002 ETH or 6.50 USDC | General publishing |
+| **Standard** | 0.001 ETH or 3.25 USDC | Cost-sensitive bulk and archive flows |
 
 ---
 

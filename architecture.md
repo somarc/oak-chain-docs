@@ -327,13 +327,13 @@ This enables horizontal read scaling without consensus overhead. See the [AEM In
 
 ## Economic Model
 
-### Contract Price Classes
+### Payment Classes
 
-| Class | ETH Price | USDC Price | Runtime Meaning |
-|------|-----------|------------|-----------------|
-| **PRIORITY** | 0.01 ETH | 32.50 USDC | Compatibility price class; direct release may be enabled after verification |
-| **EXPRESS** | 0.002 ETH | 6.50 USDC | Compatibility price class; adaptive release has no fixed delay |
-| **STANDARD** | 0.001 ETH | 3.25 USDC | Compatibility price class; adaptive release has no fixed delay |
+| Class | ETH Price | USDC Price | Typical Fit |
+|------|-----------|------------|-------------|
+| **PRIORITY** | 0.01 ETH | 32.50 USDC | Premium or policy-sensitive flows |
+| **EXPRESS** | 0.002 ETH | 6.50 USDC | General publishing |
+| **STANDARD** | 0.001 ETH | 3.25 USDC | Cost-sensitive bulk and archive flows |
 
 ### Payment Flow
 
@@ -342,7 +342,7 @@ This enables horizontal read scaling without consensus overhead. See the [AEM In
 3. Validator verifies payment via Beacon Chain API
 4. Write proceeds after verification
 
-Release policy is adaptive-capacity. Fixed per-tier runtime delays are deprecated.
+After verification, writes enter an adaptive packing buffer and release into Aeron according to live system capacity.
 
 ---
 

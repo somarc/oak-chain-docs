@@ -36,7 +36,7 @@ Walk the end-to-end pipeline once, then inspect `GET /v1/proposals/queue/stats` 
 
 ### 2. Payment Pathway
 
-- Request may include `paymentTier` as a compatibility price class / entitlement hint.
+- Request may include `paymentTier` to identify the class used in the payment contract flow.
 - Payment proof path uses chain-backed tx/event verification in deployed networks.
 - Payment result determines whether proposal continues or is rejected.
 
@@ -46,17 +46,17 @@ Walk the end-to-end pipeline once, then inspect `GET /v1/proposals/queue/stats` 
 - Verifier agents run proof/auth/payment checks and update counters.
 - Successfully verified proposals move to epoch/tier routing.
 
-### 4. Adaptive Release + Compatibility Overlay
+### 4. Adaptive Packing and Release
 
 - Verified proposals move into an adaptive packing buffer.
-- `STANDARD` and `EXPRESS` remain compatibility price classes; they no longer imply fixed release delays.
-- `PRIORITY` only changes release behavior when direct release is explicitly enabled.
+- The runtime groups nearby writes and forms storage-aware micro-batches.
+- Release cadence is governed by live capacity, not a fixed per-class wait.
 - Queue stats expose this behavior via:
   - `proposalsByEpoch`
   - `proposalsByEpochAndTier`
   - `pendingEpochStats`
 
-### 5. Adaptive Packing -> Batch Construction
+### 5. Batch Construction
 
 - Finalizer agent selects ready epoch buckets.
 - Proposals are converted into sendable batches/chunks.
@@ -92,12 +92,12 @@ High-value fields:
 
 ## Payment Pathways in Practice
 
-::: info Adaptive-capacity release
-The canonical release view is now `GET /v1/proposals/release-flow`.
+::: info Release model
+The canonical release view is `GET /v1/proposals/release-flow`.
 
-- Adaptive packing is the default normal path after verification
-- `STANDARD` / `EXPRESS` are compatibility classes, not fixed-delay schedules
-- `PRIORITY` direct release is a toggleable compatibility entitlement, not the general model
+- verified proposals enter a packing buffer
+- the runtime groups and packs them for storage locality
+- Aeron release is capacity-governed rather than tied to a fixed per-class delay
 :::
 
 ::: warning Throughput nuance

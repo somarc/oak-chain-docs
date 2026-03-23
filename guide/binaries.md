@@ -202,7 +202,7 @@ async function uploadImage(file, wallet, org, proposalId, paymentTxHash) {
 }
 ```
 
-For author-owned IPFS flows, `paymentTier` is usually unnecessary. Only send it if your client needs to mirror a specific compatibility price class or request a priority-only validator-hosted binary entitlement.
+For author-owned IPFS flows, the important fields are still `proposalId`, `ethereumTxHash`, `signature`, and the CID-backed metadata. If your payment flow uses a contract class, send the same `paymentTier` value with the write request.
 
 ## Garbage Collection
 

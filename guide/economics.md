@@ -3,33 +3,33 @@ prev: /guide/proposal-flow
 next: /guide/paths
 ---
 
-# Economics and Adaptive Release
+# Economics and Release Model
 
 Oak Chain uses Ethereum payments for economic security. Every write is backed by real value.
 
 ## Why This Matters
 
-Economic policy still matters, but release behavior is no longer modeled as fixed tier delays. The current runtime uses an adaptive-capacity scheduler after verification.
+Oak Chain prices writes through the payment contract and releases verified work through an adaptive packing buffer before Aeron consensus.
 
 ## What You'll Prove
 
-- You understand how contract price classes differ from runtime release behavior.
-- You can explain why fixed tier delays are deprecated in adaptive-capacity mode.
-- You can identify the few cases where `paymentTier` still matters.
+- You understand the three payment classes exposed by the contract.
+- You understand how verified proposals are packed and released.
+- You know which fields matter in a chain-backed write request.
 
 ## Next Action
 
-Check the live release model with `GET /v1/blockchain/config`, then submit one write using the examples below.
+Read the pricing and release model below, then submit one write using the example request.
 
-## Contract Price Classes
+## Payment Classes
 
-Current prices below reflect the v1 contract constants in `ValidatorPaymentV3_2`. These are still contract-facing price classes, but they are no longer the primary release scheduler.
+Current prices below reflect the v1 contract constants in `ValidatorPaymentV3_2`.
 
-| Class | ETH Price | USDC Price | Current Runtime Meaning |
-|------|-----------|------------|-------------------------|
-| **PRIORITY** | 0.01 ETH | 32.50 USDC | Compatibility price class; may enable direct release after verification if explicitly enabled |
-| **EXPRESS** | 0.002 ETH | 6.50 USDC | Compatibility price class; adaptive release has no fixed delay |
-| **STANDARD** | 0.001 ETH | 3.25 USDC | Compatibility price class; adaptive release has no fixed delay |
+| Class | ETH Price | USDC Price | Typical Fit |
+|------|-----------|------------|-------------|
+| **PRIORITY** | 0.01 ETH | 32.50 USDC | Premium or policy-sensitive write flows |
+| **EXPRESS** | 0.002 ETH | 6.50 USDC | General publishing flows |
+| **STANDARD** | 0.001 ETH | 3.25 USDC | Cost-sensitive bulk or archive flows |
 
 ## How It Works
 
@@ -49,33 +49,37 @@ sequenceDiagram
     V->>A: 200 OK
 ```
 
-## Adaptive Release Model
+## Release Model
 
-The runtime now reports the release scheduler as adaptive-capacity. Verified proposals enter an adaptive packing buffer and release when Aeron is healthy, instead of waiting on a fixed per-tier clock.
+After payment proof and signature checks pass, Oak does not simply fire every write straight into Aeron. Verified proposals enter a packing buffer where the runtime:
 
-- `schedulerModel`: `adaptive-capacity`
-- `fixedTierDelayDeprecated`: `true`
-- `STANDARD` / `EXPRESS`: compatibility price classes with no fixed delay
-- `PRIORITY`: compatibility price class; direct release is an optional compatibility entitlement when enabled
+- groups nearby writes
+- organizes them for storage locality
+- forms bounded micro-batches
+- releases those batches according to live system capacity
 
-Use these runtime surfaces to inspect the live behavior:
+That means release timing depends on verification status, queue pressure, and Aeron health, not on a fixed per-class clock.
+
+Use these runtime surfaces when you want to inspect live behavior:
 
 - `GET /v1/blockchain/config`
 - `GET /v1/proposals/release-flow`
 
-Ethereum epochs still matter for confirmation windows and payment verification, but they are no longer the public mental model for write latency.
+Ethereum epochs still matter for confirmation windows and payment verification, but they are not the public model for write latency.
 
-## When `paymentTier` Still Matters
+## Request Guidance
 
 For Sepolia/Mainnet, each request reuses the same `proposalId` that was paid for on-chain.
 
-Use `paymentTier` when:
+For chain-backed writes, the important fields are:
 
-- Your client wants to mirror the contract-facing price class explicitly
-- You are using mock-mode simulations that still default through the legacy enum
-- You need a priority-only entitlement such as validator-hosted binary upload when that policy is enabled
+- `proposalId`
+- `walletAddress`
+- `message`
+- `ethereumTxHash`
+- `signature`
 
-For ordinary chain-backed writes, the important fields are `proposalId`, `walletAddress`, `message`, `ethereumTxHash`, and `signature`.
+If your payment flow uses a contract class, send the same `paymentTier` value with the request. It tells Oak which class was paid for, but it should not be interpreted as a latency SLA.
 
 ## Example Write
 
@@ -86,11 +90,12 @@ curl -X POST http://localhost:8090/v1/propose-write \
   -d "walletAddress=0xWALLET" \
   -d "message=Breaking news..." \
   -d "contentType=page" \
+  -d "paymentTier=express" \
   -d "ethereumTxHash=0x..." \
   -d "signature=0x..."
 ```
 
-If your client needs to mirror the paid contract class explicitly, include `paymentTier`, but treat it as an economic/compatibility field rather than a latency SLA.
+The example includes `paymentTier` because the payment contract was called with a concrete class. Keep the request and payment flow consistent.
 
 ## Smart Contract
 
@@ -119,7 +124,7 @@ Validators verify payments by:
 1. Querying Beacon Chain for epoch data
 2. Checking `ProposalPaid` events for the configured contract address
 3. Matching `txHash` to the observed payment event
-4. Verifying the payment is valid for the paid contract class
+4. Verifying the payment is valid for the paid class
 
 ## Pricing Rationale
 
@@ -128,7 +133,7 @@ Validators verify payments by:
 | **Ethereum gas** | Base cost for payment tx |
 | **Validator compute** | Consensus + storage |
 | **Replication** | 3+ copies across network |
-| **Finality guarantee** | Economic security and release-policy guardrails |
+| **Finality guarantee** | Economic security and release discipline |
 
 Prices are set to:
 - Cover validator operating costs

@@ -1696,7 +1696,7 @@ components:
         paymentTier:
           type: string
           enum: [standard, express, priority]
-          description: Optional compatibility price class / entitlement hint. Adaptive release has no fixed delay by tier; omit unless your client needs to mirror the contract class or request a priority-only entitlement.
+          description: Optional payment class. When supplied, it should match the class used in the smart-contract payment flow. It affects pricing and any class-based network policies, but it is not a latency SLA.
         signature:
           type: string
           description: Wallet signature of the proposal
@@ -1708,7 +1708,7 @@ components:
           description: IPFS CID for client-side upload (default mode)
         binaryData:
           type: string
-          description: Legacy base64-encoded binary payload (validator-hosted; may require paymentTier=priority when that entitlement policy is enabled)
+          description: Legacy base64-encoded binary payload (validator-hosted). Some network policies may require paymentTier=priority for this path.
         mimeType:
           type: string
           description: MIME type for legacy base64 binary payload (validator-hosted)
@@ -1724,7 +1724,7 @@ components:
             file:
               type: string
               format: binary
-              description: Binary payload (validator-hosted; may require paymentTier=priority when that entitlement policy is enabled)
+              description: Binary payload (validator-hosted). Some network policies may require paymentTier=priority for this path.
             mimeType:
               type: string
               description: Optional MIME type override
@@ -1749,7 +1749,7 @@ components:
         paymentTier:
           type: string
           enum: [standard, express, priority]
-          description: Optional compatibility price class / economic selector. Adaptive release has no fixed delay by tier; omit unless your client needs to mirror the contract class.
+          description: Optional payment class. When supplied, it should match the class used in the smart-contract payment flow. It affects pricing and any class-based network policies, but it is not a latency SLA.
         signature:
           type: string
         clientId:

@@ -215,7 +215,7 @@ Required fields:
 
 Optional fields:
 - `contentType` (default `page`)
-- `paymentTier` (`standard`, `express`, `priority`) as an optional compatibility price class / entitlement hint
+- `paymentTier` (`standard`, `express`, `priority`) as an optional payment class field
 - `organization`
 - `intentToken`
 - `ipfsCid`
@@ -231,10 +231,10 @@ Required fields:
 - `ethereumTxHash`
 
 Optional fields:
-- `paymentTier` (`standard`, `express`, `priority`) as an optional compatibility price class / economic selector
+- `paymentTier` (`standard`, `express`, `priority`) as an optional payment class field
 - `clientId`
 
-For chain-backed writes, `proposalId` should be the bytes32 identifier used in the smart-contract payment/authorize step. In mock mode you can use a synthetic UUID or test hex identifier. `paymentTier` is no longer the primary release model; the scheduler is adaptive-capacity and fixed tier delays are deprecated. Keep `paymentTier` only when your client needs to mirror the contract price class or request a priority-only entitlement. Delete remains part of the API surface, but chain-backed delete payment parity is still under implementation.
+For chain-backed writes, `proposalId` should be the bytes32 identifier used in the smart-contract payment/authorize step. In mock mode you can use a synthetic UUID or test hex identifier. If your payment flow uses a contract class, send the same `paymentTier` value with the write request. That field communicates the paid class and any class-based policy, but it is not a latency promise. Delete remains part of the API surface, but chain-backed delete payment parity is still under implementation.
 
 ---
 
@@ -492,7 +492,7 @@ curl -X POST http://localhost:8090/v1/propose-write \
 curl "http://localhost:8090/api/explore?path=/oak-chain/74/2d/35/0x742d35Cc.../MyBrand/content/pages/hello"
 ```
 
-Add `paymentTier` only when you need to mirror the contract-facing price class or request a priority-only entitlement.
+Add `paymentTier` when your payment flow uses a contract class and keep it consistent with the class you paid for on-chain.
 
 ---
 
