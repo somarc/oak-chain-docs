@@ -43,7 +43,7 @@ sequenceDiagram
     
     A->>SC: payForProposal(proposalId, tier)
     SC->>ETH: Emit ProposalPaid
-    A->>V: propose-write + txHash
+    A->>V: propose-write + proposalId + txHash
     V->>ETH: Verify payment
     V->>Oak: Commit write
     V->>A: 200 OK
@@ -64,11 +64,14 @@ Oak Chain uses Ethereum's **epoch** system for finality:
 
 ## Tier Details
 
+For Sepolia/Mainnet, each request reuses the same `proposalId` that was paid for on-chain.
+
 ### PRIORITY (~30s)
 
 ```bash
 curl -X POST http://localhost:8090/v1/propose-write \
   -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "proposalId=0x1111111111111111111111111111111111111111111111111111111111111111" \
   -d "walletAddress=0xWALLET" \
   -d "message=Breaking news..." \
   -d "contentType=page" \
@@ -88,6 +91,7 @@ curl -X POST http://localhost:8090/v1/propose-write \
 ```bash
 curl -X POST http://localhost:8090/v1/propose-write \
   -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "proposalId=0x2222222222222222222222222222222222222222222222222222222222222222" \
   -d "walletAddress=0xWALLET" \
   -d "message=Article content..." \
   -d "contentType=page" \
@@ -107,6 +111,7 @@ curl -X POST http://localhost:8090/v1/propose-write \
 ```bash
 curl -X POST http://localhost:8090/v1/propose-write \
   -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "proposalId=0x3333333333333333333333333333333333333333333333333333333333333333" \
   -d "walletAddress=0xWALLET" \
   -d "message=Archive content..." \
   -d "contentType=page" \

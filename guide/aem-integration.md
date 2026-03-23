@@ -45,19 +45,19 @@ AEM customers integrate via **[Oak Chain Connector](https://github.com/somarc/oa
 - Provides **composite mount** for read-only oak-chain content
 - Includes **wallet services** for write proposals
 
-**For non-AEM applications**, use the **[Oak Chain SDK](https://github.com/somarc/oak-chain-sdk)** - a JavaScript/TypeScript library for any application.
+**For non-AEM applications**, use the validator HTTP API directly today, or adopt the **[Oak Chain SDK](https://github.com/somarc/oak-chain-sdk)** once its write-side contract realignment lands.
 
 ---
 
 ## Architecture: JCR is Truth
 
-Oak Chain follows the same principle as traditional AEM: **JCR is the source of truth**. All content authoring happens via JCR API (AEM Connector) or REST API (Oak Chain SDK). EDS is a delivery optimization layer that consumes content changes via SSE.
+Oak Chain follows the same principle as traditional AEM: **JCR is the source of truth**. All content authoring happens via JCR API (AEM Connector) or the validator REST API. EDS is a delivery optimization layer that consumes content changes via SSE.
 
 <FlowGraph flow="two-models" :height="340" />
 
 | Layer | Role | Technology | What's Stored |
 |-------|------|------------|---------------|
-| **Authoring** | Content creation via JCR API | AEM Connector / Oak Chain SDK → Validators | — |
+| **Authoring** | Content creation via JCR API | AEM Connector / direct validator clients / SDK clients-in-progress → Validators | — |
 | **Storage (Structured)** | Consensus-replicated Oak segments | Validator cluster (Raft) | Content nodes + CIDs (46 bytes) |
 | **Storage (Binaries)** | IPFS binary hosting | Author-owned or Validator-hosted IPFS | Actual binary files |
 | **Delivery** | Edge-optimized content serving | EDS (aem.live) via SSE subscription | Cached content + binaries |

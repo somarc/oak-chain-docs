@@ -423,6 +423,7 @@ await fetch('http://validator:8090/v1/propose-write', {
   method: 'POST',
   headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   body: new URLSearchParams({
+    proposalId: '0x1111111111111111111111111111111111111111111111111111111111111111',
     walletAddress: wallet,
     message: JSON.stringify(content),
     ethereumTxHash: txHash,
@@ -433,10 +434,9 @@ await fetch('http://validator:8090/v1/propose-write', {
 
 ### Is there a JavaScript SDK?
 
-Yes.
-The current SDK lives in [`somarc/oak-chain-sdk`](https://github.com/somarc/oak-chain-sdk).
-It wraps the validator REST API, signing flow, SSE client, and IPFS helpers.
-See [API Reference](/guide/api) for the underlying HTTP contract.
+There is a JavaScript package at [`somarc/oak-chain-sdk`](https://github.com/somarc/oak-chain-sdk), but the write-side client is currently being realigned to the validator contract.
+For chain-backed writes today, prefer direct HTTP against the validator API with a client-supplied `proposalId`.
+See [API Reference](/guide/api) for the current HTTP contract.
 
 ### Can I run my own cluster?
 
@@ -446,10 +446,10 @@ Yes! Oak Chain is open source. You can:
 - Fork and customize for your use case
 
 ```bash
-git clone https://github.com/mhess_adobe/blockchain-aem-infra.git
+git clone https://github.com/somarc/oak-chain-infra.git
 git clone https://github.com/somarc/jackrabbit-oak.git
-cd blockchain-aem-infra/shared/workflows
-./dev-mock.sh
+cd oak-chain-infra
+./modes/mock/validators/lifecycle/start-cluster.sh --build --fresh
 ```
 
 See [Operators Guide](/operators/) for production setup.

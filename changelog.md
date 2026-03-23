@@ -34,7 +34,7 @@ All notable changes to Oak Chain.
 
 #### API
 - `POST /v1/propose-write` - Submit content writes
-- `POST /v1/propose-delete` - Submit content deletions
+- `POST /v1/propose-delete` - Delete proposal API surface (mock complete; chain-backed parity in progress)
 - `GET /api/explore?path=...` - Read content
 - `GET /v1/events/stream` - Server-Sent Events stream
 - `GET /v1/consensus/status` - Cluster status

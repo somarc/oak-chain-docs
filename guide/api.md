@@ -155,9 +155,11 @@ These endpoints are the core surface used by operators, dashboards, and automati
 ### Write/Delete Proposal Submission
 
 - `POST /v1/propose-write`
+  - Signed content write proposal endpoint.
+  - In Sepolia/Mainnet, submit the same client-supplied `proposalId` used in the payment/authorize contract flow, along with the payment tx hash.
 - `POST /v1/propose-delete`
-  - Submission endpoints for content lifecycle proposals.
-  - Require wallet signature + payment tx hash.
+  - Signed delete proposal API surface.
+  - Intended to follow the same payment-backed model, but Sepolia/Mainnet contract parity is still being completed.
 
 ### Recommended Operator Query Set
 
@@ -205,6 +207,7 @@ For signal interpretation guidance, see [Oak Chain Primary Signals](/guide/prima
 **Write**: `application/x-www-form-urlencoded` or `multipart/form-data`
 
 Required fields:
+- `proposalId`
 - `walletAddress`
 - `signature`
 - `message`
@@ -228,7 +231,10 @@ Required fields:
 - `ethereumTxHash`
 
 Optional fields:
+- `paymentTier` (`standard`, `express`, `priority`)
 - `clientId`
+
+For chain-backed writes, `proposalId` should be the bytes32 identifier used in the smart-contract payment/authorize step. In mock mode you can use a synthetic UUID or test hex identifier. Delete remains part of the API surface, but chain-backed delete payment parity is still under implementation.
 
 ---
 
@@ -237,7 +243,7 @@ Optional fields:
 The OpenAPI spec lives at:
 - `public/openapi.yaml`
 
-It is the canonical source for schemas, request/response types, and status codes.
+It is the published Oak Chain HTTP contract and should stay aligned with the validator runtime plus downstream clients. `jackrabbit-oak` remains the implementation authority for live behavior.
 
 Fetch a raw Oak segment (for HTTP segment transfer).
 
@@ -444,28 +450,31 @@ await client.write({...});
 
 ---
 
-## SDK Examples
+## Client Examples
 
-### JavaScript
+The write-side contract is ahead of the current `oak-chain-sdk` package. For chain-backed writes, prefer direct HTTP examples until the SDK regains parity with the validator API.
+
+### JavaScript (Direct HTTP)
 
 ```javascript
-import { OakChainClient } from '@oak-chain/sdk';
+const proposalId = '0x1111111111111111111111111111111111111111111111111111111111111111';
 
-const client = new OakChainClient({
-  endpoint: 'http://localhost:8090',
-  signer: window.ethereum, // MetaMask signer
+const response = await fetch('http://localhost:8090/v1/propose-write', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({
+    proposalId,
+    walletAddress: '0x742d35Cc6634c0532925a3b844bc9e7595f0beb',
+    message: JSON.stringify({ title: 'Hello!' }),
+    paymentTier: 'express',
+    ethereumTxHash: '0x...',
+    signature: '0x...',
+    organization: 'MyBrand',
+  }),
 });
 
-// Write content
-const proposal = await signWriteProposal(window.ethereum, {
-  message: JSON.stringify({ title: 'Hello!' }),
-  ethereumTxHash: '0x...',
-  paymentTier: 'express',
-  organization: 'MyBrand',
-});
-
-const result = await client.proposeWrite(proposal);
-console.log('Proposal:', result.data?.proposalId);
+const result = await response.json();
+console.log('Proposal:', result.proposalId);
 ```
 
 ### cURL
@@ -474,6 +483,7 @@ console.log('Proposal:', result.data?.proposalId);
 # Write content
 curl -X POST http://localhost:8090/v1/propose-write \
   -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "proposalId=0x1111111111111111111111111111111111111111111111111111111111111111" \
   -d "walletAddress=0x742d35Cc6634c0532925a3b844bc9e7595f0beb" \
   -d "message={\"title\":\"Hello!\"}" \
   -d "paymentTier=standard" \

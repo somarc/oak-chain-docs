@@ -66,13 +66,12 @@ npm run build
 
 ```bash
 # Clone the infrastructure repo
-git clone https://github.com/mhess_adobe/blockchain-aem-infra.git
+git clone https://github.com/somarc/oak-chain-infra.git
 git clone https://github.com/somarc/jackrabbit-oak.git
-cd blockchain-aem-infra
+cd oak-chain-infra
 
 # Start the current local workflow
-cd shared/workflows
-./dev-mock.sh
+./modes/mock/validators/lifecycle/start-cluster.sh --build --fresh
 
 # View logs
 tail -f ~/oak-chain/logs/mock/validator-0.log

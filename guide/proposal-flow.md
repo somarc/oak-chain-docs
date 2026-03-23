@@ -6,7 +6,7 @@ next: /guide/economics
 # Proposal Flow
 
 Oak Chain proposal handling is a staged pipeline, not a single queue.  
-Writes and deletes enter through the same ingress, then move through verification, epoch routing, finalization, Raft replication, and deterministic commit.
+Writes move through this path today, and deletes are designed to share the same ingress and queue semantics once chain-backed delete parity is complete.
 
 ## Why This Matters
 
@@ -30,7 +30,7 @@ Walk the end-to-end pipeline once, then inspect `GET /v1/proposals/queue/stats` 
 
 ### 1. Ingress + Signature
 
-- Client submits `POST /v1/propose-write` or delete proposal APIs.
+- Client submits `POST /v1/propose-write` or `POST /v1/propose-delete`.
 - Wallet signature is validated before proposal acceptance.
 - Leader ingress applies schema and request guards.
 

@@ -36,7 +36,7 @@ sequenceDiagram
     MM->>U: Approve signature
     U->>MM: Confirm
     MM->>App: Return signature
-    App->>V: POST /v1/propose-write
+    App->>V: POST /v1/propose-write (proposalId + txHash)
     V->>V: Verify signature
     V->>App: 200 OK
 ```
@@ -142,7 +142,7 @@ const signature = await signer.signMessage(message);
 ## Complete Write Flow
 
 ```javascript
-async function writeContent(organization, content, tier, txHash) {
+async function writeContent(organization, content, tier, proposalId, txHash) {
   // 1. Get wallet
   const accounts = await window.ethereum.request({
     method: 'eth_requestAccounts'
@@ -162,6 +162,7 @@ async function writeContent(organization, content, tier, txHash) {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
+      proposalId,
       walletAddress: wallet,
       organization,
       message,

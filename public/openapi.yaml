@@ -302,6 +302,9 @@ paths:
       description: |
         Submit a signed write proposal to the consensus cluster.
         Requires a valid payment transaction hash from the smart contract.
+        In Sepolia/Mainnet, clients must also include the same `proposalId`
+        used in the authorize/payment contract flow. In mock mode, a synthetic
+        UUID or `0x`-prefixed 32-byte test identifier is acceptable.
       operationId: proposeWrite
       requestBody:
         required: true
@@ -368,7 +371,9 @@ paths:
       summary: Propose content deletion
       description: |
         Submit a signed delete proposal. Only the content owner (wallet)
-        can delete content at their path.
+        can delete content at their path. This is part of the Oak Chain API
+        surface, but chain-backed Sepolia/Mainnet contract parity is still
+        being completed; current runtimes may return `501` outside mock mode.
       operationId: proposeDelete
       requestBody:
         required: true
@@ -391,6 +396,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '403':
           description: Not authorized to delete this path
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '501':
+          description: Delete flow not yet available for the active network mode
           content:
             application/json:
               schema:
@@ -1657,8 +1668,11 @@ components:
 
     WriteProposalForm:
       type: object
-      required: [walletAddress, signature, ethereumTxHash]
+      required: [proposalId, walletAddress, signature, ethereumTxHash]
       properties:
+        proposalId:
+          type: string
+          description: Client-supplied proposal identifier. Use the same bytes32 proposalId paid for on-chain in Sepolia/Mainnet. Mock mode may use a UUID or test hex value.
         walletAddress:
           type: string
           pattern: ^0x[a-fA-F0-9]{40}$
@@ -1732,6 +1746,10 @@ components:
           type: string
           pattern: ^0x[a-fA-F0-9]+$
           description: Payment transaction hash
+        paymentTier:
+          type: string
+          enum: [standard, express, priority]
+          description: Payment tier / economic selector (default standard)
         signature:
           type: string
         clientId:

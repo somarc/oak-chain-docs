@@ -15,7 +15,7 @@ Join the Oak Chain network and earn from content storage economics.
 
 > **Deployment strategy**: local cluster validation -> Sepolia payment-flow validation -> mainnet deployment.
 
-Examples below assume the current local process workflow from `blockchain-aem-infra`.
+Examples below assume the current local process workflow from `oak-chain-infra`.
 If you run validators under Kubernetes or another service manager, translate the stop/start/log commands to that runtime.
 
 ## Requirements
@@ -53,8 +53,8 @@ java -jar oak-segment-consensus/target/oak-segment-consensus.jar \
   --store /var/oak-chain/validator-0
 ```
 
-Current public local automation lives in the [infrastructure repo](https://github.com/mhess_adobe/blockchain-aem-infra/tree/main/shared/workflows).
-Use [`shared/workflows/dev-mock.sh`](https://github.com/mhess_adobe/blockchain-aem-infra/tree/main/shared/workflows) or [`scripts/local-development/local-dev.sh`](https://github.com/mhess_adobe/blockchain-aem-infra/tree/main/scripts/local-development) instead of archived Docker Compose flows.
+Current public local automation lives in the [infrastructure repo](https://github.com/somarc/oak-chain-infra).
+Use [`modes/mock/validators/lifecycle/start-cluster.sh`](https://github.com/somarc/oak-chain-infra/tree/main/modes/mock/validators/lifecycle) for mock mode or [`modes/sepolia/validators/lifecycle/start-cluster.sh`](https://github.com/somarc/oak-chain-infra/tree/main/modes/sepolia/validators/lifecycle) for Sepolia instead of archived Docker Compose flows.
 
 ## Configuration
 
@@ -174,14 +174,14 @@ clusters do not share writable Aeron state.
 
 ```bash
 # Stop locally managed validators first
-cd /path/to/blockchain-aem-infra/scripts/local-development
-./local-dev.sh stop validators
+cd /path/to/oak-chain-infra/modes/mock/validators/lifecycle
+./stop-cluster.sh
 
 # Backup segment store
 tar -czf backup-$(date +%Y%m%d).tar.gz /var/oak-chain/segmentstore
 
 # Restart
-./local-dev.sh start validators
+./start-cluster.sh
 ```
 
 ## Monitoring
@@ -221,12 +221,13 @@ oak_chain_storage_bytes 1073741824
 
 ### Grafana Dashboard
 
-Dashboard templates available in the infrastructure repo:
-```
-blockchain-aem-infra/grafana/
-```
+Published Grafana dashboards have not yet been re-homed into `oak-chain-infra`.
+For now, use the script-based monitoring surfaces in:
 
-> **Note**: Production Grafana dashboards are in development. See the [infrastructure repo](https://github.com/mhess_adobe/blockchain-aem-infra) for current monitoring configs.
+- `modes/mock/validators/monitoring/`
+- `modes/sepolia/validators/monitoring/`
+
+See the [infrastructure repo](https://github.com/somarc/oak-chain-infra) for the current operational layout.
 
 ## Troubleshooting
 

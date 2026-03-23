@@ -88,6 +88,7 @@ ipfs add my-image.jpg
 ```bash
 curl -X POST http://localhost:8090/v1/propose-write \
   -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "proposalId=0x1111111111111111111111111111111111111111111111111111111111111111" \
   -d "walletAddress=0x742d35Cc..." \
   -d "organization=PixelPirates" \
   -d "message={\"jcr:primaryType\":\"dam:Asset\",\"jcr:content\":{\"renditions\":{\"original\":{\"ipfs:cid\":\"QmXyz...abc\",\"jcr:mimeType\":\"image/jpeg\",\"size\":1048576}}}}" \
@@ -172,7 +173,7 @@ import { create } from 'ipfs-http-client';
 
 const ipfs = create({ url: 'https://ipfs.infura.io:5001' });
 
-async function uploadImage(file, wallet, org) {
+async function uploadImage(file, wallet, org, proposalId, paymentTxHash) {
   // 1. Upload to IPFS
   const { cid } = await ipfs.add(file);
   console.log('IPFS CID:', cid.toString());
@@ -182,6 +183,7 @@ async function uploadImage(file, wallet, org) {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
+      proposalId,
       walletAddress: wallet,
       organization: org,
       message: JSON.stringify({
@@ -193,7 +195,7 @@ async function uploadImage(file, wallet, org) {
       }),
       contentType: 'dam:Asset',
       paymentTier: 'express',
-      ethereumTxHash: '0x...', // From payment
+      ethereumTxHash: paymentTxHash, // From payment
       signature: '0x...' // Signed message
     })
   });

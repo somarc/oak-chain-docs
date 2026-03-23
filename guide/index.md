@@ -48,7 +48,7 @@ If these four checks pass, you have proven the core trust path locally.
 - `jq`
 - 8GB RAM minimum
 - Ports 8090, 8092, 8094 available
-- A sibling workspace containing `blockchain-aem-infra` and `jackrabbit-oak`
+- A sibling workspace containing `oak-chain-infra` and `jackrabbit-oak`
 
 ## Start the Cluster
 
@@ -58,19 +58,19 @@ mkdir oak-chain-workspace
 cd oak-chain-workspace
 
 # Clone the repositories the workflow expects
-git clone https://github.com/mhess_adobe/blockchain-aem-infra.git
+git clone https://github.com/somarc/oak-chain-infra.git
 git clone https://github.com/somarc/jackrabbit-oak.git
 
 # Build, start, and smoke-test the local mock environment
-cd blockchain-aem-infra/shared/workflows
-./dev-mock.sh
+cd oak-chain-infra
+./modes/mock/validators/lifecycle/start-cluster.sh --build --fresh
 
 # For faster iteration after the first build
-./dev-mock.sh --no-build
+./modes/mock/validators/lifecycle/start-cluster.sh
 ```
 
-`dev-mock.sh` is the current public local workflow.
-It builds `jackrabbit-oak`, starts three validators plus Sling via `local-dev.sh`, and runs a smoke check.
+`start-cluster.sh` is the current public local validator workflow.
+It builds `jackrabbit-oak`, starts three validators, and also brings up the local OPS proxy adapter from `oak-chain-edge-worker`.
 
 ## Verify It's Working
 
@@ -104,6 +104,7 @@ curl http://localhost:8090/v1/consensus/status
 # Example write proposal
 curl -X POST http://localhost:8090/v1/propose-write \
   -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "proposalId=0x1111111111111111111111111111111111111111111111111111111111111111" \
   -d "walletAddress=0x1234567890abcdef1234567890abcdef12345678" \
   -d "message=Hello, Oak Chain!" \
   -d "paymentTier=standard" \

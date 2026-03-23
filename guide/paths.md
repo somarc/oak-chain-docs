@@ -129,6 +129,7 @@ public static String getContentPath(String wallet, String org) {
 ```bash
 curl -X POST http://localhost:8090/v1/propose-write \
   -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "proposalId=0x1111111111111111111111111111111111111111111111111111111111111111" \
   -d "walletAddress=0x742d35Cc6634c0532925a3b844bc9e7595f0beb" \
   -d "organization=PixelPirates" \
   -d "message={\"title\":\"New NFT Drop!\",\"date\":\"2026-01-10\"}" \

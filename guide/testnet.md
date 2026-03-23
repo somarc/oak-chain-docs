@@ -35,12 +35,12 @@ Get Sepolia ETH first, configure environment variables, and run one payment plus
 
 ### ValidatorPaymentV3_2
 
-The current local Sepolia config in `blockchain-aem-infra` uses:
+The current local Sepolia config in `oak-chain-infra` uses:
 
 | Network | Address | Source of Truth |
 |---------|---------|-----------------|
-| Sepolia | `0x7fcEc350268F5482D04eb4B229A0679374906732` | `scripts/local-development/config/sepolia.env` |
-| Mainnet | Not published in this docs repo | `scripts/local-development/config/mainnet.env` |
+| Sepolia | `0x7fcEc350268F5482D04eb4B229A0679374906732` | `modes/sepolia/validators/config/sepolia.env` |
+| Mainnet | Not published in this docs repo | `modes/mainnet/` |
 
 ### Contract Surface
 
@@ -103,11 +103,11 @@ export INFURA_API_KEY=your-infura-project-id
 mkdir oak-chain-workspace
 cd oak-chain-workspace
 
-git clone https://github.com/mhess_adobe/blockchain-aem-infra.git
+git clone https://github.com/somarc/oak-chain-infra.git
 git clone https://github.com/somarc/jackrabbit-oak.git
 
-cd blockchain-aem-infra/shared/workflows
-./dev-sepolia.sh
+cd oak-chain-infra
+./modes/sepolia/validators/lifecycle/start-cluster.sh --build --fresh
 ```
 
 ## Make a Test Payment
@@ -143,6 +143,7 @@ console.log('Payment confirmed!');
 ```
 
 Oak validators expect a contract payment transaction hash, not a plain ETH transfer.
+Reuse the same `proposalId` when you call `POST /v1/propose-write`.
 
 ## Verify Payment
 
@@ -211,6 +212,7 @@ async function testSepoliaWrite() {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
+      proposalId,
       walletAddress: wallet,
       message,
       paymentTier: 'express',
