@@ -3,33 +3,33 @@ prev: /guide/proposal-flow
 next: /guide/paths
 ---
 
-# Economic Tiers
+# Economics and Adaptive Release
 
 Oak Chain uses Ethereum payments for economic security. Every write is backed by real value.
 
 ## Why This Matters
 
-Economic policy controls throughput and trust tradeoffs. Without clear tier use, teams overpay or under-protect critical writes.
+Economic policy still matters, but release behavior is no longer modeled as fixed tier delays. The current runtime uses an adaptive-capacity scheduler after verification.
 
 ## What You'll Prove
 
-- You understand the latency-cost behavior of PRIORITY, EXPRESS, and STANDARD tiers.
-- You can map content operations to the correct tier with predictable outcomes.
-- You can explain how epoch timing affects write finality.
+- You understand how contract price classes differ from runtime release behavior.
+- You can explain why fixed tier delays are deprecated in adaptive-capacity mode.
+- You can identify the few cases where `paymentTier` still matters.
 
 ## Next Action
 
-Pick one real workload, assign a tier, and execute a sample write using the flow and examples below.
+Check the live release model with `GET /v1/blockchain/config`, then submit one write using the examples below.
 
-## Three Tiers
+## Contract Price Classes
 
-Current prices below reflect the v1 contract constants in `ValidatorPaymentV3_2`.
+Current prices below reflect the v1 contract constants in `ValidatorPaymentV3_2`. These are still contract-facing price classes, but they are no longer the primary release scheduler.
 
-| Tier | Latency | ETH Price | USDC Price | Use Case |
-|------|---------|-----------|------------|----------|
-| **PRIORITY** | ~30s | 0.01 ETH | 32.50 USDC | Breaking news, urgent updates |
-| **EXPRESS** | ~6.4min | 0.002 ETH | 6.50 USDC | Standard publishing |
-| **STANDARD** | ~12.8min | 0.001 ETH | 3.25 USDC | Batch operations, archives |
+| Class | ETH Price | USDC Price | Current Runtime Meaning |
+|------|-----------|------------|-------------------------|
+| **PRIORITY** | 0.01 ETH | 32.50 USDC | Compatibility price class; may enable direct release after verification if explicitly enabled |
+| **EXPRESS** | 0.002 ETH | 6.50 USDC | Compatibility price class; adaptive release has no fixed delay |
+| **STANDARD** | 0.001 ETH | 3.25 USDC | Compatibility price class; adaptive release has no fixed delay |
 
 ## How It Works
 
@@ -49,24 +49,35 @@ sequenceDiagram
     V->>A: 200 OK
 ```
 
-## Epoch-Based Finality
+## Adaptive Release Model
 
-Oak Chain uses Ethereum's **epoch** system for finality:
+The runtime now reports the release scheduler as adaptive-capacity. Verified proposals enter an adaptive packing buffer and release when Aeron is healthy, instead of waiting on a fixed per-tier clock.
 
-- **Epoch**: 32 slots × 12 seconds = **6.4 minutes**
-- **Finality**: 2 epochs = **~12.8 minutes**
+- `schedulerModel`: `adaptive-capacity`
+- `fixedTierDelayDeprecated`: `true`
+- `STANDARD` / `EXPRESS`: compatibility price classes with no fixed delay
+- `PRIORITY`: compatibility price class; direct release is an optional compatibility entitlement when enabled
 
-### Why Epochs?
+Use these runtime surfaces to inspect the live behavior:
 
-1. **Batching**: Multiple writes confirmed in one epoch check
-2. **Efficiency**: One Beacon Chain query per epoch, not per write
-3. **Security**: Ethereum's economic finality guarantees
+- `GET /v1/blockchain/config`
+- `GET /v1/proposals/release-flow`
 
-## Tier Details
+Ethereum epochs still matter for confirmation windows and payment verification, but they are no longer the public mental model for write latency.
+
+## When `paymentTier` Still Matters
 
 For Sepolia/Mainnet, each request reuses the same `proposalId` that was paid for on-chain.
 
-### PRIORITY (~30s)
+Use `paymentTier` when:
+
+- Your client wants to mirror the contract-facing price class explicitly
+- You are using mock-mode simulations that still default through the legacy enum
+- You need a priority-only entitlement such as validator-hosted binary upload when that policy is enabled
+
+For ordinary chain-backed writes, the important fields are `proposalId`, `walletAddress`, `message`, `ethereumTxHash`, and `signature`.
+
+## Example Write
 
 ```bash
 curl -X POST http://localhost:8090/v1/propose-write \
@@ -75,56 +86,11 @@ curl -X POST http://localhost:8090/v1/propose-write \
   -d "walletAddress=0xWALLET" \
   -d "message=Breaking news..." \
   -d "contentType=page" \
-  -d "paymentTier=priority" \
   -d "ethereumTxHash=0x..." \
   -d "signature=0x..."
 ```
 
-- **Bypasses** epoch batching
-- **Immediate** payment verification
-- **Highest** cost
-- **Current price**: 0.01 ETH or 32.50 USDC
-- **Use for**: Time-sensitive content
-
-### EXPRESS (~6.4 minutes)
-
-```bash
-curl -X POST http://localhost:8090/v1/propose-write \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "proposalId=0x2222222222222222222222222222222222222222222222222222222222222222" \
-  -d "walletAddress=0xWALLET" \
-  -d "message=Article content..." \
-  -d "contentType=page" \
-  -d "paymentTier=express" \
-  -d "ethereumTxHash=0x..." \
-  -d "signature=0x..."
-```
-
-- **Waits** for current epoch to finalize
-- **Batched** with other EXPRESS writes
-- **Balanced** cost/latency
-- **Current price**: 0.002 ETH or 6.50 USDC
-- **Use for**: Normal publishing
-
-### STANDARD (~12.8 minutes)
-
-```bash
-curl -X POST http://localhost:8090/v1/propose-write \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "proposalId=0x3333333333333333333333333333333333333333333333333333333333333333" \
-  -d "walletAddress=0xWALLET" \
-  -d "message=Archive content..." \
-  -d "contentType=page" \
-  -d "paymentTier=standard" \
-  -d "ethereumTxHash=0x..." \
-  -d "signature=0x..."
-```
-
-- **Waits** for 2 epochs (full finality)
-- **Maximum** batching efficiency
-- **Lowest** cost
-- **Current price**: 0.001 ETH or 3.25 USDC
-- **Use for**: Bulk imports, archives
+If your client needs to mirror the paid contract class explicitly, include `paymentTier`, but treat it as an economic/compatibility field rather than a latency SLA.
 
 ## Smart Contract
 
@@ -153,7 +119,7 @@ Validators verify payments by:
 1. Querying Beacon Chain for epoch data
 2. Checking `ProposalPaid` events for the configured contract address
 3. Matching `txHash` to the observed payment event
-4. Verifying the payment is valid for the requested tier
+4. Verifying the payment is valid for the paid contract class
 
 ## Pricing Rationale
 
@@ -162,7 +128,7 @@ Validators verify payments by:
 | **Ethereum gas** | Base cost for payment tx |
 | **Validator compute** | Consensus + storage |
 | **Replication** | 3+ copies across network |
-| **Finality guarantee** | Economic security |
+| **Finality guarantee** | Economic security and release-policy guardrails |
 
 Prices are set to:
 - Cover validator operating costs

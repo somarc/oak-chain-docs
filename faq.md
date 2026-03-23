@@ -178,7 +178,7 @@ Payments provide:
 
 ### How much does it cost?
 
-Current v1 prices come from the `ValidatorPaymentV3_2` contract.
+Current v1 prices come from the `ValidatorPaymentV3_2` contract. These are contract price classes, not fixed runtime latency tiers.
 
 | Tier | ETH Price | USDC Price |
 |------|-----------|------------|
@@ -198,7 +198,7 @@ See [Testnet Guide](/guide/testnet) for setup.
 
 - Transaction reverted → No charge, retry
 - Insufficient funds → Get more ETH, retry
-- Wrong tier amount → Payment rejected, retry with correct amount
+- Wrong contract class amount → Payment rejected, retry with the correct amount
 
 Validators verify payment before accepting writes.
 
@@ -208,13 +208,12 @@ Validators verify payment before accepting writes.
 
 ### How fast is it?
 
-| Tier | Latency | Use Case |
-|------|---------|----------|
-| PRIORITY | ~30 seconds | Urgent updates |
-| EXPRESS | ~6.4 minutes | Normal publishing |
-| STANDARD | ~12.8 minutes | Batch operations |
+Oak Chain now uses adaptive-capacity release after verification.
 
-Latency is determined by Ethereum epoch finality, not Oak Chain itself.
+- Verified proposals release according to queue health and packing state
+- `STANDARD` and `EXPRESS` no longer imply fixed runtime delays
+- `PRIORITY` only changes release behavior when direct release is explicitly enabled
+- Ethereum confirmation windows still matter for payment verification
 
 ### What's the maximum content size?
 
@@ -311,10 +310,10 @@ Migration tooling is planned for future releases. See [AEM Integration Guide](/g
 - **Remote reads**: ~10-50ms (via HTTP segment transfer)
 - **CDN cached**: <10ms (edge delivery)
 
-**Latency** (write confirmation):
-- PRIORITY: ~30 seconds (1 Ethereum epoch)
-- EXPRESS: ~6.4 minutes (1 Ethereum epoch)
-- STANDARD: ~12.8 minutes (2 epochs)
+**Release timing**:
+- Adaptive-capacity scheduler decides when verified work is released
+- Ethereum confirmation windows still influence payment verification
+- `PRIORITY` may release faster only if direct release is enabled in runtime config
 
 **Note**: Oak Chain uses Aeron Raft, which can handle 100,000+ messages/sec at the messaging layer. Actual throughput depends on Oak segment store operations and Ethereum verification.
 
@@ -533,13 +532,13 @@ Yes. Organizations can use multiple wallets for:
 ### Are there rate limits on writes?
 
 **No hard rate limits**, but practical constraints:
-- **Ethereum finality**: EXPRESS targets ~1 epoch and STANDARD targets ~2 epochs
+- **Adaptive release**: Queue pressure and Aeron health govern release timing
 - **Raft consensus**: ~100-1000 writes/sec per cluster (depends on payload)
 - **Gas costs**: High-frequency writes become expensive
 
 **Best practices**:
 - **Batch writes** when possible (multiple nodes in one proposal)
-- **Use STANDARD tier** for bulk operations
+- **Use the cheapest contract class that satisfies your economic needs**
 - **Distribute across clusters** via sharding for higher throughput
 
 **Note**: Spam prevention comes from **economic cost** (ETH payments), not rate limits.

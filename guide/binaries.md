@@ -93,7 +93,6 @@ curl -X POST http://localhost:8090/v1/propose-write \
   -d "organization=PixelPirates" \
   -d "message={\"jcr:primaryType\":\"dam:Asset\",\"jcr:content\":{\"renditions\":{\"original\":{\"ipfs:cid\":\"QmXyz...abc\",\"jcr:mimeType\":\"image/jpeg\",\"size\":1048576}}}}" \
   -d "contentType=dam:Asset" \
-  -d "paymentTier=express" \
   -d "ethereumTxHash=0x..." \
   -d "signature=0x..."
 ```
@@ -194,7 +193,6 @@ async function uploadImage(file, wallet, org, proposalId, paymentTxHash) {
         'uploadedAt': new Date().toISOString()
       }),
       contentType: 'dam:Asset',
-      paymentTier: 'express',
       ethereumTxHash: paymentTxHash, // From payment
       signature: '0x...' // Signed message
     })
@@ -203,6 +201,8 @@ async function uploadImage(file, wallet, org, proposalId, paymentTxHash) {
   return { cid: cid.toString(), oakPath: response.path };
 }
 ```
+
+For author-owned IPFS flows, `paymentTier` is usually unnecessary. Only send it if your client needs to mirror a specific compatibility price class or request a priority-only validator-hosted binary entitlement.
 
 ## Garbage Collection
 

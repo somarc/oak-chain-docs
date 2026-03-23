@@ -142,7 +142,7 @@ const signature = await signer.signMessage(message);
 ## Complete Write Flow
 
 ```javascript
-async function writeContent(organization, content, tier, proposalId, txHash) {
+async function writeContent(organization, content, proposalId, txHash, paymentTier) {
   // 1. Get wallet
   const accounts = await window.ethereum.request({
     method: 'eth_requestAccounts'
@@ -166,7 +166,7 @@ async function writeContent(organization, content, tier, proposalId, txHash) {
       walletAddress: wallet,
       organization,
       message,
-      paymentTier: tier,
+      ...(paymentTier ? { paymentTier } : {}),
       ethereumTxHash: txHash,
       signature,
     }),

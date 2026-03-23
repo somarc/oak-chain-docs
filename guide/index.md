@@ -107,7 +107,6 @@ curl -X POST http://localhost:8090/v1/propose-write \
   -d "proposalId=0x1111111111111111111111111111111111111111111111111111111111111111" \
   -d "walletAddress=0x1234567890abcdef1234567890abcdef12345678" \
   -d "message=Hello, Oak Chain!" \
-  -d "paymentTier=standard" \
   -d "ethereumTxHash=0xabc123..." \
   -d "signature=0x..."
 ```

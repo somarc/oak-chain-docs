@@ -44,7 +44,7 @@ Operational control is via APIs, scripts, logs, and consensus-safe workflows.
 ### 3) Ethereum (Economics and Verification)
 
 - Anchors payment semantics and wallet-linked operations.
-- Supports economic tiers and durability/finality policies.
+- Supports contract price classes and payment verification while runtime release policy is handled adaptively.
 - Enables auditability of paid writes/deletes.
 
 ### 4) IPFS (Binary Distribution)

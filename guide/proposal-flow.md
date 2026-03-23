@@ -36,7 +36,7 @@ Walk the end-to-end pipeline once, then inspect `GET /v1/proposals/queue/stats` 
 
 ### 2. Payment Pathway
 
-- Request includes economic tier (`STANDARD`, `EXPRESS`, `PRIORITY`).
+- Request may include `paymentTier` as a compatibility price class / entitlement hint.
 - Payment proof path uses chain-backed tx/event verification in deployed networks.
 - Payment result determines whether proposal continues or is rejected.
 
@@ -46,16 +46,17 @@ Walk the end-to-end pipeline once, then inspect `GET /v1/proposals/queue/stats` 
 - Verifier agents run proof/auth/payment checks and update counters.
 - Successfully verified proposals move to epoch/tier routing.
 
-### 4. Epoch Routing + Tier Behavior
+### 4. Adaptive Release + Compatibility Overlay
 
-- `STANDARD` and `EXPRESS` proposals are grouped by epoch semantics.
-- `PRIORITY` proposals are routed for faster handling.
+- Verified proposals move into an adaptive packing buffer.
+- `STANDARD` and `EXPRESS` remain compatibility price classes; they no longer imply fixed release delays.
+- `PRIORITY` only changes release behavior when direct release is explicitly enabled.
 - Queue stats expose this behavior via:
   - `proposalsByEpoch`
   - `proposalsByEpochAndTier`
   - `pendingEpochStats`
 
-### 5. Epoch Finalizer -> Batch Construction
+### 5. Adaptive Packing -> Batch Construction
 
 - Finalizer agent selects ready epoch buckets.
 - Proposals are converted into sendable batches/chunks.
@@ -91,12 +92,12 @@ High-value fields:
 
 ## Payment Pathways in Practice
 
-::: info Tier and finality interaction
-Tier controls how quickly a verified proposal can become finalizable:
+::: info Adaptive-capacity release
+The canonical release view is now `GET /v1/proposals/release-flow`.
 
-- `PRIORITY`: near-immediate path (minimal epoch waiting)
-- `EXPRESS`: shorter epoch wait
-- `STANDARD`: full finality delay path
+- Adaptive packing is the default normal path after verification
+- `STANDARD` / `EXPRESS` are compatibility classes, not fixed-delay schedules
+- `PRIORITY` direct release is a toggleable compatibility entitlement, not the general model
 :::
 
 ::: warning Throughput nuance

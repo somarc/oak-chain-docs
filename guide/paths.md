@@ -134,7 +134,6 @@ curl -X POST http://localhost:8090/v1/propose-write \
   -d "organization=PixelPirates" \
   -d "message={\"title\":\"New NFT Drop!\",\"date\":\"2026-01-10\"}" \
   -d "contentType=page" \
-  -d "paymentTier=express" \
   -d "ethereumTxHash=0x..." \
   -d "signature=0x..."
 ```
@@ -176,4 +175,4 @@ Each wallet/brand namespace should maintain **consistent content structure** for
 
 - [API Reference](/guide/api) - Content structure and style guides
 - [Architecture](/architecture) - Full system design
-- [Economics](/guide/economics) - Payment tiers
+- [Economics](/guide/economics) - Pricing and adaptive release

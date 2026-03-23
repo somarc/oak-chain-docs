@@ -327,13 +327,13 @@ This enables horizontal read scaling without consensus overhead. See the [AEM In
 
 ## Economic Model
 
-### Three Tiers
+### Contract Price Classes
 
-| Tier | Latency | ETH Price | USDC Price | Use Case |
-|------|---------|-----------|------------|----------|
-| **PRIORITY** | ~30s | 0.01 ETH | 32.50 USDC | Breaking news, urgent updates |
-| **EXPRESS** | ~6.4min | 0.002 ETH | 6.50 USDC | Standard publishing |
-| **STANDARD** | ~12.8min | 0.001 ETH | 3.25 USDC | Batch operations, archives |
+| Class | ETH Price | USDC Price | Runtime Meaning |
+|------|-----------|------------|-----------------|
+| **PRIORITY** | 0.01 ETH | 32.50 USDC | Compatibility price class; direct release may be enabled after verification |
+| **EXPRESS** | 0.002 ETH | 6.50 USDC | Compatibility price class; adaptive release has no fixed delay |
+| **STANDARD** | 0.001 ETH | 3.25 USDC | Compatibility price class; adaptive release has no fixed delay |
 
 ### Payment Flow
 
@@ -342,7 +342,7 @@ This enables horizontal read scaling without consensus overhead. See the [AEM In
 3. Validator verifies payment via Beacon Chain API
 4. Write proceeds after verification
 
-PRIORITY tier bypasses epoch batching for lowest latency.
+Release policy is adaptive-capacity. Fixed per-tier runtime delays are deprecated.
 
 ---
 

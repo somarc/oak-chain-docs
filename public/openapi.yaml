@@ -1696,7 +1696,7 @@ components:
         paymentTier:
           type: string
           enum: [standard, express, priority]
-          description: Payment tier (default standard)
+          description: Optional compatibility price class / entitlement hint. Adaptive release has no fixed delay by tier; omit unless your client needs to mirror the contract class or request a priority-only entitlement.
         signature:
           type: string
           description: Wallet signature of the proposal
@@ -1708,7 +1708,7 @@ components:
           description: IPFS CID for client-side upload (default mode)
         binaryData:
           type: string
-          description: Legacy base64-encoded binary payload (validator-hosted; requires paymentTier=priority)
+          description: Legacy base64-encoded binary payload (validator-hosted; may require paymentTier=priority when that entitlement policy is enabled)
         mimeType:
           type: string
           description: MIME type for legacy base64 binary payload (validator-hosted)
@@ -1724,7 +1724,7 @@ components:
             file:
               type: string
               format: binary
-              description: Binary payload (validator-hosted; requires paymentTier=priority)
+              description: Binary payload (validator-hosted; may require paymentTier=priority when that entitlement policy is enabled)
             mimeType:
               type: string
               description: Optional MIME type override
@@ -1749,7 +1749,7 @@ components:
         paymentTier:
           type: string
           enum: [standard, express, priority]
-          description: Payment tier / economic selector (default standard)
+          description: Optional compatibility price class / economic selector. Adaptive release has no fixed delay by tier; omit unless your client needs to mirror the contract class.
         signature:
           type: string
         clientId:

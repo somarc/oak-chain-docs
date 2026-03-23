@@ -52,13 +52,15 @@ Validators monitor those events and authorize writes for the paying wallet addre
 
 <FlowGraph flow="payment" :height="380" />
 
-### Payment Tiers
+### Contract Price Classes
 
-| Tier | Confirmation Time | Current V1 Price | Use Case |
-|------|-------------------|------------------|----------|
-| **Priority** | ~30 seconds | 0.01 ETH or 32.50 USDC | Breaking news, urgent updates |
-| **Express** | ~6.4 minutes | 0.002 ETH or 6.50 USDC | Standard publishing |
-| **Standard** | ~12.8 minutes | 0.001 ETH or 3.25 USDC | Batch operations, archives |
+The payment contract still exposes three price classes, but validator release is now adaptive-capacity rather than fixed per-tier delay.
+
+| Class | Current V1 Price | Runtime Meaning |
+|------|------------------|-----------------|
+| **Priority** | 0.01 ETH or 32.50 USDC | Compatibility class; direct release may be enabled after verification |
+| **Express** | 0.002 ETH or 6.50 USDC | Compatibility class; adaptive release has no fixed delay |
+| **Standard** | 0.001 ETH or 3.25 USDC | Compatibility class; adaptive release has no fixed delay |
 
 ---
 

@@ -215,7 +215,6 @@ async function testSepoliaWrite() {
       proposalId,
       walletAddress: wallet,
       message,
-      paymentTier: 'express',
       ethereumTxHash: paymentTx.hash,
       signature,
     }),
