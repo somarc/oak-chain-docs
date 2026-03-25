@@ -148,6 +148,8 @@ Current upstream publication includes:
 /ops/v1/proposals/{queue/stats,release-flow,epochs}
 /ops/v1/proposals
 /ops/v1/explorer/{summary,release-flow}
+/ops/v1/explorer/proposal/{proposalId}
+/ops/v1/explorer/wallets/{walletAddress}
 /ops/v1/runtime/{aeron,media-driver,storage,blobstore,metrics}
 /ops/v1/config/osgi*
 /ops/v1/events/{recent,stats}
@@ -156,11 +158,13 @@ Current upstream publication includes:
 /ops/v1/gc/{status,estimate}
 /ops/v1/compaction/proposals
 /ops/v1/fragmentation/metrics
+/ops/v1/fragmentation/metrics/{walletAddress}
+/ops/v1/fragmentation/top
 ```
 
-Some validator source routes are not yet published upstream.
+The current target explorer and fragmentation source routes are now published upstream.
 
-That gap is edge publication debt, not a reason to bind remote clients directly to validator URLs.
+Any future source route gap should be treated as edge publication debt, not as a reason to bind remote clients directly to validator URLs.
 
 ## Why This Composition Matters
 

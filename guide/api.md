@@ -195,6 +195,8 @@ The current edge worker publishes the following upstream contract today.
 /ops/v1/proposals/epochs
 /ops/v1/explorer/summary
 /ops/v1/explorer/release-flow
+/ops/v1/explorer/proposal/{proposalId}
+/ops/v1/explorer/wallets/{walletAddress}
 /ops/v1/runtime/aeron
 /ops/v1/runtime/media-driver
 /ops/v1/runtime/storage
@@ -216,25 +218,14 @@ The current edge worker publishes the following upstream contract today.
 /ops/v1/gc/status
 /ops/v1/gc/estimate
 /ops/v1/compaction/proposals
+/ops/v1/fragmentation/metrics/{walletAddress}
 /ops/v1/fragmentation/metrics
+/ops/v1/fragmentation/top
 ```
 
 Every upstream response is wrapped by the edge adapter in a top-level envelope with `version`, `generatedAt`, `clusterId`, and `data`.
 
 Raw validator-local routes such as `/v1/aeron/*`, `/health/deep`, `/api/*`, `/metrics`, `/journal.log`, `/manifest`, `/segments/*`, `/dashboard`, `/api-browser`, `/explorer`, `/chat`, and `/v1/index` are not canonical upstream product contracts.
-
-## Source Routes Not Yet Published Upstream
-
-These validator source routes exist today but do not have matching `/ops/v1/*` publication in `oak-chain-edge-worker`.
-
-```text
-/v1/explorer/proposals/{proposalId}
-/v1/explorer/wallets/{walletAddress}
-/v1/fragmentation/metrics/{walletAddress}
-/v1/fragmentation/top
-```
-
-If you need one of these routes remotely, treat that as edge publication debt rather than silently binding clients to direct validator URLs.
 
 ## Recommended Query Order
 

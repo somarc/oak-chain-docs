@@ -353,6 +353,50 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '502':
           $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/explorer/proposal/{proposalId}:
+    get:
+      tags: [Explorer]
+      summary: Explorer proposal detail projection.
+      operationId: getOpsExplorerProposalDetail
+      parameters:
+        - name: proposalId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/explorer/wallets/{walletAddress}:
+    get:
+      tags: [Explorer]
+      summary: Explorer wallet detail projection.
+      operationId: getOpsExplorerWalletDetail
+      parameters:
+        - name: walletAddress
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
   /ops/v1/runtime/aeron:
     get:
       tags: [Runtime]
@@ -674,6 +718,49 @@ paths:
       tags: [GC]
       summary: Fragmentation metrics publication.
       operationId: getOpsFragmentationMetrics
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/fragmentation/metrics/{walletAddress}:
+    get:
+      tags: [GC]
+      summary: Fragmentation metrics publication for one wallet.
+      operationId: getOpsFragmentationMetricsByWallet
+      parameters:
+        - name: walletAddress
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/fragmentation/top:
+    get:
+      tags: [GC]
+      summary: Top fragmented wallets publication.
+      operationId: getOpsFragmentationTop
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
       responses:
         '200':
           $ref: '#/components/responses/OpsOk'
