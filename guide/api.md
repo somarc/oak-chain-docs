@@ -5,532 +5,265 @@ next: /guide/auth
 
 # API Reference
 
-Authoritative mapping of the Oak Chain validator HTTP API and its governed source contract.
-
-**Source of truth:** `public/openapi.yaml`. The API browser UI at `/api-browser` is generated from live validator state and should match this page.
+Oak Chain has three HTTP layers that must not be conflated.
 
 ## Why This Matters
 
-If API contracts are unclear, integration fails at the exact moment you move from demo to production traffic.
+If you blur validator source routes, local-only routes, and edge-owned upstream routes, you will publish the wrong contract and build the wrong client.
 
 ## What You'll Prove
 
-- You know which endpoints are read, write, binary, and operational surfaces.
-- You can map your app flow to required auth and payment fields.
-- You can verify queue, replication, and durability signals during rollout.
+- You can identify which validator routes are governed source routes.
+- You can keep local UI and diagnostic surfaces out of upstream product contracts.
+- You can tell when a route exists on the validator but is not yet published upstream.
 
 ## Next Action
 
-Start with `Base URL`, then review `Authentication`, and run one full write-read cycle from the endpoint sections.
+Start with `Published Specs`, then use the taxonomy below before wiring any browser, CLI, or automation client.
 
-## Base URL
+## Contract Boundary
 
-```
-http://localhost:8090           # Local development
-https://<your-validator-host>   # Your deployed validator
-```
+`jackrabbit-oak` owns the validator-native runtime surface.
+
+`oak-chain-edge-worker` owns the canonical upstream `/ops/v1/*` contract.
+
+Local UI, browser, and diagnostic routes on the validator are allowed, but they are not product-contract authority.
+
+## Published Specs
+
+- Canonical upstream `/ops/v1/*`: [openapi.yaml](/openapi.yaml)
+- Governed validator source routes: [openapi-validator-source.yaml](/openapi-validator-source.yaml)
+- Live validator taxonomy feed: `GET /v1/index`
+
+`/openapi.yaml` now documents the edge-owned upstream contract only.
+
+`/openapi-validator-source.yaml` documents the governed validator routes that upstream composition is allowed to consume.
+
+`/v1/index` remains the live local manifest, not the canonical publication artifact.
 
 ## Authentication
 
-All write operations require:
-1. **Ethereum wallet signature** (signed message)
-2. **Payment transaction hash** (Ethereum payment)
+Validator token auth and edge auth are separate controls.
 
-Validator read operations are public by default unless validator token auth is enabled. Browser product surfaces should still consume edge-owned `/ops/v1/*` endpoints rather than raw validator routes.
+On the validator, `/health*` and `/v1/ops/snapshots/{health,runtime,storage}` bypass token auth so monitors and edge adapters can stay alive during boot and failure.
 
----
+All other validator routes honor the validator bearer token when `OAK_VALIDATOR_AUTH_TOKEN` is configured.
 
-## Endpoints (By Category)
+On the edge adapter, `/ops/v1/*` accepts a bearer token when `OPS_API_AUTH_TOKEN` is configured, and `/ops/v1/runtime/*` can require the stricter runtime token when `OPS_RUNTIME_AUTH_TOKEN` is configured.
 
-### Health
-- `GET /health`
-- `GET /health/deep`
-- `GET /health/cluster`
-- `GET /v1/ops/snapshots/health`
-- `GET /v1/ops/snapshots/runtime`
-- `GET /v1/ops/snapshots/storage`
-- `GET /metrics` (Prometheus)
-- `GET /api/metrics` (JSON; local/dev only)
+## Validator Taxonomy
 
-All health/metrics JSON responses include:
-```json
-{
-  "success": true,
-  "status": "UP",
-  "timestamp": 1738454400000
-}
+### `source`
+
+These are the governed validator-native routes that runtime code emits with stable `contractVersion` markers and that upstream composition may consume.
+
+```text
+/v1/consensus/leader
+/v1/consensus/status
+/v1/ops/snapshots/health
+/v1/ops/snapshots/runtime
+/v1/ops/snapshots/storage
+/v1/ops/snapshots/cluster
+/v1/ops/snapshots/replication
+/v1/ops/snapshots/queue
+/v1/proposals/queue/stats
+/v1/proposals/release-flow
+/v1/proposals/epochs
+/v1/explorer/summary
+/v1/explorer/release-flow
+/v1/explorer/proposals/{proposalId}
+/v1/explorer/wallets/{walletAddress}
+/v1/config/osgi
+/v1/config/osgi/schema
+/v1/config/osgi/sources
+/v1/config/osgi/coverage
+/v1/config/osgi/delta
+/v1/events/recent
+/v1/events/stats
+/v1/blockchain/config
+/v1/gc/status
+/v1/gc/estimate
+/v1/compaction/proposals
+/v1/fragmentation/metrics
+/v1/fragmentation/metrics/{walletAddress}
+/v1/fragmentation/top
 ```
-Additional fields are included per endpoint.
 
-### Content
-- `GET /api/explore?path=/...`
-- `GET /v1/wallets/content?wallet=0x...&page=&pageSize=`
-- `GET /v1/wallets/stats?wallet=0x...`
+`/v1/index` currently misclassifies `/v1/gc/estimate` and `/v1/proposals/epochs` as `internal`, but the handlers emit `gc.estimate.v1` and `proposal.epoch-overlay.v1`, and `oak-chain-edge-worker` consumes both as governed source routes.
 
-### Write (form-encoded or multipart)
-- `POST /v1/propose-write`
-- `POST /v1/propose-delete`
-- `GET /v1/proposals/{proposalId}/status`
-- `GET /v1/proposals/pending/count`
-- `GET /v1/proposals/queue/stats`
+### `local-ui`
 
-### Binary
-- `POST /v1/binary/declare-intent`
-- `GET /v1/binary/check-intent/{sessionId}`
-- `POST /v1/binary/complete-upload`
-- `GET /api/blob/{blobId}`
-- `GET /api/cid/{blobId}`
-- `GET /api/cid/reverse/{cid}`
-- `GET /api/cid/stats`
-- `GET /api/cid/gateway/{blobId}` (redirect)
+These routes are validator-local browser surfaces for on-box operators.
 
-### Streaming (SSE)
-- `GET /v1/events/stream`
-- `GET /v1/events/recent`
-- `GET /v1/events/stats`
+```text
+/
+/dashboard
+/api-browser
+/explorer
+/chat
+```
 
-### Cluster & Consensus
-- `GET /v1/consensus/status`
-- `GET /v1/consensus/leader`
-- `GET /v1/head`
-- `GET /v1/peers`
-- `GET /v1/ngrok-url`
-- `GET /v1/blockchain/config`
-- `GET /v1/ops/snapshots/cluster`
-- `GET /v1/ops/snapshots/replication`
-- `GET /v1/ops/snapshots/queue`
-- `GET /v1/aeron/cluster-state`
-- `GET /v1/aeron/raft-metrics`
-- `GET /v1/aeron/node-status`
-- `GET /v1/aeron/leadership-history`
-- `GET /v1/aeron/replication-lag`
-- `POST /v1/follower/head-update` (internal)
+### `local-diagnostic`
 
----
+These routes expose useful local detail, but they are not canonical upstream product contracts.
 
-## Consensus & Proposals (Primary Validator-Native Operational Surface)
+```text
+/v1/index
+/health
+/health/local
+/health/deep
+/health/cluster
+/metrics
+/api/metrics
+/journal.log
+/manifest
+/gc.log
+/segments/*
+/api/explore
+/api/segments/recent
+/api/segments/tars
+/api/blob/{blobId}
+/api/cid/{oakBlobId}
+/api/cid/reverse/{cid}
+/api/cid/stats
+/api/cid/gateway/{oakBlobId}
+/v1/aeron/cluster-state
+/v1/aeron/validator-identities
+/v1/aeron/raft-metrics
+/v1/aeron/node-status
+/v1/aeron/leadership-history
+/v1/aeron/replication-lag
+/v1/events/stream
+/v1/ops/events/stream
+```
 
-These endpoints are the core validator-native surface used by operators, edge adapters, and automation.
+### `internal`
 
-Use `/v1/index` first. It classifies validator routes as `source`, `local-ui`, `local-diagnostic`, or `internal`, and tells you which routes are valid upstream inputs.
+These routes are mutation, registration, compatibility, or test surfaces.
 
-Browser dashboards should prefer gateway-shaped `/ops/v1/*` contracts rather than coupling directly to raw validator `/v1/*` routes. Canonical upstream composition should use the governed source routes:
+```text
+/v1/propose-write
+/v1/propose-delete
+/v1/proposals/pending/count
+/v1/proposals/{proposalId}/status
+/v1/binary/declare-intent
+/v1/binary/check-intent/{token}
+/v1/binary/complete-upload
+/v1/wallets/stats
+/v1/wallets/content
+/v1/register-client
+/v1/peers
+/v1/ngrok-url
+/v1/head
+/v1/follower/head-update
+/v1/ops/operations/{operationId}
+/v1/propose-gc
+/v1/gc/execute
+/v1/gc/vote
+/v1/gc/trigger
+/v1/gc/account/{walletAddress}
+/v1/gc/account/{walletAddress}/pay
+/v1/gc/account/{walletAddress}/set-limit
+/v1/gc/account/{walletAddress}/execute-pending
+/v1/explorer/epochs
+/v1/chat
+/api/mock/advance-epoch
+/api/mock/set-epoch-offset
+/api/mock/epoch-status
+```
 
-- `/v1/consensus/leader`
-- `/v1/consensus/status`
-- `/v1/ops/snapshots/{health,runtime,storage,cluster,replication,queue}`
-- `/v1/proposals/release-flow`
-- `/v1/explorer/*`
-- `/v1/config/osgi*`
-- `/v1/events/{recent,stats}`
-- `/v1/blockchain/config`
-- `/v1/gc/status`
-- `/v1/gc/estimate`
-- `/v1/compaction/proposals`
-- `/v1/fragmentation/*`
+`/v1/explorer/epochs` is a deprecated compatibility route that points readers to `/v1/explorer/release-flow`.
 
-### Proposal Queue and Finalization
+## Canonical Upstream `/ops/v1/*`
 
-- `GET /v1/proposals/queue/stats`
-  - Canonical queue/finality state for one validator.
-  - Includes counters and rates used by Primary Signals:
-    - `totalProposals`
-    - `totalVerifiedCount`
-    - `totalFinalizedCount`
-    - `verifiedCount`
-    - `processedCount`
-    - `batchQueueSize`
-    - `backpressurePendingCount`
-    - `backpressurePendingRawCount`
-    - `persistencePendingChanges`
-    - `persistenceFlushAvgMs`
-    - `persistenceFlushLastMs`
-    - `verifierQueueWaitAvgMs`
-    - `verifierQueueWaitMaxMs`
-    - `currentEpoch`
-    - `finalizedEpoch`
-    - `epochsUntilFinality`
-    - `pendingEpochStats`
+The current edge worker publishes the following upstream contract today.
 
-- `GET /v1/proposals/pending/count`
-  - Lightweight pending count for quick health probes.
+```text
+/ops/v1/overview
+/ops/v1/header
+/ops/v1/network
+/ops/v1/cluster
+/ops/v1/raft
+/ops/v1/replication
+/ops/v1/queue
+/ops/v1/signals
+/ops/v1/durability
+/ops/v1/health
+/ops/v1/proposals
+/ops/v1/proposals/queue/stats
+/ops/v1/proposals/release-flow
+/ops/v1/proposals/epochs
+/ops/v1/explorer/summary
+/ops/v1/explorer/release-flow
+/ops/v1/runtime/aeron
+/ops/v1/runtime/media-driver
+/ops/v1/runtime/storage
+/ops/v1/runtime/blobstore
+/ops/v1/runtime/metrics
+/ops/v1/config/osgi
+/ops/v1/config/osgi/schema
+/ops/v1/config/osgi/sources
+/ops/v1/config/osgi/coverage
+/ops/v1/config/osgi/delta
+/ops/v1/events/recent
+/ops/v1/events/stats
+/ops/v1/transactions/summary
+/ops/v1/transactions/{transactionId}
+/ops/v1/finality
+/ops/v1/tarmk
+/ops/v1/tar-chain
+/ops/v1/blockchain/config
+/ops/v1/gc/status
+/ops/v1/gc/estimate
+/ops/v1/compaction/proposals
+/ops/v1/fragmentation/metrics
+```
 
-- `GET /v1/proposals/{proposalId}/status`
-  - Lifecycle status for a single proposal id.
+Every upstream response is wrapped by the edge adapter in a top-level envelope with `version`, `generatedAt`, `clusterId`, and `data`.
 
-### Consensus and Cluster State
+Raw validator-local routes such as `/v1/aeron/*`, `/health/deep`, `/api/*`, `/metrics`, `/journal.log`, `/manifest`, `/segments/*`, `/dashboard`, `/api-browser`, `/explorer`, `/chat`, and `/v1/index` are not canonical upstream product contracts.
 
-- `GET /v1/consensus/leader`
-  - Canonical leader-resolution surface for validator-native consumers and gateway adapters.
+## Source Routes Not Yet Published Upstream
 
-- `GET /v1/consensus/status`
-  - Current role/term and consensus status view.
+These validator source routes exist today but do not have matching `/ops/v1/*` publication in `oak-chain-edge-worker`.
 
-- `GET /v1/head`
-  - Head information and progress snapshot.
+```text
+/v1/explorer/proposals/{proposalId}
+/v1/explorer/wallets/{walletAddress}
+/v1/fragmentation/metrics/{walletAddress}
+/v1/fragmentation/top
+```
 
-- `GET /v1/peers`
-  - Known peer and reachability state.
+If you need one of these routes remotely, treat that as edge publication debt rather than silently binding clients to direct validator URLs.
 
-- `GET /v1/aeron/cluster-state`
-- `GET /v1/aeron/raft-metrics`
-- `GET /v1/aeron/node-status`
-- `GET /v1/aeron/leadership-history`
-- `GET /v1/aeron/replication-lag`
-  - Deeper Aeron/Raft internals for leadership, lag, and replica health.
+## Recommended Query Order
 
-### Write/Delete Proposal Submission
+1. Start at `/ops/v1/*` for every non-local client, browser, or product-facing integration.
+2. Drop to validator source routes only when you control the validator directly or you are implementing the edge adapter itself.
+3. Use local-diagnostic and internal routes only for on-box investigation, signed mutation flows, or runtime compatibility work.
 
-- `POST /v1/propose-write`
-  - Signed content write proposal endpoint.
-  - In Sepolia/Mainnet, submit the same client-supplied `proposalId` used in the payment/authorize contract flow, along with the payment tx hash.
-- `POST /v1/propose-delete`
-  - Signed delete proposal API surface.
-  - Intended to follow the same payment-backed model, but Sepolia/Mainnet contract parity is still being completed.
-
-### Recommended Operator Query Set
+## Validator Source Query Set
 
 ```bash
-# Primary queue/finality health
-curl -s http://127.0.0.1:8090/v1/proposals/queue/stats | jq .
-
-# Canonical leader lookup + consensus health
+# Canonical source truth
 curl -s http://127.0.0.1:8090/v1/consensus/leader | jq .
 curl -s http://127.0.0.1:8090/v1/consensus/status | jq .
+curl -s http://127.0.0.1:8090/v1/ops/snapshots/cluster | jq .
+curl -s http://127.0.0.1:8090/v1/ops/snapshots/queue | jq .
 curl -s http://127.0.0.1:8090/v1/ops/snapshots/replication | jq .
-
-# Governed runtime/storage sources for edge adapters and operator tooling
 curl -s http://127.0.0.1:8090/v1/ops/snapshots/runtime | jq .
 curl -s http://127.0.0.1:8090/v1/ops/snapshots/storage | jq .
 ```
 
-For signal interpretation guidance, see [Oak Chain Primary Signals](/guide/primary-signals).
-
-### GC & Fragmentation
-- `GET /v1/gc/estimate?wallet=0x...`
-- `GET /v1/gc/status`
-- `GET /v1/gc/account/{wallet}`
-- `POST /v1/gc/account/{wallet}/pay`
-- `POST /v1/gc/account/{wallet}/set-limit`
-- `POST /v1/gc/account/{wallet}/execute-pending`
-- `GET /v1/fragmentation/metrics`
-- `GET /v1/fragmentation/metrics/{wallet}`
-- `GET /v1/fragmentation/top`
-- `GET /v1/compaction/proposals`
-- `POST /v1/propose-gc`
-- `POST /v1/gc/execute`
-- `POST /v1/gc/trigger`
-
-`/v1/gc/trigger` is for the GC account model (pending-debt → executed-debt conversion and write-block checks). It is not a GC proposal approval/execution endpoint.
-
-### Segments (Advanced)
-- `GET /api/segments/recent`
-- `GET /api/segments/tars`
-
-These are local diagnostic routes. Upstream `/ops/v1/*` consumers should use `/v1/ops/snapshots/storage` instead.
-
-### Internal / UI
-- `GET /api-browser`
-- `POST /v1/chat` (if oak-segment-agentic enabled)
-
----
-
-## Request Formats (Write/Delete)
-
-**Write**: `application/x-www-form-urlencoded` or `multipart/form-data`
-
-Required fields:
-- `proposalId`
-- `walletAddress`
-- `signature`
-- `message`
-- `ethereumTxHash`
-
-Optional fields:
-- `contentType` (default `page`)
-- `paymentTier` (`standard`, `express`, `priority`) as an optional payment class field
-- `organization`
-- `intentToken`
-- `ipfsCid`
-- `clientId`
-- `file` (multipart binary)
-
-**Delete**: `application/x-www-form-urlencoded`
-
-Required fields:
-- `walletAddress`
-- `signature`
-- `contentPath`
-- `ethereumTxHash`
-
-Optional fields:
-- `paymentTier` (`standard`, `express`, `priority`) as an optional payment class field
-- `clientId`
-
-For chain-backed writes, `proposalId` should be the bytes32 identifier used in the smart-contract payment/authorize step. In mock mode you can use a synthetic UUID or test hex identifier. If your payment flow uses a contract class, send the same `paymentTier` value with the write request. That field communicates the paid class and any class-based policy, but it is not a latency promise. Delete remains part of the API surface, but chain-backed delete payment parity is still under implementation.
-
----
-
-## OpenAPI Spec
-
-The OpenAPI spec lives at:
-- `public/openapi.yaml`
-
-It is the published Oak Chain HTTP contract and should stay aligned with the validator runtime plus downstream clients. `jackrabbit-oak` remains the implementation authority for live behavior.
-
-Fetch a raw Oak segment (for HTTP segment transfer).
-
-**Response**: Binary TAR segment data
-
-#### `GET /journal.log`
-
-Get the Oak journal (for sync).
-
-**Response**: Journal entries
-
----
-
-## Content Structure & Style Guides
-
-### Why Structure Matters
-
-Oak Chain stores content flexibly—you can write any JSON structure. However, **consistent structure within your namespace is critical** because:
-
-- **Queries WILL fail**: Oak's query engine aborts with read limits if indexes can't be used (inconsistent properties = no index hits = traversal limit exceeded)
-- **Oak Lucene indexing**: Requires consistent property names to build effective indexes
-- **Content discoverability**: Without consistent structure, queries abort rather than returning partial results
-- **Cross-wallet queries**: Aggregations need common structure patterns
-- **Tooling compatibility**: AEM tools expect consistent content models
-
-**Note**: Indexing is an **upstream concern** (not handled at consensus layer). An Oak index layer may be added in time per need, but for now, namespace-level style guides keep queries working.
-
-### Namespace-Level Style Guides
-
-**Each wallet/brand maintains its own style guide** for content structure. This isn't enforced at the consensus layer (Oak Chain accepts any structure), but **brand maintainers should enforce consistency** within their namespace.
-
-**Example Style Guide** (stored at `/oak-chain/{wallet}/.style-guide`):
-
-```json
-{
-  "wallet": "0x742d35Cc6634c0532925a3b844bc9e7595f0beb",
-  "version": "1.0",
-  "contentTypes": {
-    "page": {
-      "required": ["title", "body"],
-      "optional": ["author", "publishedDate", "tags"],
-      "properties": {
-        "title": {"type": "string", "maxLength": 200},
-        "body": {"type": "string"},
-        "author": {"type": "string"},
-        "publishedDate": {"type": "number"},
-        "tags": {"type": "array", "items": {"type": "string"}}
-      }
-    },
-    "asset": {
-      "required": ["name", "ipfsCid"],
-      "optional": ["mimeType", "altText", "width", "height"]
-    }
-  }
-}
-```
-
-### How JSON Maps to JCR
-
-When you send `message` in `POST /v1/propose-write`, the validator parses it as JSON and **materializes it into JCR nodes/properties** under the generated content path:
-
-```
-/oak-chain/{L1}/{L2}/{L3}/0x{wallet}/{organization}/content/{contentType}-{timestamp}
-```
-
-**Mapping rules** (practical behavior):
-
-- **Scalars** → **properties** on the node  
-  `"title": "Hello"` → `title = "Hello"`
-- **Objects** → **child nodes**  
-  `"metadata": { "author": "0xabc..." }` → child node `metadata` with property `author`
-- **Arrays of scalars** → **multi‑value properties**  
-  `"tags": ["news","launch"]`
-- **Arrays of objects** → **child nodes** (implementation-defined names like `item-0`, `item-1`)
-- **JCR system fields** are honored when present:  
-  `"jcr:primaryType"`, `"jcr:mixinTypes"`, `"jcr:created"`, `"jcr:lastModified"`
-
-**Example**
-
-`message` payload:
-```json
-{
-  "jcr:primaryType": "nt:unstructured",
-  "title": "Hello World",
-  "body": "Welcome to Oak Chain!",
-  "metadata": {
-    "author": "0xabc...",
-    "tags": ["launch", "news"]
-  }
-}
-```
-
-Resulting JCR structure (conceptual):
-```
-/oak-chain/.../content/page-<timestamp>
-  - jcr:primaryType = nt:unstructured
-  - title = "Hello World"
-  - body = "Welcome to Oak Chain!"
-  + metadata
-      - author = "0xabc..."
-      - tags = ["launch", "news"]
-```
-
-### Diagram (JSON → JCR)
-
-<FlowGraph flow="json-to-jcr" :height="420" />
-
-### Best Practices
-
-**For Content Creators**:
-1. **Check your brand's style guide** before writing content
-2. **Follow required properties** - queries depend on consistency
-3. **Use consistent property names** - don't mix `title` and `headline`
-4. **Validate before sending** - SDK/connector can validate against style guide
-
-**For Brand Maintainers**:
-1. **Define your style guide** early (before content creation)
-2. **Store it in your namespace** at `/.style-guide` (self-documenting)
-3. **Enforce client-side** - validate before sending to validators
-4. **Version your style guide** - allow evolution over time
-
-### What Happens Without Structure?
-
-If content is unstructured chaos ("wild west slop"):
-
-```sql
--- This query works if all content has 'contentType'
-SELECT * FROM [nt:unstructured] WHERE [contentType] = 'page'
-
--- But FAILS if some content uses 'type', others use 'contentType', others have neither
--- Result: Oak query engine aborts with read limit exceeded (no index hits = full traversal = limit exceeded)
-```
-
-**Indexes require consistency** - without it, queries **WILL fail** (Oak aborts with read limits, not just slow).
-
-**Oak Lucene indexing is a niche topic** - requires consistent property names to build effective indexes. Without consistency, queries can't use indexes and hit traversal limits.
-
-### SDK Support
-
-The Oak Chain SDK can validate content against style guides:
-
-```javascript
-import { OakChainClient } from '@oak-chain/sdk';
-
-const client = new OakChainClient({
-  endpoint: 'http://localhost:8090',
-  wallet: window.ethereum,
-});
-
-// Load style guide for your wallet
-const styleGuide = await client.getStyleGuide();
-
-// Validate before writing
-const validator = new StyleGuideValidator(styleGuide);
-if (!validator.validate(content, 'page')) {
-  throw new Error('Content doesn\'t match style guide');
-}
-
-// Write (now guaranteed to match style guide)
-await client.write({...});
-```
-
-**Note**: Style guide validation is **client-side** (not enforced by validators). This keeps the consensus layer minimal while ensuring content quality.
-
----
-
-## Error Codes
-
-| Code | HTTP Status | Description |
-|------|-------------|-------------|
-| `INVALID_WALLET` | 400 | Malformed wallet address |
-| `INVALID_SIGNATURE` | 401 | Signature doesn't match wallet |
-| `PAYMENT_NOT_FOUND` | 402 | Payment transaction not found |
-| `PAYMENT_INSUFFICIENT` | 402 | Payment amount below tier minimum |
-| `PAYMENT_EXPIRED` | 402 | Payment too old (> 2 epochs) |
-| `PATH_FORBIDDEN` | 403 | Cannot write to another wallet's namespace |
-| `ORG_INVALID` | 400 | Invalid organization name |
-| `NOT_LEADER` | 503 | Node is not leader, retry with leader |
-| `CLUSTER_UNAVAILABLE` | 503 | No quorum available |
-| `CONTENT_TOO_LARGE` | 413 | Content exceeds size limit |
-
-**Error Response Format**
-```json
-{
-  "success": false,
-  "error": "Human-readable description",
-  "code": "error_code",
-  "status": 400,
-  "timestamp": 1738454400000
-}
-```
-
-**Note:** Some endpoints include additional fields alongside the standard error schema.
-
----
-
-## Rate Limits
-
-| Endpoint | Limit |
-|----------|-------|
-| `POST /v1/propose-write` | 100/min per wallet |
-| `GET /v1/events/stream` | 10 connections per IP |
-| `GET /api/explore` | 1000/min per IP |
-
----
-
-## Client Examples
-
-The write-side contract is ahead of the current `oak-chain-sdk` package. For chain-backed writes, prefer direct HTTP examples until the SDK regains parity with the validator API.
-
-### JavaScript (Direct HTTP)
-
-```javascript
-const proposalId = '0x1111111111111111111111111111111111111111111111111111111111111111';
-
-const response = await fetch('http://localhost:8090/v1/propose-write', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-  body: new URLSearchParams({
-    proposalId,
-    walletAddress: '0x742d35Cc6634c0532925a3b844bc9e7595f0beb',
-    message: JSON.stringify({ title: 'Hello!' }),
-    ethereumTxHash: '0x...',
-    signature: '0x...',
-    organization: 'MyBrand',
-  }),
-});
-
-const result = await response.json();
-console.log('Proposal:', result.proposalId);
-```
-
-### cURL
+## Upstream Query Set
 
 ```bash
-# Write content
-curl -X POST http://localhost:8090/v1/propose-write \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "proposalId=0x1111111111111111111111111111111111111111111111111111111111111111" \
-  -d "walletAddress=0x742d35Cc6634c0532925a3b844bc9e7595f0beb" \
-  -d "message={\"title\":\"Hello!\"}" \
-  -d "ethereumTxHash=0xabc123..." \
-  -d "signature=0xmock"
-
-# Read content
-curl "http://localhost:8090/api/explore?path=/oak-chain/74/2d/35/0x742d35Cc.../MyBrand/content/pages/hello"
+# Canonical remote contract
+curl -s http://127.0.0.1:8787/ops/v1/cluster | jq .
+curl -s http://127.0.0.1:8787/ops/v1/queue | jq .
+curl -s http://127.0.0.1:8787/ops/v1/replication | jq .
+curl -s http://127.0.0.1:8787/ops/v1/durability | jq .
+curl -s http://127.0.0.1:8787/ops/v1/finality | jq .
 ```
 
-Add `paymentTier` when your payment flow uses a contract class and keep it consistent with the class you paid for on-chain.
-
----
-
-## Next Steps
-
-- [Authentication](/guide/auth) - Wallet connection guide
-- [Economic Tiers](/guide/economics) - Payment details
-- [Content Paths](/guide/paths) - Path structure and namespace organization
+For signal interpretation guidance, see [Oak Chain Primary Signals](/guide/primary-signals).

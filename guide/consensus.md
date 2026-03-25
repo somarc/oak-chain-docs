@@ -15,11 +15,23 @@ Consensus is the difference between a single-node demo and a system that can sur
 
 - You understand leader, follower, and candidate behavior during normal operations and failover.
 - You can trace how a write moves from proposal to quorum commit.
-- You can reason about failover timing and operational impact.
+- You can reason about which consensus surfaces are source truth, which are local diagnosis, and which are upstream composition.
 
 ## Next Action
 
-Read the role and write-path diagrams first, then run a local cluster and observe leader behavior using the status endpoints.
+Read the role and write-path diagrams first, then query the source routes before you look at any local diagnostic or upstream views.
+
+## Contract Boundary
+
+Consensus truth starts at the validator-native source routes.
+
+Use `/v1/consensus/leader` and `/v1/consensus/status` for normalized leader and role state.
+
+Use `/v1/ops/snapshots/{cluster,queue,replication,runtime}` for governed consensus-adjacent observability.
+
+Treat `/v1/aeron/*` and `/health/deep` as local diagnostic detail.
+
+Treat `/ops/v1/*` as the edge-owned remote contract built from source routes, not as a second consensus engine.
 
 ## Why Aeron?
 
@@ -43,9 +55,9 @@ graph LR
     C -.->|Redirected| F2
 ```
 
-- **Leader**: Accepts writes, proposes to cluster
-- **Follower**: Replicates state, redirects writes to leader
-- **Candidate**: Temporary state during election
+- **Leader**: Accepts writes, proposes to cluster, and publishes normalized leader state.
+- **Follower**: Replays the same ordered log and can expose the same source status routes.
+- **Candidate**: Temporary election role during leadership transfer.
 
 ### Write Path
 
@@ -56,7 +68,7 @@ sequenceDiagram
     participant F1 as Follower 1
     participant F2 as Follower 2
     participant Oak as Oak Store
-    
+
     C->>L: POST /v1/propose-write
     L->>L: Validate signature
     L->>L: Verify payment
@@ -65,47 +77,78 @@ sequenceDiagram
     F1->>L: ACK
     F2->>L: ACK
     L->>Oak: Commit
-    L->>C: 200 OK
+    L->>C: 200 or 202
 ```
 
 ### Leader Election
 
 When the leader fails:
 
-1. Followers detect missing heartbeats (election timeout)
-2. One follower becomes **candidate**
-3. Candidate requests votes from peers
-4. Majority vote → new **leader**
-5. New leader resumes operations
+1. Followers detect missing heartbeats.
+2. One follower becomes **candidate**.
+3. The candidate requests votes from peers.
+4. A majority vote elects the new **leader**.
+5. Source routes converge on the new leader, and the edge contract follows them.
 
-**Failover time**: < 5 seconds
+**Failover time**: typically under five seconds in the current Aeron configuration.
 
 ## Deterministic State Machine
 
-All validators execute the same operations in the same order:
+All validators execute the same operations in the same order.
 
 ```java
-// Every validator runs this identically
-public void onSessionMessage(ClientSession session, 
-                              long timestamp, 
-                              DirectBuffer buffer) {
+public void onSessionMessage(ClientSession session,
+                             long timestamp,
+                             DirectBuffer buffer) {
     WriteProposal proposal = decode(buffer);
-    
-    // Deterministic: same input → same output
     nodeStore.merge(proposal.path, proposal.content);
-    
-    // All validators now have identical state
 }
 ```
 
-**Key property**: Given the same log, all validators produce identical Oak segment stores.
+Given the same replicated log, validators converge on the same Oak segment-store state.
+
+## Observation Order
+
+### 1. Source Truth
+
+Use these first when you need authoritative consensus state from the validator.
+
+```bash
+curl -s http://127.0.0.1:8090/v1/consensus/leader | jq .
+curl -s http://127.0.0.1:8090/v1/consensus/status | jq .
+curl -s http://127.0.0.1:8090/v1/ops/snapshots/cluster | jq .
+curl -s http://127.0.0.1:8090/v1/ops/snapshots/queue | jq .
+curl -s http://127.0.0.1:8090/v1/ops/snapshots/replication | jq .
+```
+
+### 2. Local Diagnosis
+
+Use these only when the normalized source routes are not enough.
+
+```bash
+curl -s http://127.0.0.1:8090/v1/aeron/cluster-state | jq .
+curl -s http://127.0.0.1:8090/v1/aeron/raft-metrics | jq .
+curl -s http://127.0.0.1:8090/v1/aeron/node-status?nodeId=0 | jq .
+curl -s http://127.0.0.1:8090/v1/aeron/replication-lag | jq .
+```
+
+### 3. Canonical Upstream
+
+Use these for remote dashboards, operators, and product-facing read models.
+
+```bash
+curl -s http://127.0.0.1:8787/ops/v1/cluster | jq .
+curl -s http://127.0.0.1:8787/ops/v1/queue | jq .
+curl -s http://127.0.0.1:8787/ops/v1/replication | jq .
+curl -s http://127.0.0.1:8787/ops/v1/durability | jq .
+curl -s http://127.0.0.1:8787/ops/v1/finality | jq .
+```
 
 ## Configuration
 
 ### Cluster Members
 
 ```bash
-# validator-0
 export AERON_CLUSTER_MEMBER_ID=0
 export AERON_CLUSTER_MEMBERS=0,localhost:20000,localhost:20001,localhost:20002|1,localhost:20010,localhost:20011,localhost:20012|2,localhost:20020,localhost:20021,localhost:20022
 ```
@@ -114,7 +157,7 @@ export AERON_CLUSTER_MEMBERS=0,localhost:20000,localhost:20001,localhost:20002|1
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `election.timeout.ms` | 1000 | Time before follower starts election |
+| `election.timeout.ms` | 1000 | Time before a follower starts an election |
 | `heartbeat.interval.ms` | 200 | Leader heartbeat frequency |
 | `session.timeout.ms` | 5000 | Client session timeout |
 
@@ -122,59 +165,49 @@ export AERON_CLUSTER_MEMBERS=0,localhost:20000,localhost:20001,localhost:20002|1
 
 ### Leader Failure
 
-1. Followers detect timeout
-2. Election occurs
-3. New leader elected
-4. Clients reconnect automatically
+1. Followers detect timeout.
+2. Election occurs.
+3. A new leader is elected.
+4. Source routes converge, and the edge contract follows the new leader.
 
 ### Follower Failure
 
-1. Leader continues with remaining quorum
-2. Failed follower rejoins via snapshot
-3. Catches up from log
+1. The leader continues with the remaining quorum.
+2. The failed follower rejoins via snapshot and replay.
+3. Local diagnostic routes can show lag during catch-up, but source snapshots stay the primary contract.
 
 ### Network Partition
 
-1. Minority partition cannot elect leader
-2. Majority partition continues
-3. Minority rejects writes (no quorum)
-4. Heals automatically when network recovers
+1. The minority partition cannot elect a leader.
+2. The majority partition continues.
+3. The minority rejects writes because quorum is unavailable.
+4. Source routes and edge composition recover once the partition heals.
 
 ## Monitoring
 
-### Key Metrics
+Use `/v1/consensus/leader` for normalized leader lookup.
 
-Use `/v1/consensus/leader` for normalized leader lookup. Use `/v1/ops/snapshots/runtime` for the governed runtime/operator view. Raw `/v1/aeron/*` routes remain local-diagnostic detail, not the preferred upstream composition contract.
+Use `/v1/ops/snapshots/runtime` for governed runtime state.
+
+Use `/v1/aeron/*` only when you need raw local diagnostic detail.
 
 ```bash
-# Canonical leader lookup
-curl http://localhost:8090/v1/consensus/leader
-
-# Response
-{
-  "contractVersion": "consensus.leader.v1",
-  "consensusType": "aeron-cluster",
-  "currentRole": "LEADER",
-  "isLeader": true,
-  "currentTerm": 42,
-  "currentLeader": "http://validator-0:8090",
-  "leaderKnown": true
-}
-
-# Governed runtime/operator detail
-curl http://localhost:8090/v1/ops/snapshots/runtime
+curl -s http://localhost:8090/v1/consensus/leader | jq .
+curl -s http://localhost:8090/v1/ops/snapshots/runtime | jq .
+curl -s http://localhost:8090/v1/ops/snapshots/queue | jq .
 ```
 
 ### Prometheus Metrics
 
 | Metric | Description |
 |--------|-------------|
-| `aeron_cluster_role` | Current role (0=follower, 1=candidate, 2=leader) |
+| `aeron_cluster_role` | Current role |
 | `aeron_cluster_term` | Current Raft term |
 | `aeron_cluster_commit_index` | Committed log index |
 | `aeron_cluster_election_count` | Number of elections |
 
 ## Next Steps
 
-- [Economic Tiers](/guide/economics) - Payment and finality
-- [Run a Validator](/operators/) - Join the network
+- [Proposal Flow](/guide/proposal-flow)
+- [Primary Signals](/guide/primary-signals)
+- [Run a Validator](/operators/)

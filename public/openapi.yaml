@@ -1,2115 +1,685 @@
 openapi: 3.1.0
 info:
-  title: Oak Chain Validator API
-  description: |
-    REST API for Oak Chain validators - decentralized content repository built on Jackrabbit Oak
-    with Ethereum payments and IPFS binary storage.
-    
-    ## Authentication
-    
-    Most endpoints require authentication via bearer token or wallet signature.
-    Health endpoints are public for monitoring/load balancer integration.
-    
-    ## Rate Limiting
-    
-    API requests are rate-limited per IP address. Rate limit headers are included in responses:
-    - `X-RateLimit-Limit`: Maximum requests per window
-    - `X-RateLimit-Remaining`: Remaining requests in current window
-    - `X-RateLimit-Reset`: Unix timestamp when the window resets
-    
+  title: Oak Chain Ops API
   version: 1.0.0
-  contact:
-    name: Oak Chain
-    url: https://oak-chain.io
+  summary: Canonical upstream `/ops/v1/*` contract published by `oak-chain-edge-worker`.
+  description: |
+    This spec documents the edge-owned `/ops/v1/*` contract exposed by `oak-chain-edge-worker`.
+    The adapter composes or proxies governed validator source routes from `jackrabbit-oak`.
+    It is the only canonical non-local upstream product contract.
+
+    For validator-native source routes, use `/openapi-validator-source.yaml`.
   license:
-    name: Apache 2.0
+    name: Apache-2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-
 servers:
-  - url: https://validators.oak-chain.io
-    description: Production (Mainnet)
-  - url: https://sepolia.validators.oak-chain.io
-    description: Testnet (Sepolia)
-  - url: http://localhost:8090
-    description: Local development
-
+  - url: http://127.0.0.1:8787
+    description: Local ops adapter or mock server.
 tags:
-  - name: Health
-    description: Health check endpoints (public)
-  - name: Content
-    description: Content read operations
-  - name: Write
-    description: Write proposal operations
-  - name: Binary
-    description: Binary upload operations (IPFS)
-  - name: Streaming
-    description: Server-Sent Events (SSE) streaming
+  - name: Overview
+    description: Top-level operational summaries.
   - name: Cluster
-    description: Cluster and consensus status
-  - name: Payment
-    description: Payment verification
+    description: Cluster and consensus projections.
+  - name: Proposals
+    description: Queue, release, and finality views.
+  - name: Explorer
+    description: Remote explorer read models.
+  - name: Runtime
+    description: Runtime-lane operator views.
+  - name: Configuration
+    description: Edge-published OSGi and blockchain configuration.
+  - name: Events
+    description: Event feeds and counters.
+  - name: Storage
+    description: Storage and TAR growth views.
   - name: GC
-    description: Garbage collection operations
-  - name: Segments
-    description: Segment store inspection endpoints
-  - name: Internal
-    description: Internal or UI-only endpoints
-
-paths:
-  # ============================================================================
-  # HEALTH
-  # ============================================================================
-  /health:
-    get:
-      tags: [Health]
-      summary: Basic health check
-      description: Returns OK if the validator is running. No authentication required.
-      operationId: healthCheck
-      responses:
-        '200':
-          description: Validator is healthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BasicHealthResponse'
-        '503':
-          description: Validator unhealthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BasicHealthResponse'
-
-  /health/deep:
-    get:
-      tags: [Health]
-      summary: Deep health check
-      description: |
-        Returns detailed health status including cluster connectivity,
-        storage health, and consensus state.
-      operationId: deepHealthCheck
-      responses:
-        '200':
-          description: Detailed health status
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeepHealthResponse'
-        '503':
-          description: Degraded health
-
-  /health/cluster:
-    get:
-      tags: [Health]
-      summary: Cluster health check
-      description: Cluster-only health check for quorum/leader status.
-      operationId: clusterHealth
-      responses:
-        '200':
-          description: Cluster healthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClusterHealthResponse'
-        '503':
-          description: Cluster unhealthy or unavailable
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClusterHealthResponse'
-
-  /api-browser:
-    get:
-      tags: [Internal]
-      summary: API browser UI
-      description: HTML API browser dashboard (local UI).
-      operationId: getApiBrowser
-      responses:
-        '200':
-          description: HTML response
-          content:
-            text/html:
-              schema:
-                type: string
-
-  # ============================================================================
-  # CONTENT
-  # ============================================================================
-  /api/explore:
-    get:
-      tags: [Content]
-      summary: Explore content node
-      description: Read a content node and its properties at the specified path.
-      operationId: exploreNode
-      parameters:
-        - name: path
-          in: query
-          description: JCR path to explore (default: /)
-          schema:
-            type: string
-            default: /
-      responses:
-        '200':
-          description: Node content
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContentNode'
-        '404':
-          description: Path not found
-
-  /api/segments/recent:
-    get:
-      tags: [Segments]
-      summary: Recent segment writes
-      description: Returns recent segment writes from the journal.
-      operationId: getRecentSegments
-      responses:
-        '200':
-          description: Recent segments
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                    timestamp:
-                      type: string
-
-  /api/segments/tars:
-    get:
-      tags: [Segments]
-      summary: Segment TAR files
-      description: List TAR files and storage blocks for the segment store.
-      operationId: getTarFiles
-      responses:
-        '200':
-          description: TAR file list
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                    size:
-                      type: integer
-                      format: int64
-                    sizeFormatted:
-                      type: string
-                    segmentCount:
-                      type: integer
-                    estimatedCount:
-                      type: boolean
-                    created:
-                      type: string
-                    modified:
-                      type: string
-
-  /api/blob/{blobId}:
-    get:
-      tags: [Binary]
-      summary: Stream blob by Oak blob ID
-      description: Stream binary from Oak BlobStore (no CID mapping required).
-      operationId: streamBlob
-      parameters:
-        - name: blobId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Binary stream
-          content:
-            application/octet-stream:
-              schema:
-                type: string
-                format: binary
-        '404':
-          description: Blob not found
-        '503':
-          description: BlobStore not configured
-
-  /v1/wallets/content:
-    get:
-      tags: [Content]
-      summary: Get wallet content
-      description: List all content owned by a specific wallet address.
-      operationId: getWalletContent
-      parameters:
-        - name: wallet
-          in: query
-          required: true
-          description: Ethereum wallet address (0x...)
-          schema:
-            type: string
-            pattern: ^0x[a-fA-F0-9]{40}$
-        - name: page
-          in: query
-          description: Page number (0-indexed)
-          schema:
-            type: integer
-            default: 0
-        - name: pageSize
-          in: query
-          description: Items per page
-          schema:
-            type: integer
-            default: 100
-            maximum: 1000
-      responses:
-        '200':
-          description: Wallet content list
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PaginatedContent'
-
-  /v1/wallets/stats:
-    get:
-      tags: [Content]
-      summary: Get wallet statistics
-      description: Get storage statistics for a wallet address.
-      operationId: getWalletStats
-      parameters:
-        - name: wallet
-          in: query
-          required: true
-          description: Ethereum wallet address
-          schema:
-            type: string
-            pattern: ^0x[a-fA-F0-9]{40}$
-      responses:
-        '200':
-          description: Wallet statistics
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WalletStats'
-
-  # ============================================================================
-  # WRITE OPERATIONS
-  # ============================================================================
-  /v1/propose-write:
-    post:
-      tags: [Write]
-      summary: Propose content write
-      description: |
-        Submit a signed write proposal to the consensus cluster.
-        Requires a valid payment transaction hash from the smart contract.
-        In Sepolia/Mainnet, clients must also include the same `proposalId`
-        used in the authorize/payment contract flow. In mock mode, a synthetic
-        UUID or `0x`-prefixed 32-byte test identifier is acceptable.
-      operationId: proposeWrite
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/WriteProposalForm'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/WriteProposalMultipart'
-      responses:
-        '200':
-          description: Proposal accepted (immediate mode)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WriteProposalResponse'
-        '202':
-          description: Proposal accepted (queued)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WriteProposalResponse'
-        '400':
-          description: Invalid proposal
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '402':
-          description: Payment required or invalid
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WriteBlockedResponse'
-        '403':
-          description: Not authorized to write to this shard
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Signature verification failed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '503':
-          description: Cluster unavailable or unhealthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /v1/propose-delete:
-    post:
-      tags: [Write]
-      summary: Propose content deletion
-      description: |
-        Submit a signed delete proposal. Only the content owner (wallet)
-        can delete content at their path. This is part of the Oak Chain API
-        surface, but chain-backed Sepolia/Mainnet contract parity is still
-        being completed; current runtimes may return `501` outside mock mode.
-      operationId: proposeDelete
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/DeleteProposalForm'
-      responses:
-        '202':
-          description: Delete proposal accepted
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeleteProposalResponse'
-        '400':
-          description: Invalid proposal
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Not authorized to delete this path
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '501':
-          description: Delete flow not yet available for the active network mode
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '503':
-          description: Cluster unavailable or unhealthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /v1/proposals/{proposalId}/status:
-    get:
-      tags: [Write]
-      summary: Get proposal status
-      description: Check the status of a submitted proposal.
-      operationId: getProposalStatus
-      parameters:
-        - name: proposalId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Proposal status
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProposalStatus'
-        '404':
-          description: Proposal not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '400':
-          description: Invalid proposal ID
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '503':
-          description: Proposal queue not available
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /v1/proposals/pending/count:
-    get:
-      tags: [Write]
-      summary: Get pending proposal count
-      description: Returns the number of proposals waiting to be processed.
-      operationId: getPendingCount
-      responses:
-        '200':
-          description: Pending count
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  pendingCount:
-                    type: integer
-        '503':
-          description: Proposal queue not available
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /v1/proposals/queue/stats:
-    get:
-      tags: [Write]
-      summary: Get proposal queue statistics
-      description: Returns detailed queue metrics for pending, verified, rejected, and batching stages.
-      operationId: getProposalQueueStats
-      responses:
-        '200':
-          description: Queue statistics
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProposalQueueStats'
-        '503':
-          description: Proposal queue not available
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /v1/register-client:
-    post:
-      tags: [Write]
-      summary: Register Sling author client
-      description: Register or update a client by wallet address (wallet is the primary identifier).
-      operationId: registerClient
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RegisterClientRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/RegisterClientRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/RegisterClientRequest'
-      parameters:
-        - name: clientId
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: clientUrl
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: walletAddress
-          in: query
-          required: false
-          schema:
-            type: string
-            pattern: ^0x[a-fA-F0-9]{40}$
-      responses:
-        '200':
-          description: Client registered
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RegisterClientResponse'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '409':
-          description: Client already registered with different wallet
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    put:
-      tags: [Write]
-      summary: Register Sling author client (PUT)
-      operationId: registerClientPut
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RegisterClientRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/RegisterClientRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/RegisterClientRequest'
-      responses:
-        '200':
-          description: Client registered
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RegisterClientResponse'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '409':
-          description: Client already registered with different wallet
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  # ============================================================================
-  # BINARY UPLOAD (IPFS)
-  # ============================================================================
-  /v1/binary/declare-intent:
-    post:
-      tags: [Binary]
-      summary: Declare binary upload intent
-      description: |
-        Declare intent to upload a binary. Returns an intent token for tracking.
-        The actual binary should be uploaded to IPFS separately.
-      operationId: declareUploadIntent
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/BinaryDeclareIntentForm'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/BinaryDeclareIntentForm'
-      parameters:
-        - name: walletAddress
-          in: query
-          required: false
-          schema:
-            type: string
-            pattern: ^0x[a-fA-F0-9]{40}$
-        - name: filesize
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: mimeType
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: contentHash
-          in: query
-          required: false
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Intent declared
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BinaryDeclareIntentResponse'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /v1/binary/check-intent/{intentToken}:
-    get:
-      tags: [Binary]
-      summary: Check upload intent status
-      operationId: checkUploadIntent
-      parameters:
-        - name: intentToken
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Intent status
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UploadStatus'
-        '404':
-          description: Intent token not found or expired
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /v1/binary/complete-upload:
-    post:
-      tags: [Binary]
-      summary: Complete binary upload
-      description: |
-        Mark a binary upload as complete after the binary is available on IPFS.
-        This triggers CID verification and storage in Oak Chain.
-      operationId: completeUpload
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/BinaryCompleteUploadForm'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/BinaryCompleteUploadForm'
-      parameters:
-        - name: intentToken
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: cid
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: walletAddress
-          in: query
-          required: false
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Upload completed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BinaryCompleteUploadResponse'
-        '400':
-          description: Missing or invalid parameters
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Intent token not found or expired
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  # ============================================================================
-  # CID MAPPING
-  # ============================================================================
-  /api/cid/{blobId}:
-    get:
-      tags: [Binary]
-      summary: Get CID for Oak blob
-      description: Look up the IPFS CID for an Oak blob ID.
-      operationId: getCid
-      parameters:
-        - name: blobId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: CID mapping
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  blobId:
-                    type: string
-                  cid:
-                    type: string
-                  gatewayUrl:
-                    type: string
-        '404':
-          description: Blob not found
-
-  /api/cid/reverse/{cid}:
-    get:
-      tags: [Binary]
-      summary: Reverse CID lookup
-      description: Look up the Oak blob ID for an IPFS CID.
-      operationId: reverseCidLookup
-      parameters:
-        - name: cid
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Blob ID
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  cid:
-                    type: string
-                  blobId:
-                    type: string
-        '404':
-          description: CID not found
-
-  /api/cid/gateway/{blobId}:
-    get:
-      tags: [Binary]
-      summary: Redirect to IPFS gateway
-      description: Redirect to the IPFS gateway URL for a blob ID.
-      operationId: getCidGateway
-      parameters:
-        - name: blobId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '302':
-          description: Redirect to gateway URL
-        '404':
-          description: Mapping not found
-
-  /api/cid/stats:
-    get:
-      tags: [Binary]
-      summary: CID mapping statistics
-      operationId: getCidStats
-      responses:
-        '200':
-          description: Statistics
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  totalMappings:
-                    type: integer
-                  totalSize:
-                    type: integer
-                    format: int64
-
-  # ============================================================================
-  # STREAMING (SSE)
-  # ============================================================================
-  /v1/events/stream:
-    get:
-      tags: [Streaming]
-      summary: SSE event stream
-      description: |
-        Server-Sent Events stream for real-time content updates.
-        
-        Event types:
-        - `content-created`: New content written
-        - `content-updated`: Existing content modified
-        - `content-deleted`: Content deleted
-        - `binary-added`: Binary CID registered
-        - `epoch-finalized`: Ethereum epoch finalized
-        - `leader-changed`: Cluster leader changed
-        - `heartbeat`: Keep-alive ping
-      operationId: eventStream
-      parameters:
-        - name: events
-          in: query
-          description: Comma-separated list of event types to subscribe to
-          schema:
-            type: string
-            default: content-created,content-updated,content-deleted
-        - name: path
-          in: query
-          description: Filter events by path prefix
-          schema:
-            type: string
-        - name: wallet
-          in: query
-          description: Filter events by wallet address
-          schema:
-            type: string
-      responses:
-        '200':
-          description: SSE stream
-          content:
-            text/event-stream:
-              schema:
-                type: string
-
-  /v1/events/recent:
-    get:
-      tags: [Streaming]
-      summary: Get recent events
-      description: Get recent events (for clients that missed SSE events).
-      operationId: getRecentEvents
-      parameters:
-        - name: since
-          in: query
-          description: Unix timestamp to get events after
-          schema:
-            type: integer
-            format: int64
-        - name: limit
-          in: query
-          description: Maximum events to return
-          schema:
-            type: integer
-            default: 100
-      responses:
-        '200':
-          description: Recent events
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SSEEvent'
-
-  /v1/events/stats:
-    get:
-      tags: [Streaming]
-      summary: Event stream statistics
-      operationId: getEventStats
-      responses:
-        '200':
-          description: Statistics
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  connectedClients:
-                    type: integer
-                  eventsEmitted:
-                    type: integer
-                    format: int64
-                  eventsPerSecond:
-                    type: number
-
-  # ============================================================================
-  # CLUSTER STATUS
-  # ============================================================================
-  /v1/consensus/status:
-    get:
-      tags: [Cluster]
-      summary: Get consensus status
-      description: Get current consensus cluster status including leader and term.
-      operationId: getConsensusStatus
-      responses:
-        '200':
-          description: Consensus status
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConsensusStatus'
-
-  /v1/head:
-    get:
-      tags: [Cluster]
-      summary: Get current HEAD
-      description: Get the current committed and latest HEAD revision.
-      operationId: getHead
-      responses:
-        '200':
-          description: HEAD information
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  latestHead:
-                    type: string
-                    description: Latest HEAD revision
-                  committedHead:
-                    type: string
-                    description: Committed HEAD revision
-                  latestEpochSeen:
-                    type: integer
-                  committedEpoch:
-                    type: integer
-
-  /v1/follower/head-update:
-    post:
-      tags: [Internal]
-      summary: Follower HEAD update
-      description: Internal endpoint for leader to broadcast HEAD updates to followers.
-      operationId: followerHeadUpdate
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties: true
-      responses:
-        '200':
-          description: Update accepted
-        '400':
-          description: Invalid request
-
-  /v1/aeron/cluster-state:
-    get:
-      tags: [Cluster]
-      summary: Get Aeron cluster state
-      operationId: getClusterState
-      responses:
-        '200':
-          description: Cluster state
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClusterState'
-
-  /v1/aeron/raft-metrics:
-    get:
-      tags: [Cluster]
-      summary: Get Raft metrics
-      operationId: getRaftMetrics
-      responses:
-        '200':
-          description: Raft metrics
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RaftMetrics'
-
-  /v1/aeron/node-status:
-    get:
-      tags: [Cluster]
-      summary: Get Aeron node status
-      operationId: getAeronNodeStatus
-      responses:
-        '200':
-          description: Node status
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-
-  /v1/aeron/leadership-history:
-    get:
-      tags: [Cluster]
-      summary: Get leadership history
-      operationId: getLeadershipHistory
-      responses:
-        '200':
-          description: Leadership history
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-
-  /v1/aeron/replication-lag:
-    get:
-      tags: [Cluster]
-      summary: Get replication lag
-      description: Get replication lag between leader and followers.
-      operationId: getReplicationLag
-      responses:
-        '200':
-          description: Replication lag
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  lagMs:
-                    type: integer
-                  behindCommits:
-                    type: integer
-
-  /v1/peers:
-    get:
-      tags: [Cluster]
-      summary: List peers
-      description: List all known peers in the cluster.
-      operationId: listPeers
-      responses:
-        '200':
-          description: Peer list
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PeerInfo'
-
-  /v1/ngrok-url:
-    get:
-      tags: [Cluster]
-      summary: Get ngrok URL
-      description: Returns ngrok URL if configured (local dev convenience).
-      operationId: getNgrokUrl
-      responses:
-        '200':
-          description: Ngrok URL
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-
-  # ============================================================================
-  # BLOCKCHAIN CONFIG
-  # ============================================================================
-  /v1/blockchain/config:
-    get:
-      tags: [Cluster]
-      summary: Get blockchain configuration
-      description: Get the current blockchain mode, contract configuration, and client capability hints.
-      operationId: getBlockchainConfig
-      responses:
-        '200':
-          description: Blockchain configuration
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  mode:
-                    type: string
-                    enum: [SEPOLIA, MAINNET]
-                  contractAddress:
-                    type: string
-                  network:
-                    type: string
-                  chainId:
-                    type: integer
-                  rpcUrl:
-                    type: string
-                  requiresMetaMask:
-                    type: boolean
-                  useTestnet:
-                    type: boolean
-                  displayName:
-                    type: string
-                  badgeColor:
-                    type: string
-                  validatorUrl:
-                    type: string
-                  tiers:
-                    type: object
-                    additionalProperties: true
-
-  # ============================================================================
-  # GC (GARBAGE COLLECTION)
-  # ============================================================================
-  /v1/gc/estimate:
-    get:
-      tags: [GC]
-      summary: Estimate GC cost
-      description: Estimate the cost of garbage collection for a wallet.
-      operationId: estimateGCCost
-      parameters:
-        - name: wallet
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: GC cost estimate
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GCCostEstimate'
-
-  /v1/gc/status:
-    get:
-      tags: [GC]
-      summary: Get GC status
-      operationId: getGCStatus
-      responses:
-        '200':
-          description: GC status
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  lastRun:
-                    type: integer
-                    format: int64
-                  nextScheduled:
-                    type: integer
-                    format: int64
-                  running:
-                    type: boolean
-
-  /v1/gc/account/{wallet}:
-    get:
-      tags: [GC]
-      summary: Get GC account
-      description: Get GC debt account for a wallet.
-      operationId: getGCAccount
-      parameters:
-        - name: wallet
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: GC account
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GCAccount'
-
-  /v1/gc/account/{wallet}/pay:
-    post:
-      tags: [GC]
-      summary: Pay GC debt
-      description: Record payment against GC debt for a wallet.
-      operationId: payGCDebt
-      parameters:
-        - name: wallet
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Payment accepted
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-
-  /v1/gc/account/{wallet}/set-limit:
-    post:
-      tags: [GC]
-      summary: Set GC debt limit
-      description: Update GC debt limit for a wallet.
-      operationId: setGCDebtLimit
-      parameters:
-        - name: wallet
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Limit updated
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-
-  /v1/gc/account/{wallet}/execute-pending:
-    post:
-      tags: [GC]
-      summary: Execute pending GC debt
-      description: Convert pending GC debt to executed for a wallet.
-      operationId: executePendingGCDebt
-      parameters:
-        - name: wallet
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Pending debt executed
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-
-  /v1/fragmentation/metrics:
-    get:
-      tags: [GC]
-      summary: Get fragmentation metrics
-      operationId: getFragmentationMetrics
-      responses:
-        '200':
-          description: Fragmentation metrics
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  totalFragmentation:
-                    type: number
-                  walletMetrics:
-                    type: object
-                    additionalProperties:
-                      $ref: '#/components/schemas/FragmentationMetric'
-
-  /v1/fragmentation/metrics/{wallet}:
-    get:
-      tags: [GC]
-      summary: Get fragmentation metrics for a wallet
-      operationId: getWalletFragmentationMetrics
-      parameters:
-        - name: wallet
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Wallet fragmentation metrics
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FragmentationMetric'
-
-  /v1/fragmentation/top:
-    get:
-      tags: [GC]
-      summary: Get top fragmented wallets
-      operationId: getTopFragmented
-      responses:
-        '200':
-          description: Top fragmented wallets
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  additionalProperties: true
-
-  /v1/compaction/proposals:
-    get:
-      tags: [GC]
-      summary: Get compaction proposals
-      operationId: getCompactionProposals
-      responses:
-        '200':
-          description: Compaction proposals
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-
-  /v1/propose-gc:
-    post:
-      tags: [GC]
-      summary: Propose GC
-      operationId: proposeGC
-      responses:
-        '200':
-          description: GC proposal accepted
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-
-  /v1/gc/execute:
-    post:
-      tags: [GC]
-      summary: Execute GC
-      operationId: executeGC
-      responses:
-        '200':
-          description: GC execution started
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-
-  /v1/gc/trigger:
-    post:
-      tags: [GC]
-      summary: Trigger debt conversion cycle (manual)
-      description: |
-        Testing endpoint for the GC account model.
-        Converts pending GC debt to executed debt and applies write-blocking checks.
-        This endpoint does not scan/approve GC proposals.
-      operationId: triggerGC
-      responses:
-        '200':
-          description: GC triggered
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-
-  /v1/chat:
-    post:
-      tags: [Internal]
-      summary: LLM chat endpoint
-      description: Optional chat endpoint backed by oak-segment-agentic (if enabled).
-      operationId: chat
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties: true
-      responses:
-        '200':
-          description: Chat response
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-
-  # ============================================================================
-  # METRICS
-  # ============================================================================
-  /metrics:
-    get:
-      tags: [Health]
-      summary: Prometheus metrics
-      description: Prometheus-formatted metrics for monitoring.
-      operationId: getPrometheusMetrics
-      responses:
-        '200':
-          description: Prometheus metrics
-          content:
-            text/plain:
-              schema:
-                type: string
-
-  /api/metrics:
-    get:
-      tags: [Health]
-      summary: JSON metrics
-      description: JSON-formatted metrics.
-      operationId: getJsonMetrics
-      responses:
-        '200':
-          description: JSON metrics
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MetricsResponse'
-
-# ============================================================================
-# COMPONENTS
-# ============================================================================
+    description: GC and fragmentation publication.
+  - name: Transactions
+    description: Transaction summaries and detail.
 components:
   schemas:
-    BasicHealthResponse:
+    FlexibleObject:
       type: object
-      description: Basic validator health response.
-      properties:
-        success:
-          type: boolean
-        status:
-          type: string
-          enum: [UP, UNHEALTHY]
-        timestamp:
-          type: integer
-          format: int64
       additionalProperties: true
-
-    ClusterHealthResponse:
+    OpsEnvelope:
       type: object
-      description: Cluster-only health response.
-      properties:
-        success:
-          type: boolean
-        status:
-          type: string
-          enum: [UP, UNHEALTHY, UNAVAILABLE]
-        timestamp:
-          type: integer
-          format: int64
-      additionalProperties: true
-
-    MetricsResponse:
-      type: object
-      description: JSON metrics response.
-      properties:
-        success:
-          type: boolean
-          example: true
-        status:
-          type: string
-          example: UP
-        timestamp:
-          type: integer
-          format: int64
-      additionalProperties: true
-    ErrorResponse:
-      type: object
-      description: Standard error response for Oak Chain APIs.
-      properties:
-        success:
-          type: boolean
-          example: false
-        error:
-          type: string
-          description: Human-readable error message.
-        code:
-          type: string
-          description: Machine-readable error code.
-        status:
-          type: integer
-          description: HTTP status code.
-        timestamp:
-          type: integer
-          format: int64
-          description: Epoch millis when the error was generated.
-      required: [success, error, code, status, timestamp]
-    WriteBlockedResponse:
-      type: object
-      description: Payment required response when writes are blocked due to GC debt.
-      properties:
-        success:
-          type: boolean
-          example: false
-        error:
-          type: string
-        code:
-          type: string
-          example: write_blocked_gc_debt
-        status:
-          type: integer
-          example: 402
-        timestamp:
-          type: integer
-          format: int64
-        wallet:
-          type: string
-        totalDebt:
-          type: string
-        executedDebt:
-          type: string
-        pendingDebt:
-          type: string
-        debtLimit:
-          type: string
-        amountOverLimit:
-          type: string
-        paymentUrl:
-          type: string
-        statusUrl:
-          type: string
       required:
-        - success
-        - error
-        - code
-        - status
-        - timestamp
-    BinaryDeclareIntentForm:
-      type: object
-      required: [walletAddress, filesize, mimeType]
+        - version
+        - generatedAt
+        - data
       properties:
-        walletAddress:
+        version:
           type: string
-          pattern: ^0x[a-fA-F0-9]{40}$
-        filesize:
-          type: integer
-          format: int64
-          description: File size in bytes
-        mimeType:
-          type: string
-        contentHash:
-          type: string
-          description: Optional content hash for deduplication
-    BinaryDeclareIntentResponse:
-      type: object
-      properties:
-        intentToken:
-          type: string
-        expirySeconds:
-          type: integer
-          format: int64
-        message:
-          type: string
-      required: [intentToken, expirySeconds, message]
-    BinaryCompleteUploadForm:
-      type: object
-      required: [intentToken, cid, walletAddress]
-      properties:
-        intentToken:
-          type: string
-        cid:
-          type: string
-        walletAddress:
-          type: string
-          pattern: ^0x[a-fA-F0-9]{40}$
-    BinaryCompleteUploadResponse:
-      type: object
-      properties:
-        status:
-          type: string
-        cid:
-          type: string
-      required: [status, cid]
-    RegisterClientRequest:
-      type: object
-      required: [walletAddress]
-      properties:
-        clientId:
-          type: string
-        clientUrl:
-          type: string
-        walletAddress:
-          type: string
-          pattern: ^0x[a-fA-F0-9]{40}$
-    RegisterClientResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        clientId:
-          type: string
-        walletAddress:
-          type: string
-        message:
-          type: string
-      required: [success, clientId, walletAddress, message]
-    ContentNode:
-      type: object
-      properties:
-        jcr:primaryType:
-          type: string
-        jcr:mixinTypes:
-          type: array
-          items:
-            type: string
-        jcr:created:
+          enum:
+            - v1
+        generatedAt:
           type: string
           format: date-time
-        jcr:lastModified:
-          type: string
-          format: date-time
-        oak:author:
-          type: string
-          description: Author wallet address
-        oak:signature:
-          type: string
-          description: Content signature
-      additionalProperties: true
-
-    WriteProposalForm:
-      type: object
-      required: [proposalId, walletAddress, signature, ethereumTxHash]
-      properties:
-        proposalId:
-          type: string
-          description: Client-supplied proposal identifier. Use the same bytes32 proposalId paid for on-chain in Sepolia/Mainnet. Mock mode may use a UUID or test hex value.
-        walletAddress:
-          type: string
-          pattern: ^0x[a-fA-F0-9]{40}$
-          description: Author wallet address
-        wallet:
-          type: string
-          description: Backward-compatible wallet field (use walletAddress)
-        organization:
-          type: string
-          description: Organization/brand scope
-        message:
-          type: string
-          description: Content to write (JSON string or text). Canonical JSON fields: title, body, tags, meta, payload.
-        contentType:
-          type: string
-          description: Content type (default "page")
-        ethereumTxHash:
-          type: string
-          pattern: ^0x[a-fA-F0-9]+$
-          description: Payment transaction hash
-        paymentTier:
-          type: string
-          enum: [standard, express, priority]
-          description: Optional payment class. When supplied, it should match the class used in the smart-contract payment flow. It affects pricing and any class-based network policies, but it is not a latency SLA.
-        signature:
-          type: string
-          description: Wallet signature of the proposal
-        intentToken:
-          type: string
-          description: Upload intent token (if using intent flow)
-        ipfsCid:
-          type: string
-          description: IPFS CID for client-side upload (default mode)
-        binaryData:
-          type: string
-          description: Legacy base64-encoded binary payload (validator-hosted). Some network policies may require paymentTier=priority for this path.
-        mimeType:
-          type: string
-          description: MIME type for legacy base64 binary payload (validator-hosted)
-        clientId:
-          type: string
-          description: Client identifier (optional, header preferred)
-
-    WriteProposalMultipart:
-      allOf:
-        - $ref: '#/components/schemas/WriteProposalForm'
-        - type: object
-          properties:
-            file:
-              type: string
-              format: binary
-              description: Binary payload (validator-hosted). Some network policies may require paymentTier=priority for this path.
-            mimeType:
-              type: string
-              description: Optional MIME type override
-
-    DeleteProposalForm:
-      type: object
-      required: [walletAddress, signature, contentPath, ethereumTxHash]
-      properties:
-        walletAddress:
-          type: string
-          pattern: ^0x[a-fA-F0-9]{40}$
-        wallet:
-          type: string
-          description: Backward-compatible wallet field (use walletAddress)
-        contentPath:
-          type: string
-          description: Full path to delete (must be under wallet shard)
-        ethereumTxHash:
-          type: string
-          pattern: ^0x[a-fA-F0-9]+$
-          description: Payment transaction hash
-        paymentTier:
-          type: string
-          enum: [standard, express, priority]
-          description: Optional payment class. When supplied, it should match the class used in the smart-contract payment flow. It affects pricing and any class-based network policies, but it is not a latency SLA.
-        signature:
-          type: string
-        clientId:
-          type: string
-          description: Client identifier (optional, header preferred)
-
-    WriteProposalResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        proposalId:
-          type: string
-        type:
-          type: string
-          enum: [WRITE]
-        state:
-          type: string
-          enum: [PENDING, COMMITTED, REJECTED]
-        message:
-          type: string
-        ethereumTxHash:
-          type: string
-        timeoutTimestamp:
-          type: integer
-          format: int64
-        wallet:
-          type: string
-        contentId:
-          type: string
-        storagePath:
-          type: string
-          description: Full path where content was written
-        newHead:
-          type: string
-        contentType:
-          type: string
-        mode:
-          type: string
-          description: Immediate vs queued path
-          enum: [immediate, queued]
-      additionalProperties: true
-
-    DeleteProposalResponse:
-      type: object
-      properties:
-        proposalId:
-          type: string
-        type:
-          type: string
-          enum: [DELETE]
-        state:
-          type: string
-          enum: [PENDING, COMMITTED, REJECTED]
-        message:
-          type: string
-        ethereumTxHash:
-          type: string
-        tier:
-          type: string
-          enum: [STANDARD, EXPRESS, PRIORITY]
-        timeoutTimestamp:
-          type: integer
-          format: int64
-        wallet:
-          type: string
-        contentPath:
-          type: string
-        gcDebtIncurred:
-          type: string
-        totalDebt:
-          type: string
-        pendingDebt:
-          type: string
-        writesBlocked:
-          type: boolean
-      additionalProperties: true
-
-    ProposalStatus:
-      type: object
-      properties:
-        proposalId:
-          type: string
-        state:
-          type: string
-          enum: [PENDING, VERIFIED, COMMITTED, REJECTED, UNKNOWN]
-        ethereumTxHash:
-          type: string
-        timeoutTimestamp:
-          type: integer
-          format: int64
-        confirmedBlock:
-          type: integer
-        rejectionReason:
-          type: string
-        durabilityState:
-          type: string
-        durabilityTimestamp:
-          type: integer
-          format: int64
-        durabilityError:
-          type: string
-        durableHead:
-          type: string
-      additionalProperties: true
-
-    ProposalQueueStats:
-      type: object
-      description: Detailed proposal queue statistics (counts, epochs, tiers, backpressure).
-      properties:
-        mempoolSize:
-          type: integer
-          description: Count of proposals waiting in the mempool (unverified queue).
-        mempoolPendingCount:
-          type: integer
-          description: Pending proposals in the mempool (alias of pendingCount).
-        unverifiedQueueSize:
-          type: integer
-          description: Count of proposals in the unverified queue.
-        verifiedCount:
-          type: integer
-          description: Count of proposals verified and awaiting finality.
-        batchQueueSize:
-          type: integer
-          description: Count of batches ready for Aeron replication.
-        totalProposals:
-          type: integer
-          description: Total proposals tracked in memory.
-      additionalProperties: true
-
-    PaginatedContent:
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/ContentNode'
-        total:
-          type: integer
-        page:
-          type: integer
-        pageSize:
-          type: integer
-        hasMore:
-          type: boolean
-
-    WalletStats:
-      type: object
-      properties:
-        wallet:
-          type: string
-        nodeCount:
-          type: integer
-        totalSize:
-          type: integer
-          format: int64
-        binaryCount:
-          type: integer
-        lastModified:
-          type: integer
-          format: int64
-
-    UploadStatus:
-      type: object
-      properties:
-        status:
-          type: string
-          enum: [PENDING, READY_FOR_UPLOAD, COMPLETED, EXPIRED]
-        epochNumber:
-          type: integer
-          format: int64
-        uploadDeadline:
-          type: integer
-          format: int64
-        cid:
-          type: string
-
-    SSEEvent:
-      type: object
-      properties:
-        type:
-          type: string
-        id:
-          type: string
-        timestamp:
-          type: integer
-          format: int64
-        data:
-          type: object
-
-    ConsensusStatus:
-      type: object
-      properties:
         clusterId:
           type: string
-        leader:
-          $ref: '#/components/schemas/PeerInfo'
-        term:
-          type: integer
-        commitIndex:
-          type: integer
-        role:
-          type: string
-          enum: [leader, follower, candidate]
-
-    ClusterState:
+        data:
+          $ref: '#/components/schemas/FlexibleObject'
+      additionalProperties: false
+    OpsErrorEnvelope:
       type: object
+      required:
+        - version
+        - generatedAt
+        - error
       properties:
-        nodeId:
-          type: integer
-        role:
+        version:
           type: string
-        leaderNodeId:
-          type: integer
-        term:
-          type: integer
-        members:
-          type: array
-          items:
-            type: object
-
-    RaftMetrics:
-      type: object
-      properties:
-        term:
-          type: integer
-        commitIndex:
-          type: integer
-        lastApplied:
-          type: integer
-        logSize:
-          type: integer
-
-    PeerInfo:
-      type: object
-      properties:
-        id:
+          enum:
+            - v1
+        generatedAt:
           type: string
-        wallet:
-          type: string
-        endpoint:
-          type: string
-        role:
-          type: string
-        active:
-          type: boolean
-        lastHeartbeat:
-          type: integer
-          format: int64
-
-    GCCostEstimate:
-      type: object
-      properties:
-        wallet:
-          type: string
-        estimatedCostWei:
-          type: string
-        estimatedCostEth:
-          type: string
-        reclaimableBytes:
-          type: integer
-          format: int64
-        fragmentationRatio:
-          type: number
-
-    GCAccount:
-      type: object
-      properties:
-        wallet:
-          type: string
-        debtWei:
-          type: string
-        debtLimit:
-          type: string
-        pendingGC:
-          type: boolean
-
-    FragmentationMetric:
-      type: object
-      properties:
-        wallet:
-          type: string
-        fragmentationRatio:
-          type: number
-        totalBytes:
-          type: integer
-          format: int64
-        reclaimableBytes:
-          type: integer
-          format: int64
-
-    DeepHealthResponse:
-      type: object
-      properties:
-        status:
-          type: string
-        storage:
+          format: date-time
+        error:
           type: object
+          required:
+            - code
+            - message
+            - retryable
           properties:
-            healthy:
-              type: boolean
-            segmentCount:
-              type: integer
-            diskUsage:
-              type: integer
-              format: int64
-        cluster:
-          type: object
-          properties:
-            healthy:
-              type: boolean
-            role:
+            code:
               type: string
-            leaderConnected:
+            message:
+              type: string
+            retryable:
               type: boolean
-        consensus:
-          type: object
-          properties:
-            healthy:
-              type: boolean
-            term:
-              type: integer
-            commitIndex:
-              type: integer
-
-    ClusterHealth:
-      type: object
-      properties:
-        status:
-          type: string
-        unhealthyReason:
-          type: string
-        reachableCount:
-          type: integer
-        totalMembers:
-          type: integer
-        quorumSize:
-          type: integer
-        hasQuorum:
-          type: boolean
-        lastHeartbeatTime:
-          type: integer
-          format: int64
-        heartbeatAgeMs:
-          type: integer
-          format: int64
-        leaderUrl:
-          type: string
-
+          additionalProperties: true
+      additionalProperties: false
   securitySchemes:
-    bearerAuth:
+    ApiBearer:
       type: http
       scheme: bearer
-      description: Bearer token authentication
-    walletSignature:
-      type: apiKey
-      in: header
-      name: X-Wallet-Signature
-      description: Ethereum wallet signature for authentication
-
+      bearerFormat: opaque
+  responses:
+    OpsOk:
+      description: Successful upstream ops response.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OpsEnvelope'
+    Unauthorized:
+      description: Bearer token required for this lane when edge auth is enabled.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OpsErrorEnvelope'
+    Forbidden:
+      description: Provided bearer token is not permitted for this lane.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OpsErrorEnvelope'
+    NotFound:
+      description: Endpoint not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OpsErrorEnvelope'
+    UpstreamUnavailable:
+      description: Source route unavailable or contract validation failed upstream.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OpsErrorEnvelope'
 security:
-  - bearerAuth: []
-  - walletSignature: []
+  - {}
+  - ApiBearer: []
+paths:
+  /ops/v1/overview:
+    get:
+      tags: [Overview]
+      summary: Remote operational overview.
+      operationId: getOpsOverview
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/header:
+    get:
+      tags: [Overview]
+      summary: Header card model for remote dashboards.
+      operationId: getOpsHeader
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/network:
+    get:
+      tags: [Overview]
+      summary: High-level network health projection.
+      operationId: getOpsNetwork
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/cluster:
+    get:
+      tags: [Cluster]
+      summary: Canonical upstream cluster view.
+      operationId: getOpsCluster
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/raft:
+    get:
+      tags: [Cluster]
+      summary: Edge-composed Raft metrics view.
+      operationId: getOpsRaft
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/replication:
+    get:
+      tags: [Cluster]
+      summary: Canonical upstream replication view.
+      operationId: getOpsReplication
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/queue:
+    get:
+      tags: [Proposals]
+      summary: Queue pressure summary.
+      operationId: getOpsQueue
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/signals:
+    get:
+      tags: [Overview]
+      summary: Derived health signals across source routes.
+      operationId: getOpsSignals
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/durability:
+    get:
+      tags: [Proposals]
+      summary: Durability acknowledgement projection.
+      operationId: getOpsDurability
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/health:
+    get:
+      tags: [Overview]
+      summary: Edge-owned remote health contract.
+      operationId: getOpsHealth
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/proposals:
+    get:
+      tags: [Proposals]
+      summary: Proposal state rollup.
+      operationId: getOpsProposals
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/proposals/queue/stats:
+    get:
+      tags: [Proposals]
+      summary: Queue and finality counters.
+      operationId: getOpsProposalsQueueStats
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/proposals/release-flow:
+    get:
+      tags: [Proposals]
+      summary: Canonical upstream release-flow view.
+      operationId: getOpsProposalsReleaseFlow
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/proposals/epochs:
+    get:
+      tags: [Proposals]
+      summary: Upstream epoch compatibility overlay.
+      operationId: getOpsProposalsEpochs
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/explorer/summary:
+    get:
+      tags: [Explorer]
+      summary: Explorer summary contract.
+      operationId: getOpsExplorerSummary
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/explorer/release-flow:
+    get:
+      tags: [Explorer]
+      summary: Explorer release-flow projection.
+      operationId: getOpsExplorerReleaseFlow
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/runtime/aeron:
+    get:
+      tags: [Runtime]
+      summary: Runtime lane Aeron view.
+      description: This route can require the stricter runtime bearer token when edge runtime auth is enabled.
+      operationId: getOpsRuntimeAeron
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/runtime/media-driver:
+    get:
+      tags: [Runtime]
+      summary: Runtime lane media-driver view.
+      description: This route can require the stricter runtime bearer token when edge runtime auth is enabled.
+      operationId: getOpsRuntimeMediaDriver
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/runtime/storage:
+    get:
+      tags: [Runtime]
+      summary: Runtime lane storage view.
+      description: This route can require the stricter runtime bearer token when edge runtime auth is enabled.
+      operationId: getOpsRuntimeStorage
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/runtime/blobstore:
+    get:
+      tags: [Runtime]
+      summary: Runtime lane blob-store view.
+      description: This route can require the stricter runtime bearer token when edge runtime auth is enabled.
+      operationId: getOpsRuntimeBlobstore
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/runtime/metrics:
+    get:
+      tags: [Runtime]
+      summary: Runtime lane metrics view.
+      description: This route can require the stricter runtime bearer token when edge runtime auth is enabled.
+      operationId: getOpsRuntimeMetrics
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/config/osgi:
+    get:
+      tags: [Configuration]
+      summary: Effective OSGi values.
+      operationId: getOpsConfigOsgi
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/config/osgi/schema:
+    get:
+      tags: [Configuration]
+      summary: OSGi metadata schema.
+      operationId: getOpsConfigOsgiSchema
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/config/osgi/sources:
+    get:
+      tags: [Configuration]
+      summary: OSGi source provenance.
+      operationId: getOpsConfigOsgiSources
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/config/osgi/coverage:
+    get:
+      tags: [Configuration]
+      summary: OSGi coverage and gaps.
+      operationId: getOpsConfigOsgiCoverage
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/config/osgi/delta:
+    get:
+      tags: [Configuration]
+      summary: OSGi delta from defaults.
+      operationId: getOpsConfigOsgiDelta
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/events/recent:
+    get:
+      tags: [Events]
+      summary: Recent edge-published events.
+      operationId: getOpsEventsRecent
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: Maximum events to return.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/events/stats:
+    get:
+      tags: [Events]
+      summary: Event totals and breakouts.
+      operationId: getOpsEventsStats
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/transactions/summary:
+    get:
+      tags: [Transactions]
+      summary: Transaction state rollup.
+      operationId: getOpsTransactionsSummary
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/transactions/{transactionId}:
+    get:
+      tags: [Transactions]
+      summary: Transaction detail projection.
+      operationId: getOpsTransactionDetail
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/finality:
+    get:
+      tags: [Proposals]
+      summary: Finality rollup.
+      operationId: getOpsFinality
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/tarmk:
+    get:
+      tags: [Storage]
+      summary: TAR growth rollup.
+      operationId: getOpsTarmk
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/tar-chain:
+    get:
+      tags: [Storage]
+      summary: TAR chain detail.
+      operationId: getOpsTarChain
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/blockchain/config:
+    get:
+      tags: [Configuration]
+      summary: Blockchain mode publication.
+      operationId: getOpsBlockchainConfig
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/gc/status:
+    get:
+      tags: [GC]
+      summary: GC status publication.
+      operationId: getOpsGcStatus
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/gc/estimate:
+    get:
+      tags: [GC]
+      summary: GC estimate publication.
+      operationId: getOpsGcEstimate
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/compaction/proposals:
+    get:
+      tags: [GC]
+      summary: Compaction proposal publication.
+      operationId: getOpsCompactionProposals
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /ops/v1/fragmentation/metrics:
+    get:
+      tags: [GC]
+      summary: Fragmentation metrics publication.
+      operationId: getOpsFragmentationMetrics
+      responses:
+        '200':
+          $ref: '#/components/responses/OpsOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamUnavailable'

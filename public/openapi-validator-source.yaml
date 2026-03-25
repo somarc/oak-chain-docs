@@ -1,0 +1,507 @@
+openapi: 3.1.0
+info:
+  title: Oak Chain Validator Source Contract
+  version: 1.0.0
+  summary: Governed validator-native routes exposed directly by `jackrabbit-oak`.
+  description: |
+    This spec documents the governed validator-native routes that upstream composition may consume.
+    It excludes local UI, local-diagnostic, and internal mutation routes.
+
+    The live validator manifest remains `/v1/index`, but that manifest currently misclassifies `/v1/gc/estimate` and `/v1/proposals/epochs` as `internal`.
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+servers:
+  - url: http://127.0.0.1:8090
+    description: Local validator runtime.
+tags:
+  - name: Consensus
+    description: Leader, status, and queue contracts.
+  - name: Ops Snapshots
+    description: Governed runtime, storage, cluster, replication, and health snapshots.
+  - name: Explorer
+    description: Explorer contracts emitted by the validator.
+  - name: Configuration
+    description: Governed OSGi and blockchain configuration routes.
+  - name: Events
+    description: Event history and counters.
+  - name: GC
+    description: GC and compaction contracts.
+  - name: Fragmentation
+    description: Fragmentation metrics contracts.
+components:
+  schemas:
+    FlexibleObject:
+      type: object
+      additionalProperties: true
+    ContractedObject:
+      type: object
+      required:
+        - contractVersion
+      properties:
+        contractVersion:
+          type: string
+      additionalProperties: true
+    SourceSnapshotEnvelope:
+      type: object
+      required:
+        - contractVersion
+        - data
+      properties:
+        contractVersion:
+          type: string
+        sourceTimestampMs:
+          type: integer
+          format: int64
+        servedAtMs:
+          type: integer
+          format: int64
+        stalenessMs:
+          type: integer
+          format: int64
+        degraded:
+          type: boolean
+        degradedReason:
+          type: string
+        cache:
+          type: object
+          properties:
+            hit:
+              type: boolean
+            ttlMs:
+              type: integer
+              format: int64
+          additionalProperties: true
+        data:
+          $ref: '#/components/schemas/FlexibleObject'
+      additionalProperties: false
+    SourceError:
+      type: object
+      additionalProperties: true
+  securitySchemes:
+    ValidatorBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque
+  responses:
+    ContractedOk:
+      description: Successful validator source response.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ContractedObject'
+    SnapshotOk:
+      description: Successful governed snapshot response.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SourceSnapshotEnvelope'
+    SourceError:
+      description: Validator source error response.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SourceError'
+security:
+  - {}
+  - ValidatorBearer: []
+paths:
+  /v1/consensus/leader:
+    get:
+      tags: [Consensus]
+      summary: Canonical leader-resolution route.
+      operationId: getValidatorConsensusLeader
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/consensus/status:
+    get:
+      tags: [Consensus]
+      summary: Canonical consensus status route.
+      operationId: getValidatorConsensusStatus
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/ops/snapshots/health:
+    get:
+      tags: [Ops Snapshots]
+      summary: Governed health snapshot.
+      description: Public source snapshot that bypasses validator token auth.
+      operationId: getValidatorOpsHealthSnapshot
+      responses:
+        '200':
+          $ref: '#/components/responses/SnapshotOk'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/ops/snapshots/runtime:
+    get:
+      tags: [Ops Snapshots]
+      summary: Governed runtime snapshot.
+      description: Public source snapshot that bypasses validator token auth.
+      operationId: getValidatorOpsRuntimeSnapshot
+      responses:
+        '200':
+          $ref: '#/components/responses/SnapshotOk'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/ops/snapshots/storage:
+    get:
+      tags: [Ops Snapshots]
+      summary: Governed storage snapshot.
+      description: Public source snapshot that bypasses validator token auth.
+      operationId: getValidatorOpsStorageSnapshot
+      responses:
+        '200':
+          $ref: '#/components/responses/SnapshotOk'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/ops/snapshots/cluster:
+    get:
+      tags: [Ops Snapshots]
+      summary: Governed cluster snapshot.
+      operationId: getValidatorOpsClusterSnapshot
+      responses:
+        '200':
+          $ref: '#/components/responses/SnapshotOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/ops/snapshots/replication:
+    get:
+      tags: [Ops Snapshots]
+      summary: Governed replication snapshot.
+      operationId: getValidatorOpsReplicationSnapshot
+      responses:
+        '200':
+          $ref: '#/components/responses/SnapshotOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/ops/snapshots/queue:
+    get:
+      tags: [Ops Snapshots]
+      summary: Governed queue snapshot.
+      operationId: getValidatorOpsQueueSnapshot
+      responses:
+        '200':
+          $ref: '#/components/responses/SnapshotOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/proposals/queue/stats:
+    get:
+      tags: [Consensus]
+      summary: Queue and finality counters.
+      operationId: getValidatorProposalQueueStats
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/proposals/release-flow:
+    get:
+      tags: [Consensus]
+      summary: Adaptive release-flow contract.
+      operationId: getValidatorProposalReleaseFlow
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/proposals/epochs:
+    get:
+      tags: [Consensus]
+      summary: Epoch compatibility overlay.
+      description: Governed source route consumed by the edge worker despite the current `/v1/index` classification mismatch.
+      operationId: getValidatorProposalEpochs
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/explorer/summary:
+    get:
+      tags: [Explorer]
+      summary: Explorer summary contract.
+      operationId: getValidatorExplorerSummary
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/explorer/release-flow:
+    get:
+      tags: [Explorer]
+      summary: Explorer release-flow contract.
+      operationId: getValidatorExplorerReleaseFlow
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/explorer/proposals/{proposalId}:
+    get:
+      tags: [Explorer]
+      summary: Explorer proposal detail.
+      description: Governed validator source route that is not yet published upstream by `oak-chain-edge-worker`.
+      operationId: getValidatorExplorerProposalDetail
+      parameters:
+        - name: proposalId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '400':
+          $ref: '#/components/responses/SourceError'
+        '404':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/explorer/wallets/{walletAddress}:
+    get:
+      tags: [Explorer]
+      summary: Explorer wallet detail.
+      description: Governed validator source route that is not yet published upstream by `oak-chain-edge-worker`.
+      operationId: getValidatorExplorerWalletDetail
+      parameters:
+        - name: walletAddress
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '400':
+          $ref: '#/components/responses/SourceError'
+        '404':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/config/osgi:
+    get:
+      tags: [Configuration]
+      summary: Effective OSGi values.
+      operationId: getValidatorConfigOsgi
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/config/osgi/schema:
+    get:
+      tags: [Configuration]
+      summary: OSGi metadata schema.
+      operationId: getValidatorConfigOsgiSchema
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/config/osgi/sources:
+    get:
+      tags: [Configuration]
+      summary: OSGi source provenance.
+      operationId: getValidatorConfigOsgiSources
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/config/osgi/coverage:
+    get:
+      tags: [Configuration]
+      summary: OSGi coverage and gaps.
+      operationId: getValidatorConfigOsgiCoverage
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/config/osgi/delta:
+    get:
+      tags: [Configuration]
+      summary: OSGi delta from defaults.
+      operationId: getValidatorConfigOsgiDelta
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/events/recent:
+    get:
+      tags: [Events]
+      summary: Recent validator events.
+      operationId: getValidatorEventsRecent
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/events/stats:
+    get:
+      tags: [Events]
+      summary: Event counters and type breakdowns.
+      operationId: getValidatorEventsStats
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/blockchain/config:
+    get:
+      tags: [Configuration]
+      summary: Effective blockchain mode and network contract.
+      operationId: getValidatorBlockchainConfig
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/gc/status:
+    get:
+      tags: [GC]
+      summary: GC status contract.
+      operationId: getValidatorGcStatus
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/gc/estimate:
+    get:
+      tags: [GC]
+      summary: GC estimate contract.
+      description: Governed source route consumed by the edge worker despite the current `/v1/index` classification mismatch.
+      operationId: getValidatorGcEstimate
+      parameters:
+        - name: revision
+          in: query
+          required: false
+          description: Optional target revision instead of HEAD.
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '400':
+          $ref: '#/components/responses/SourceError'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/compaction/proposals:
+    get:
+      tags: [GC]
+      summary: Compaction proposal contract.
+      operationId: getValidatorCompactionProposals
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/fragmentation/metrics:
+    get:
+      tags: [Fragmentation]
+      summary: Fragmentation metrics.
+      operationId: getValidatorFragmentationMetrics
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/fragmentation/metrics/{walletAddress}:
+    get:
+      tags: [Fragmentation]
+      summary: Fragmentation metrics for one wallet.
+      description: Governed validator source route that is not yet published upstream by `oak-chain-edge-worker`.
+      operationId: getValidatorFragmentationMetricsByWallet
+      parameters:
+        - name: walletAddress
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '404':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
+  /v1/fragmentation/top:
+    get:
+      tags: [Fragmentation]
+      summary: Top fragmented wallets.
+      description: Governed validator source route that is not yet published upstream by `oak-chain-edge-worker`.
+      operationId: getValidatorFragmentationTop
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          $ref: '#/components/responses/ContractedOk'
+        '401':
+          $ref: '#/components/responses/SourceError'
+        '503':
+          $ref: '#/components/responses/SourceError'
