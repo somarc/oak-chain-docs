@@ -5,7 +5,7 @@ next: /guide/auth
 
 # API Reference
 
-Authoritative, full mapping of the Oak Chain validator HTTP API.
+Authoritative mapping of the Oak Chain validator HTTP API and its governed source contract.
 
 **Source of truth:** `public/openapi.yaml`. The API browser UI at `/api-browser` is generated from live validator state and should match this page.
 
@@ -36,7 +36,7 @@ All write operations require:
 1. **Ethereum wallet signature** (signed message)
 2. **Payment transaction hash** (Ethereum payment)
 
-Read operations are public.
+Validator read operations are public by default unless validator token auth is enabled. Browser product surfaces should still consume edge-owned `/ops/v1/*` endpoints rather than raw validator routes.
 
 ---
 
@@ -46,6 +46,9 @@ Read operations are public.
 - `GET /health`
 - `GET /health/deep`
 - `GET /health/cluster`
+- `GET /v1/ops/snapshots/health`
+- `GET /v1/ops/snapshots/runtime`
+- `GET /v1/ops/snapshots/storage`
 - `GET /metrics` (Prometheus)
 - `GET /api/metrics` (JSON; local/dev only)
 
@@ -88,10 +91,14 @@ Additional fields are included per endpoint.
 
 ### Cluster & Consensus
 - `GET /v1/consensus/status`
+- `GET /v1/consensus/leader`
 - `GET /v1/head`
 - `GET /v1/peers`
 - `GET /v1/ngrok-url`
 - `GET /v1/blockchain/config`
+- `GET /v1/ops/snapshots/cluster`
+- `GET /v1/ops/snapshots/replication`
+- `GET /v1/ops/snapshots/queue`
 - `GET /v1/aeron/cluster-state`
 - `GET /v1/aeron/raft-metrics`
 - `GET /v1/aeron/node-status`
@@ -101,9 +108,26 @@ Additional fields are included per endpoint.
 
 ---
 
-## Consensus & Proposals (Primary Operational Surface)
+## Consensus & Proposals (Primary Validator-Native Operational Surface)
 
-These endpoints are the core surface used by operators, dashboards, and automation.
+These endpoints are the core validator-native surface used by operators, edge adapters, and automation.
+
+Use `/v1/index` first. It classifies validator routes as `source`, `local-ui`, `local-diagnostic`, or `internal`, and tells you which routes are valid upstream inputs.
+
+Browser dashboards should prefer gateway-shaped `/ops/v1/*` contracts rather than coupling directly to raw validator `/v1/*` routes. Canonical upstream composition should use the governed source routes:
+
+- `/v1/consensus/leader`
+- `/v1/consensus/status`
+- `/v1/ops/snapshots/{health,runtime,storage,cluster,replication,queue}`
+- `/v1/proposals/release-flow`
+- `/v1/explorer/*`
+- `/v1/config/osgi*`
+- `/v1/events/{recent,stats}`
+- `/v1/blockchain/config`
+- `/v1/gc/status`
+- `/v1/gc/estimate`
+- `/v1/compaction/proposals`
+- `/v1/fragmentation/*`
 
 ### Proposal Queue and Finalization
 
@@ -136,6 +160,9 @@ These endpoints are the core surface used by operators, dashboards, and automati
 
 ### Consensus and Cluster State
 
+- `GET /v1/consensus/leader`
+  - Canonical leader-resolution surface for validator-native consumers and gateway adapters.
+
 - `GET /v1/consensus/status`
   - Current role/term and consensus status view.
 
@@ -150,7 +177,7 @@ These endpoints are the core surface used by operators, dashboards, and automati
 - `GET /v1/aeron/node-status`
 - `GET /v1/aeron/leadership-history`
 - `GET /v1/aeron/replication-lag`
-  - Aeron/Raft internals for leadership, lag, and replica health.
+  - Deeper Aeron/Raft internals for leadership, lag, and replica health.
 
 ### Write/Delete Proposal Submission
 
@@ -167,10 +194,14 @@ These endpoints are the core surface used by operators, dashboards, and automati
 # Primary queue/finality health
 curl -s http://127.0.0.1:8090/v1/proposals/queue/stats | jq .
 
-# Consensus + replication health
+# Canonical leader lookup + consensus health
+curl -s http://127.0.0.1:8090/v1/consensus/leader | jq .
 curl -s http://127.0.0.1:8090/v1/consensus/status | jq .
-curl -s http://127.0.0.1:8090/v1/aeron/replication-lag | jq .
-curl -s http://127.0.0.1:8090/v1/aeron/cluster-state | jq .
+curl -s http://127.0.0.1:8090/v1/ops/snapshots/replication | jq .
+
+# Governed runtime/storage sources for edge adapters and operator tooling
+curl -s http://127.0.0.1:8090/v1/ops/snapshots/runtime | jq .
+curl -s http://127.0.0.1:8090/v1/ops/snapshots/storage | jq .
 ```
 
 For signal interpretation guidance, see [Oak Chain Primary Signals](/guide/primary-signals).
@@ -195,6 +226,8 @@ For signal interpretation guidance, see [Oak Chain Primary Signals](/guide/prima
 ### Segments (Advanced)
 - `GET /api/segments/recent`
 - `GET /api/segments/tars`
+
+These are local diagnostic routes. Upstream `/ops/v1/*` consumers should use `/v1/ops/snapshots/storage` instead.
 
 ### Internal / UI
 - `GET /api-browser`

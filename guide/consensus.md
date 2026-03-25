@@ -144,21 +144,25 @@ export AERON_CLUSTER_MEMBERS=0,localhost:20000,localhost:20001,localhost:20002|1
 
 ### Key Metrics
 
+Use `/v1/consensus/leader` for normalized leader lookup. Use `/v1/ops/snapshots/runtime` for the governed runtime/operator view. Raw `/v1/aeron/*` routes remain local-diagnostic detail, not the preferred upstream composition contract.
+
 ```bash
-# Cluster state
-curl http://localhost:8090/v1/aeron/cluster-state
+# Canonical leader lookup
+curl http://localhost:8090/v1/consensus/leader
 
 # Response
 {
-  "role": "LEADER",
-  "leadershipTermId": 42,
-  "clusterMemberCount": 3,
-  "members": [
-    {"memberId": 0, "role": "LEADER"},
-    {"memberId": 1, "role": "FOLLOWER"},
-    {"memberId": 2, "role": "FOLLOWER"}
-  ]
+  "contractVersion": "consensus.leader.v1",
+  "consensusType": "aeron-cluster",
+  "currentRole": "LEADER",
+  "isLeader": true,
+  "currentTerm": 42,
+  "currentLeader": "http://validator-0:8090",
+  "leaderKnown": true
 }
+
+# Governed runtime/operator detail
+curl http://localhost:8090/v1/ops/snapshots/runtime
 ```
 
 ### Prometheus Metrics

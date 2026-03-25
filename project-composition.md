@@ -17,7 +17,7 @@ Oak Chain is a composite system, not an AEM runtime. It combines:
 
 - A headless validator system built on Oak internals.
 - A consensus-driven content repository with wallet-scoped ownership.
-- An API-first platform where dashboards/workers are consumers of the API contract.
+- An API-first platform with separate validator-native and gateway-facing contracts.
 
 ## What Oak Chain Is Not
 
@@ -53,17 +53,31 @@ Operational control is via APIs, scripts, logs, and consensus-safe workflows.
 - Validator side tracks references (CIDs and mappings).
 - Keeps heavy binary payload off validator state machine critical path.
 
-### 5) API Surface (Contract)
+### 5) Validator-Native API Surface (Machine/Operator Contract)
 
-Primary public operational contract includes:
-- `/v1/proposals/queue/stats`
+Primary governed source contract includes:
+- `/v1/consensus/leader`
 - `/v1/consensus/status`
-- `/v1/aeron/*`
-- `/v1/gc/*`
+- `/v1/ops/snapshots/{health,runtime,storage,cluster,replication,queue}`
+- `/v1/proposals/release-flow`
+- `/v1/explorer/*`
+- `/v1/config/osgi*`
+- `/v1/events/{recent,stats}`
+- `/v1/blockchain/config`
+- `/v1/gc/status`
+- `/v1/gc/estimate`
 - `/v1/fragmentation/*`
 - `/v1/compaction/proposals`
 
-Dashboards, edge workers, and CLIs should consume this contract directly.
+Edge workers, CLIs, and operator automation should prefer this governed source contract.
+
+Raw local-diagnostic routes still exist for on-box operations and deep inspection:
+- `/v1/aeron/*`
+- `/health/deep`
+- `/api/metrics`
+- `/api/segments/*`
+
+Browser dashboards should prefer a gateway/BFF contract such as `/ops/v1/*` rather than coupling directly to raw validator `/v1/*` routes.
 
 ## Why This Composition Matters
 
